@@ -50,7 +50,7 @@ export async function requireAdmin(): Promise<MemberRecord> {
   const member = await getCurrentMember();
 
   if (!member || member.role !== "admin" || member.disabled_at) {
-    redirect("/dashboard");
+    redirect("/cashflow");
   }
 
   return member;

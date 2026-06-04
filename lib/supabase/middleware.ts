@@ -57,16 +57,29 @@ export async function updateSession(request: NextRequest) {
   }
 
   if (user && pathname === "/login") {
-    const dashboardUrl = request.nextUrl.clone();
-    dashboardUrl.pathname = "/dashboard";
-    dashboardUrl.search = "";
-    return NextResponse.redirect(dashboardUrl);
+    const cashflowUrl = request.nextUrl.clone();
+    cashflowUrl.pathname = "/cashflow";
+    cashflowUrl.search = "";
+    return NextResponse.redirect(cashflowUrl);
   }
 
   if (user && pathname === "/") {
-    const dashboardUrl = request.nextUrl.clone();
-    dashboardUrl.pathname = "/dashboard";
-    return NextResponse.redirect(dashboardUrl);
+    const cashflowUrl = request.nextUrl.clone();
+    cashflowUrl.pathname = "/cashflow";
+    return NextResponse.redirect(cashflowUrl);
+  }
+
+  if (pathname === "/dashboard") {
+    const cashflowUrl = request.nextUrl.clone();
+    cashflowUrl.pathname = "/cashflow";
+    cashflowUrl.search = "";
+    return NextResponse.redirect(cashflowUrl);
+  }
+
+  if (pathname === "/users" || pathname.startsWith("/users/")) {
+    const usersUrl = request.nextUrl.clone();
+    usersUrl.pathname = "/settings/users";
+    return NextResponse.redirect(usersUrl);
   }
 
   if (user && !isPublicPath(pathname)) {
@@ -84,11 +97,14 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(disabledUrl);
     }
 
-    if (pathname.startsWith("/users") && member.role !== "admin") {
-      const dashboardUrl = request.nextUrl.clone();
-      dashboardUrl.pathname = "/dashboard";
-      dashboardUrl.search = "";
-      return NextResponse.redirect(dashboardUrl);
+    if (
+      (pathname === "/settings/users" || pathname.startsWith("/settings/users/")) &&
+      member.role !== "admin"
+    ) {
+      const categoriesUrl = request.nextUrl.clone();
+      categoriesUrl.pathname = "/settings/categories";
+      categoriesUrl.search = "";
+      return NextResponse.redirect(categoriesUrl);
     }
   }
 

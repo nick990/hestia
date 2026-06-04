@@ -26,6 +26,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -39,6 +46,7 @@ import {
   formatSignedAmount,
 } from "@/lib/cashflow/format";
 import { shiftMonthKey } from "@/lib/cashflow/month";
+import type { MovementCategoryOption } from "@/lib/categories/types";
 import type { MonthSummary, Movement, MovementType } from "@/lib/cashflow/types";
 import { cn } from "@/lib/utils";
 import { ChevronLeftIcon, ChevronRightIcon, MoreHorizontalIcon } from "lucide-react";
@@ -60,6 +68,7 @@ type MovementsManagerProps = {
   monthLabel: string;
   movements: Movement[];
   summary: MonthSummary;
+  categories: MovementCategoryOption[];
 };
 
 export function MovementsManager({
@@ -67,6 +76,7 @@ export function MovementsManager({
   monthLabel,
   movements,
   summary,
+  categories,
 }: MovementsManagerProps) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -77,6 +87,7 @@ export function MovementsManager({
   const [amount, setAmount] = useState("");
   const [occurredOn, setOccurredOn] = useState(todayIsoDate());
   const [description, setDescription] = useState("");
+  const [categoryId, setCategoryId] = useState("none");
 
   function resetFormForCreate() {
     setEditingMovement(null);
@@ -84,6 +95,7 @@ export function MovementsManager({
     setAmount("");
     setOccurredOn(todayIsoDate());
     setDescription("");
+    setCategoryId("none");
   }
 
   function openCreateDialog() {
@@ -97,6 +109,7 @@ export function MovementsManager({
     setAmount(String(movement.amount));
     setOccurredOn(movement.occurred_on);
     setDescription(movement.description);
+    setCategoryId(movement.category_id ?? "none");
     setDialogOpen(true);
   }
 
@@ -122,6 +135,7 @@ export function MovementsManager({
         amount,
         occurredOn,
         description,
+        categoryId: categoryId === "none" ? null : categoryId,
       };
 
       const result = editingMovement
@@ -244,6 +258,25 @@ export function MovementsManager({
                 />
               </div>
               <div className="space-y-2">
+                <Label htmlFor="category">Categoria</Label>
+                <Select
+                  value={categoryId}
+                  onValueChange={(value) => setCategoryId(value ?? "none")}
+                >
+                  <SelectTrigger id="category" className="w-full">
+                    <SelectValue placeholder="Nessuna" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Nessuna</SelectItem>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="description">Descrizione</Label>
                 <Input
                   id="description"
@@ -339,6 +372,7 @@ export function MovementsManager({
             <TableRow>
               <TableHead>Data</TableHead>
               <TableHead>Descrizione</TableHead>
+              <TableHead>Categoria</TableHead>
               <TableHead className="text-right">Importo</TableHead>
               <TableHead className="w-12 text-right">Azioni</TableHead>
             </TableRow>
@@ -347,7 +381,7 @@ export function MovementsManager({
             {movements.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={4}
+                  colSpan={5}
                   className="space-y-3 py-8 text-center text-muted-foreground"
                 >
                   <p>Nessun movimento in {monthLabel}.</p>
@@ -364,6 +398,9 @@ export function MovementsManager({
                   </TableCell>
                   <TableCell className="max-w-xs truncate font-medium">
                     {movement.description}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {movement.category_name ?? "—"}
                   </TableCell>
                   <TableCell
                     className={cn(

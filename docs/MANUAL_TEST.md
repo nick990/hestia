@@ -4,16 +4,16 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 
 ## Members (utenti autorizzati)
 
-- [ ] Inserisci la tua email Google in `members` con ruolo `admin` (SQL o `/users`).
+- [ ] Inserisci la tua email Google in `members` con ruolo `admin` (SQL o Impostazioni → Utenti).
 - [ ] Verifica che dopo il login `auth_user_id` sia valorizzato e esista una riga in `profiles`.
 
 ## Login autorizzato
 
 1. Apri `/login` in incognito.
 2. Clic **Accedi con Google** con un account **presente** in `members`.
-3. Atteso: redirect a `/dashboard`, email visibile nella card.
-4. Apri `/` → redirect a `/dashboard`.
-5. Clic **Esci** → redirect a `/login`, `/dashboard` reindirizza di nuovo a `/login`.
+3. Atteso: redirect a `/cashflow`.
+4. Apri `/` → redirect a `/cashflow`.
+5. Clic **Esci** → redirect a `/login`; `/cashflow` reindirizza di nuovo a `/login`.
 
 ## Login non autorizzato
 
@@ -22,14 +22,19 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 
 ## Middleware
 
-- [ ] Visita `/dashboard` senza sessione → redirect `/login?next=/dashboard`.
-- [ ] Dopo login, visita `/login` → redirect `/dashboard`.
+- [ ] Visita `/cashflow` senza sessione → redirect `/login?next=/cashflow`.
+- [ ] Dopo login, visita `/login` → redirect `/cashflow`.
+- [ ] Visita `/dashboard` → redirect `/cashflow`.
+
+## Nav e Impostazioni
+
+- [ ] Nav: **Cashflow** e **Impostazioni** (nessuna Dashboard).
+- [ ] User: Impostazioni → sidebar solo **Categorie**; `/settings/users` → redirect `/settings/categories`.
+- [ ] Admin: sidebar **Categorie** + **Utenti**; `/users` → redirect `/settings/users`.
 
 ## Ruoli admin / user
 
-- [ ] Admin vede link **Utenti** in nav e accede a `/users`.
-- [ ] User (non admin) **non** vede link Utenti; visita `/users` → redirect `/dashboard`.
-- [ ] Admin aggiunge email + ruolo da `/users` → compare in lista come "In attesa".
+- [ ] Admin aggiunge email + ruolo da Impostazioni → Utenti → compare in lista come "In attesa".
 - [ ] Admin promuove/degrada ruolo → badge aggiornato.
 - [ ] Admin disabilita utente → stato "Disabilitato"; utente sloggato al prossimo request → `/account-disabled`.
 - [ ] Admin riattiva utente disabilitato → può rifare login.
@@ -55,6 +60,15 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 - [ ] **Elimina** con conferma → scompare; totali aggiornati.
 - [ ] Secondo utente (altro login) non vede movimenti del primo (RLS).
 - [ ] Mese senza movimenti → empty state con CTA.
+- [ ] Movimento con categoria opzionale → colonna Categoria in tabella.
+- [ ] Movimento senza categoria → «—» in tabella.
+
+## Categorie (Impostazioni)
+
+- [ ] Admin crea/modifica categoria.
+- [ ] User vede lista categorie senza pulsanti modifica.
+- [ ] Elimina categoria senza movimenti → OK.
+- [ ] Elimina categoria con movimenti → select destinazione obbligatoria → movimenti riassegnati.
 
 ## Callback
 

@@ -14,7 +14,7 @@ import { revalidatePath } from "next/cache";
 type ActionResult = { ok: true } | { ok: false; error: string };
 
 function revalidateUsers() {
-  revalidatePath("/users");
+  revalidatePath("/settings/users");
 }
 
 async function getMemberById(id: string) {

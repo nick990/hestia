@@ -7,6 +7,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { formatMonthLabel, parseMonthParam } from "@/lib/cashflow/month";
+import { listCategoryOptions } from "@/lib/categories/queries";
 import { getMonthSummary, listMovementsForMonth } from "@/lib/cashflow/queries";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
@@ -27,9 +28,10 @@ export default async function CashflowPage({ searchParams }: PageProps) {
 
   const params = await searchParams;
   const monthKey = parseMonthParam(params.month);
-  const [movements, summary] = await Promise.all([
+  const [movements, summary, categories] = await Promise.all([
     listMovementsForMonth(monthKey),
     getMonthSummary(monthKey),
+    listCategoryOptions(),
   ]);
 
   return (
@@ -47,6 +49,7 @@ export default async function CashflowPage({ searchParams }: PageProps) {
             monthLabel={formatMonthLabel(monthKey)}
             movements={movements}
             summary={summary}
+            categories={categories}
           />
         </CardContent>
       </Card>

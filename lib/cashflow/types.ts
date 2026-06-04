@@ -7,6 +7,8 @@ export type Movement = {
   occurred_on: string;
   description: string;
   created_at: string;
+  category_id: string | null;
+  category_name: string | null;
 };
 
 export type MonthSummary = {

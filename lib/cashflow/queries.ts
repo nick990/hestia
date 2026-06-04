@@ -2,14 +2,23 @@ import { monthDateBounds } from "@/lib/cashflow/month";
 import type { MonthSummary, Movement } from "@/lib/cashflow/types";
 import { createClient } from "@/lib/supabase/server";
 
-function mapMovement(row: {
+type MovementRow = {
   id: string;
   type: string;
   amount: number | string;
   occurred_on: string;
   description: string;
   created_at: string;
-}): Movement {
+  category_id: string | null;
+  movement_categories: { name: string } | { name: string }[] | null;
+};
+
+function mapMovement(row: MovementRow): Movement {
+  const categoryRelation = row.movement_categories;
+  const categoryName = Array.isArray(categoryRelation)
+    ? (categoryRelation[0]?.name ?? null)
+    : (categoryRelation?.name ?? null);
+
   return {
     id: row.id,
     type: row.type as Movement["type"],
@@ -17,6 +26,8 @@ function mapMovement(row: {
     occurred_on: row.occurred_on,
     description: row.description,
     created_at: row.created_at,
+    category_id: row.category_id,
+    category_name: categoryName,
   };
 }
 
@@ -28,7 +39,9 @@ export async function listMovementsForMonth(
 
   const { data, error } = await supabase
     .from("movements")
-    .select("id, type, amount, occurred_on, description, created_at")
+    .select(
+      "id, type, amount, occurred_on, description, created_at, category_id, movement_categories(name)",
+    )
     .gte("occurred_on", start)
     .lte("occurred_on", end)
     .order("occurred_on", { ascending: false })
@@ -38,7 +51,7 @@ export async function listMovementsForMonth(
     throw new Error(error.message);
   }
 
-  return (data ?? []).map(mapMovement);
+  return (data ?? []).map((row) => mapMovement(row as MovementRow));
 }
 
 export async function getMonthSummary(monthKey: string): Promise<MonthSummary> {

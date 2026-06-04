@@ -4,9 +4,8 @@ import { getCurrentMember } from "@/lib/auth/member";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "/dashboard", label: "Dashboard", adminOnly: false },
   { href: "/cashflow", label: "Cashflow", adminOnly: false },
-  { href: "/users", label: "Utenti", adminOnly: true },
+  { href: "/settings", label: "Impostazioni", adminOnly: false },
 ] as const;
 
 export async function AppNav() {
@@ -17,7 +16,7 @@ export async function AppNav() {
     <header className="border-b bg-background">
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-4 px-6">
         <div className="flex items-center gap-6">
-          <Link href="/dashboard" className="text-sm font-semibold tracking-tight">
+          <Link href="/cashflow" className="text-sm font-semibold tracking-tight">
             Hestia
           </Link>
           <nav className="flex items-center gap-1">

@@ -47,11 +47,45 @@ function parseOccurredOn(raw: string): string | null {
   return raw;
 }
 
+function parseCategoryId(raw: string | null | undefined): string | null {
+  if (!raw || raw === "none") {
+    return null;
+  }
+
+  return raw;
+}
+
+async function validateCategoryId(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  categoryId: string | null,
+): Promise<ActionResult | null> {
+  if (!categoryId) {
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from("movement_categories")
+    .select("id")
+    .eq("id", categoryId)
+    .maybeSingle();
+
+  if (error) {
+    return { ok: false, error: error.message };
+  }
+
+  if (!data) {
+    return { ok: false, error: "Categoria non valida." };
+  }
+
+  return null;
+}
+
 export async function createMovement(input: {
   type: string;
   amount: string;
   occurredOn: string;
   description: string;
+  categoryId?: string | null;
 }): Promise<ActionResult> {
   const supabase = await createClient();
   const {
@@ -83,12 +117,20 @@ export async function createMovement(input: {
     return { ok: false, error: "La descrizione è obbligatoria." };
   }
 
+  const category_id = parseCategoryId(input.categoryId);
+  const categoryError = await validateCategoryId(supabase, category_id);
+
+  if (categoryError) {
+    return categoryError;
+  }
+
   const { error } = await supabase.from("movements").insert({
     user_id: user.id,
     type,
     amount,
     occurred_on,
     description,
+    category_id,
   });
 
   if (error) {
@@ -106,6 +148,7 @@ export async function updateMovement(
     amount: string;
     occurredOn: string;
     description: string;
+    categoryId?: string | null;
   },
 ): Promise<ActionResult> {
   const supabase = await createClient();
@@ -138,9 +181,16 @@ export async function updateMovement(
     return { ok: false, error: "La descrizione è obbligatoria." };
   }
 
+  const category_id = parseCategoryId(input.categoryId);
+  const categoryError = await validateCategoryId(supabase, category_id);
+
+  if (categoryError) {
+    return categoryError;
+  }
+
   const { error } = await supabase
     .from("movements")
-    .update({ type, amount, occurred_on, description })
+    .update({ type, amount, occurred_on, description, category_id })
     .eq("id", id)
     .eq("user_id", user.id);
 

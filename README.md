@@ -1,6 +1,6 @@
 # Hestia
 
-Web app con accesso riservato via **Google OAuth** e **Supabase**. Solo gli utenti censiti in `members` possono registrarsi; ruoli `admin` e `user` controllano l'accesso alla gestione utenti (`/users`). La sezione **Cashflow** (`/cashflow`) consente a ogni utente di registrare entrate e uscite personali.
+Web app con accesso riservato via **Google OAuth** e **Supabase**. Solo gli utenti censiti in `members` possono registrarsi. **Cashflow** (`/cashflow`) è la home: ogni utente registra entrate e uscite personali con categorie globali opzionali. **Impostazioni** (`/settings`) espone le categorie (tutti; CRUD solo admin) e la gestione utenti (solo admin).
 
 ## Stack
 
@@ -25,7 +25,7 @@ Web app con accesso riservato via **Google OAuth** e **Supabase**. Solo gli uten
    npm run dev
    ```
 
-Apri [http://localhost:3000](http://localhost:3000): verrai reindirizzato a `/login` o `/dashboard` in base alla sessione.
+Apri [http://localhost:3000](http://localhost:3000): verrai reindirizzato a `/login` o `/cashflow` in base alla sessione.
 
 ## Script
 
