@@ -35,6 +35,15 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 - [ ] Admin riattiva utente disabilitato → può rifare login.
 - [ ] Impossibile disabilitare o degradare l'**ultimo admin** rimasto.
 
+## Hard delete (admin)
+
+- [ ] Admin clic **Elimina definitivamente** → compare dialog di conferma con email utente.
+- [ ] Annulla nel dialog → nessuna modifica.
+- [ ] Elimina utente **in attesa** → sparisce da lista; stessa email ri-aggiungibile.
+- [ ] Elimina utente **registrato** → sparisce da `members`, `profiles` e Authentication → Users.
+- [ ] Impossibile eliminare l'**ultimo admin** rimasto (anche se disabilitato).
+- [ ] Utente eliminato con sessione attiva → al prossimo request logout e redirect `/account-disabled`.
+
 ## Callback
 
 - [ ] URL callback configurato: `http://localhost:3000/auth/callback` in Supabase Redirect URLs.

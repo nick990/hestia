@@ -78,3 +78,25 @@ export async function countActiveAdmins(excludeId?: string) {
 
   return count ?? 0;
 }
+
+export async function countAdmins(excludeId?: string) {
+  const { createAdminClient } = await import("@/lib/supabase/admin");
+  const admin = createAdminClient();
+
+  let query = admin
+    .from("members")
+    .select("id", { count: "exact", head: true })
+    .eq("role", "admin");
+
+  if (excludeId) {
+    query = query.neq("id", excludeId);
+  }
+
+  const { count, error } = await query;
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return count ?? 0;
+}

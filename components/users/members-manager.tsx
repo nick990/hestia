@@ -2,6 +2,7 @@
 
 import {
   addMember,
+  deleteMember,
   disableMember,
   enableMember,
   updateMemberRole,
@@ -23,6 +24,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -73,6 +75,9 @@ export function MembersManager({ members }: { members: MemberListItem[] }) {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<MemberRole>("user");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [memberToDelete, setMemberToDelete] = useState<MemberListItem | null>(
+    null,
+  );
 
   function handleAddMember(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -135,6 +140,27 @@ export function MembersManager({ members }: { members: MemberListItem[] }) {
     });
   }
 
+  function handleConfirmDelete() {
+    if (!memberToDelete) {
+      return;
+    }
+
+    const id = memberToDelete.id;
+
+    startTransition(async () => {
+      const result = await deleteMember(id);
+
+      if (!result.ok) {
+        toast.error(result.error);
+        return;
+      }
+
+      toast.success("Utente eliminato definitivamente.");
+      setMemberToDelete(null);
+      router.refresh();
+    });
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
@@ -189,6 +215,49 @@ export function MembersManager({ members }: { members: MemberListItem[] }) {
           </DialogContent>
         </Dialog>
       </div>
+
+      <Dialog
+        open={memberToDelete !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setMemberToDelete(null);
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Elimina utente definitivamente</DialogTitle>
+            <DialogDescription>
+              Stai per eliminare{" "}
+              <span className="font-medium text-foreground">
+                {memberToDelete?.email}
+              </span>
+              . Questa azione è irreversibile.
+              {memberToDelete?.auth_user_id
+                ? " Verranno rimossi anche l'account di accesso e il profilo associato."
+                : " L'utente non ha ancora effettuato il login."}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={pending}
+              onClick={() => setMemberToDelete(null)}
+            >
+              Annulla
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={pending}
+              onClick={handleConfirmDelete}
+            >
+              {pending ? "Eliminazione…" : "Elimina definitivamente"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <div className="rounded-lg border">
         <Table>
@@ -264,6 +333,13 @@ export function MembersManager({ members }: { members: MemberListItem[] }) {
                               Disabilita
                             </DropdownMenuItem>
                           )}
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            variant="destructive"
+                            onClick={() => setMemberToDelete(member)}
+                          >
+                            Elimina definitivamente
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>

@@ -2,6 +2,7 @@
 
 import {
   countActiveAdmins,
+  countAdmins,
   normalizeEmail,
   requireAdmin,
   type MemberListItem,
@@ -229,6 +230,48 @@ export async function enableMember(id: string): Promise<ActionResult> {
     .from("members")
     .update({ disabled_at: null })
     .eq("id", id);
+
+  if (error) {
+    return { ok: false, error: error.message };
+  }
+
+  revalidateUsers();
+  return { ok: true };
+}
+
+export async function deleteMember(id: string): Promise<ActionResult> {
+  await requireAdmin();
+
+  const target = await getMemberById(id);
+
+  if (!target) {
+    return { ok: false, error: "Utente non trovato." };
+  }
+
+  if (target.role === "admin") {
+    const otherAdmins = await countAdmins(target.id);
+
+    if (otherAdmins === 0) {
+      return {
+        ok: false,
+        error: "Non puoi eliminare l'ultimo amministratore.",
+      };
+    }
+  }
+
+  const admin = createAdminClient();
+
+  if (target.auth_user_id) {
+    const { error: authError } = await admin.auth.admin.deleteUser(
+      target.auth_user_id,
+    );
+
+    if (authError) {
+      return { ok: false, error: authError.message };
+    }
+  }
+
+  const { error } = await admin.from("members").delete().eq("id", id);
 
   if (error) {
     return { ok: false, error: error.message };
