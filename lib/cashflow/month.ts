@@ -17,21 +17,6 @@ export function getCurrentMonthKey(): string {
   return `${year}-${month}`;
 }
 
-export function parseMonthParam(value: string | undefined): string {
-  if (!value || !/^\d{4}-\d{2}$/.test(value)) {
-    return getCurrentMonthKey();
-  }
-
-  const [, monthStr] = value.split("-");
-  const month = Number(monthStr);
-
-  if (month < 1 || month > 12) {
-    return getCurrentMonthKey();
-  }
-
-  return value;
-}
-
 export function monthDateBounds(monthKey: string): { start: string; end: string } {
   const [yearStr, monthStr] = monthKey.split("-");
   const year = Number(yearStr);
@@ -52,14 +37,4 @@ export function shiftMonthKey(monthKey: string, delta: number): string {
   const date = new Date(year, month - 1 + delta, 1);
 
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
-}
-
-export function formatMonthLabel(monthKey: string): string {
-  const [yearStr, monthStr] = monthKey.split("-");
-  const date = new Date(Number(yearStr), Number(monthStr) - 1, 1);
-
-  return new Intl.DateTimeFormat("it-IT", {
-    month: "long",
-    year: "numeric",
-  }).format(date);
 }

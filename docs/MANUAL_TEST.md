@@ -52,16 +52,17 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 ## Cashflow (movimenti personali)
 
 - [ ] Link **Cashflow** visibile in nav per user e admin.
-- [ ] Apri `/cashflow` → mese corrente, totali Entrate/Uscite/Netto a zero se vuoto.
-- [ ] **Aggiungi movimento** entrata (es. 1000 €, descrizione «Stipendio», data oggi) → compare in lista con `+`, totali aggiornati.
-- [ ] Aggiungi uscita (es. 45,50 € con virgola nel form) → importo `−`, Netto corretto.
-- [ ] Naviga mese precedente/successivo con ‹ › → solo movimenti di quel mese.
-- [ ] **Modifica** movimento (cambia importo) → lista e totali coerenti.
-- [ ] **Elimina** con conferma → scompare; totali aggiornati.
-- [ ] Secondo utente (altro login) non vede movimenti del primo (RLS).
-- [ ] Mese senza movimenti → empty state con CTA.
-- [ ] Movimento con categoria opzionale → colonna Categoria in tabella.
-- [ ] Movimento senza categoria → «—» in tabella.
+- [ ] Apri `/cashflow` senza query → griglia mese corrente (`from`/`to`), riepilogo anno corrente.
+- [ ] Riepilogo annuale: ‹ › anno cambia solo i mesi del riepilogo; griglia invariata.
+- [ ] Click su un mese nel riepilogo → `from`/`to` impostati a quel mese intero; griglia aggiornata.
+- [ ] Date picker Da/A con range parziale → movimenti e totali periodo corretti; nessun mese evidenziato nel riepilogo.
+- [ ] ‹ › accanto ai date picker → salta al mese intero precedente/successivo.
+- [ ] **Aggiungi movimento** entrata/uscita → totali periodo e riepilogo anno coerenti dopo refresh.
+- [ ] **Modifica** / **Elimina** movimento → totali aggiornati.
+- [ ] Secondo utente non vede movimenti del primo (RLS).
+- [ ] Empty state periodo vuoto → CTA «Aggiungi movimento».
+- [ ] Mobile: riepilogo mesi scroll orizzontale.
+- [ ] Movimento con/senza categoria → colonna Categoria corretta.
 
 ## Categorie (Impostazioni)
 
