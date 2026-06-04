@@ -32,7 +32,7 @@ function parseType(raw: string): MovementType | null {
 function parseDescription(raw: string): string | null {
   const trimmed = raw.trim();
 
-  if (!trimmed || trimmed.length > 500) {
+  if (trimmed.length > 500) {
     return null;
   }
 
@@ -113,8 +113,8 @@ export async function createMovement(input: {
     return { ok: false, error: "Data non valida." };
   }
 
-  if (!description) {
-    return { ok: false, error: "La descrizione è obbligatoria." };
+  if (description === null) {
+    return { ok: false, error: "Descrizione troppo lunga." };
   }
 
   const category_id = parseCategoryId(input.categoryId);
@@ -177,8 +177,8 @@ export async function updateMovement(
     return { ok: false, error: "Data non valida." };
   }
 
-  if (!description) {
-    return { ok: false, error: "La descrizione è obbligatoria." };
+  if (description === null) {
+    return { ok: false, error: "Descrizione troppo lunga." };
   }
 
   const category_id = parseCategoryId(input.categoryId);

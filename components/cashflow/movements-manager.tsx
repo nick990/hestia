@@ -51,7 +51,7 @@ import type { MonthSummary, Movement, MovementType } from "@/lib/cashflow/types"
 import { cn } from "@/lib/utils";
 import { ChevronLeftIcon, ChevronRightIcon, MoreHorizontalIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 function todayIsoDate(): string {
@@ -88,6 +88,17 @@ export function MovementsManager({
   const [occurredOn, setOccurredOn] = useState(todayIsoDate());
   const [description, setDescription] = useState("");
   const [categoryId, setCategoryId] = useState("none");
+
+  const categorySelectItems = useMemo(
+    () => [
+      { value: "none", label: "Nessuna" },
+      ...categories.map((category) => ({
+        value: category.id,
+        label: category.name,
+      })),
+    ],
+    [categories],
+  );
 
   function resetFormForCreate() {
     setEditingMovement(null);
@@ -261,6 +272,7 @@ export function MovementsManager({
                 <Label htmlFor="category">Categoria</Label>
                 <Select
                   value={categoryId}
+                  items={categorySelectItems}
                   onValueChange={(value) => setCategoryId(value ?? "none")}
                 >
                   <SelectTrigger id="category" className="w-full">
@@ -277,10 +289,9 @@ export function MovementsManager({
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="description">Descrizione</Label>
+                <Label htmlFor="description">Descrizione (opzionale)</Label>
                 <Input
                   id="description"
-                  required
                   maxLength={500}
                   value={description}
                   onChange={(event) => setDescription(event.target.value)}
@@ -340,7 +351,9 @@ export function MovementsManager({
             <DialogDescription>
               Stai per eliminare{" "}
               <span className="font-medium text-foreground">
-                {movementToDelete?.description}
+                {movementToDelete?.description?.trim()
+                  ? movementToDelete.description
+                  : "questo movimento"}
               </span>
               . Questa azione è irreversibile.
             </DialogDescription>
@@ -371,8 +384,8 @@ export function MovementsManager({
           <TableHeader>
             <TableRow>
               <TableHead>Data</TableHead>
-              <TableHead>Descrizione</TableHead>
               <TableHead>Categoria</TableHead>
+              <TableHead>Descrizione</TableHead>
               <TableHead className="text-right">Importo</TableHead>
               <TableHead className="w-12 text-right">Azioni</TableHead>
             </TableRow>
@@ -396,11 +409,11 @@ export function MovementsManager({
                   <TableCell className="whitespace-nowrap">
                     {formatOccurredOn(movement.occurred_on)}
                   </TableCell>
-                  <TableCell className="max-w-xs truncate font-medium">
-                    {movement.description}
-                  </TableCell>
                   <TableCell className="text-muted-foreground">
                     {movement.category_name ?? "—"}
+                  </TableCell>
+                  <TableCell className="max-w-xs truncate font-medium">
+                    {movement.description?.trim() ? movement.description : "—"}
                   </TableCell>
                   <TableCell
                     className={cn(

@@ -74,6 +74,15 @@ export function CategoriesManager({
     return categories.filter((category) => category.id !== categoryToDelete.id);
   }, [categories, categoryToDelete]);
 
+  const reassignSelectItems = useMemo(
+    () =>
+      reassignOptions.map((category) => ({
+        value: category.id,
+        label: category.name,
+      })),
+    [reassignOptions],
+  );
+
   function resetForm() {
     setEditingCategory(null);
     setName("");
@@ -258,6 +267,7 @@ export function CategoriesManager({
                 <Label htmlFor="reassign-category">Sposta i movimenti in</Label>
                 <Select
                   value={reassignToId}
+                  items={reassignSelectItems}
                   onValueChange={(value) => setReassignToId(value ?? "")}
                 >
                   <SelectTrigger id="reassign-category" className="w-full">
