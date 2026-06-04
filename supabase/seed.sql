@@ -1,3 +1,5 @@
 -- Seed opzionale per `supabase db reset` (dopo le migrazioni).
--- Aggiungi qui gli utenti autorizzati, es.:
--- insert into public.members (email, full_name) values ('nome@dominio.it', 'Nome Cognome') on conflict (email) do nothing;
+-- Primo amministratore (sostituisci con la tua email Google):
+-- insert into public.members (email, role)
+-- values ('tuo.nome@dominio.it', 'admin')
+-- on conflict (email) do nothing;

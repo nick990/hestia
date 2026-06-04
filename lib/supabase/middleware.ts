@@ -1,13 +1,18 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/login", "/auth/callback"];
+const PUBLIC_PATHS = ["/login", "/auth/callback", "/account-disabled"];
 
 function isPublicPath(pathname: string) {
   return PUBLIC_PATHS.some(
     (path) => pathname === path || pathname.startsWith(`${path}/`),
   );
 }
+
+type MemberStatus = {
+  role: string;
+  disabled_at: string | null;
+};
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -62,6 +67,29 @@ export async function updateSession(request: NextRequest) {
     const dashboardUrl = request.nextUrl.clone();
     dashboardUrl.pathname = "/dashboard";
     return NextResponse.redirect(dashboardUrl);
+  }
+
+  if (user && !isPublicPath(pathname)) {
+    const { data: member } = await supabase
+      .from("members")
+      .select("role, disabled_at")
+      .eq("auth_user_id", user.id)
+      .maybeSingle<MemberStatus>();
+
+    if (!member || member.disabled_at) {
+      await supabase.auth.signOut();
+      const disabledUrl = request.nextUrl.clone();
+      disabledUrl.pathname = "/account-disabled";
+      disabledUrl.search = "";
+      return NextResponse.redirect(disabledUrl);
+    }
+
+    if (pathname.startsWith("/users") && member.role !== "admin") {
+      const dashboardUrl = request.nextUrl.clone();
+      dashboardUrl.pathname = "/dashboard";
+      dashboardUrl.search = "";
+      return NextResponse.redirect(dashboardUrl);
+    }
   }
 
   return supabaseResponse;

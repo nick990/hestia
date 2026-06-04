@@ -1,10 +1,10 @@
-# Checklist test manuali — MVP login
+# Checklist test manuali — MVP login e ruoli
 
-Prerequisiti: `.env.local` configurato, migrazioni applicate, almeno un’email in `members`, Google OAuth attivo, hook `hook_restrict_signup_by_member_email` attivo.
+Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), migrazioni applicate, almeno un admin in `members`, Google OAuth attivo, hook `hook_restrict_signup_by_member_email` attivo.
 
 ## Members (utenti autorizzati)
 
-- [ ] Inserisci la tua email Google in `members` (SQL o Table Editor).
+- [ ] Inserisci la tua email Google in `members` con ruolo `admin` (SQL o `/users`).
 - [ ] Verifica che dopo il login `auth_user_id` sia valorizzato e esista una riga in `profiles`.
 
 ## Login autorizzato
@@ -18,12 +18,22 @@ Prerequisiti: `.env.local` configurato, migrazioni applicate, almeno un’email 
 ## Login non autorizzato
 
 1. Usa un account Google **non** in `members` (incognito).
-2. Atteso: messaggio di errore da Supabase/Google o redirect a login con errore; l’utente **non** deve comparire in Authentication → Users.
+2. Atteso: messaggio di errore da Supabase/Google o redirect a login con errore; l'utente **non** deve comparire in Authentication → Users.
 
 ## Middleware
 
 - [ ] Visita `/dashboard` senza sessione → redirect `/login?next=/dashboard`.
 - [ ] Dopo login, visita `/login` → redirect `/dashboard`.
+
+## Ruoli admin / user
+
+- [ ] Admin vede link **Utenti** in nav e accede a `/users`.
+- [ ] User (non admin) **non** vede link Utenti; visita `/users` → redirect `/dashboard`.
+- [ ] Admin aggiunge email + ruolo da `/users` → compare in lista come "In attesa".
+- [ ] Admin promuove/degrada ruolo → badge aggiornato.
+- [ ] Admin disabilita utente → stato "Disabilitato"; utente sloggato al prossimo request → `/account-disabled`.
+- [ ] Admin riattiva utente disabilitato → può rifare login.
+- [ ] Impossibile disabilitare o degradare l'**ultimo admin** rimasto.
 
 ## Callback
 

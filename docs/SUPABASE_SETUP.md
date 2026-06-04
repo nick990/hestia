@@ -34,12 +34,35 @@ supabase db reset
 Aggiungi un utente autorizzato:
 
 ```sql
-insert into public.members (email, full_name)
-values ('tuo.nome@dominio.it', 'Nome Cognome')
+-- Utente normale
+insert into public.members (email, role)
+values ('collaboratore@dominio.it', 'user')
+on conflict (email) do nothing;
+
+-- Primo amministratore
+insert into public.members (email, role)
+values ('tuo.nome@dominio.it', 'admin')
 on conflict (email) do nothing;
 ```
 
 Dopo il primo login Google, `members.auth_user_id` viene collegato automaticamente e viene creata la riga in `profiles`.
+
+## 2b. Ruoli e gestione utenti
+
+| Ruolo | Permessi |
+| ----- | -------- |
+| `admin` | Accesso a `/users`: aggiunta, disabilitazione, cambio ruolo |
+| `user` | Accesso all'app, nessuna gestione utenti |
+
+Variabile server-side richiesta per le Server Actions admin:
+
+```bash
+SUPABASE_SERVICE_ROLE_KEY=...   # Dashboard → Project Settings → API → service_role
+```
+
+Aggiungila in `.env.local` (non committare). Vedi [`.env.local.example`](../.env.local.example).
+
+Gli admin possono gestire gli utenti anche dall'interfaccia `/users` dopo il login.
 
 ## 3. Auth Hook `before-user-created`
 
@@ -79,6 +102,9 @@ In sviluppo locale è configurato in [`supabase/config.toml`](../supabase/config
 | Email **non** in `members` + primo accesso | Errore 403, utente non creato |
 | `/dashboard` senza sessione | Redirect a `/login` |
 | Logout | Redirect a `/login`, cookie sessione rimossi |
+| Admin visita `/users` | Lista utenti, form aggiunta, azioni ruolo/disabilita |
+| User visita `/users` | Redirect a `/dashboard` |
+| Utente disabilitato con sessione attiva | Logout automatico, redirect `/account-disabled` |
 
 ## 6. Deploy (Vercel)
 

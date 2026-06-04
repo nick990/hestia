@@ -1,6 +1,6 @@
 # Hestia
 
-Web app con accesso riservato via **Google OAuth** e **Supabase**. Solo gli utenti censiti in `members` possono registrarsi; dopo il login i dati app vivono in `profiles` (collegata a `auth.users`).
+Web app con accesso riservato via **Google OAuth** e **Supabase**. Solo gli utenti censiti in `members` possono registrarsi; ruoli `admin` e `user` controllano l'accesso alla gestione utenti (`/users`).
 
 ## Stack
 

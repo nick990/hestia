@@ -20,7 +20,7 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="flex min-h-full flex-1 items-center justify-center p-6">
+    <div className="mx-auto w-full max-w-5xl flex-1 p-6">
       <Card className="w-full max-w-lg">
         <CardHeader>
           <CardTitle>Dashboard</CardTitle>
