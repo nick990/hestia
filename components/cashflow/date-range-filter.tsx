@@ -29,12 +29,18 @@ export function DateRangeFilter({ from, to, year }: DateRangeFilterProps) {
     navigate(nextFrom, nextTo);
   }
 
-  function handleFromBlur(event: React.FocusEvent<HTMLInputElement>) {
-    commitRange(event.target.value, to);
+  function handleFromChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const nextFrom = event.target.value;
+    if (nextFrom && nextFrom !== from) {
+      commitRange(nextFrom, to);
+    }
   }
 
-  function handleToBlur(event: React.FocusEvent<HTMLInputElement>) {
-    commitRange(from, event.target.value);
+  function handleToChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const nextTo = event.target.value;
+    if (nextTo && nextTo !== to) {
+      commitRange(from, nextTo);
+    }
   }
 
   function shiftMonth(delta: number) {
@@ -61,7 +67,7 @@ export function DateRangeFilter({ from, to, year }: DateRangeFilterProps) {
           id="range-from"
           type="date"
           defaultValue={from}
-          onBlur={handleFromBlur}
+          onChange={handleFromChange}
         />
       </div>
 
@@ -72,7 +78,7 @@ export function DateRangeFilter({ from, to, year }: DateRangeFilterProps) {
           id="range-to"
           type="date"
           defaultValue={to}
-          onBlur={handleToBlur}
+          onChange={handleToChange}
         />
       </div>
 
