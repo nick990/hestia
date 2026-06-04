@@ -16,3 +16,16 @@ export type MonthSummary = {
   totalExpense: number;
   net: number;
 };
+
+export type MonthSummaryEntry = MonthSummary & {
+  month: number;
+  monthKey: string;
+};
+
+export type YearSummary = {
+  year: number;
+  months: MonthSummaryEntry[];
+  totalIncome: number;
+  totalExpense: number;
+  net: number;
+};
