@@ -7,7 +7,7 @@ import {
   isFullMonthRange,
   monthBoundsForYearMonth,
 } from "@/lib/cashflow/date-range";
-import { formatCompactEuro, formatEuro } from "@/lib/cashflow/format";
+import { formatEuro } from "@/lib/cashflow/format";
 import type { YearSummary } from "@/lib/cashflow/types";
 import { cn } from "@/lib/utils";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
@@ -93,8 +93,7 @@ export function YearSummaryBar({
         </div>
       </div>
 
-      <div className="overflow-x-auto pb-1">
-        <div className="grid min-w-[720px] grid-cols-12 gap-1">
+      <div className="grid grid-cols-6 gap-1">
           {yearSummary.months.map((entry) => {
             const highlighted = isFullMonthRange(
               rangeFrom,
@@ -116,10 +115,10 @@ export function YearSummaryBar({
               >
                 <p className="mb-1 font-medium">{MONTH_ABBR_IT[entry.month - 1]}</p>
                 <p className="text-emerald-600 dark:text-emerald-500">
-                  {formatCompactEuro(entry.totalIncome)}
+                  {formatEuro(entry.totalIncome)}
                 </p>
                 <p className="text-muted-foreground">
-                  {formatCompactEuro(entry.totalExpense)}
+                  {formatEuro(entry.totalExpense)}
                 </p>
                 <p
                   className={cn(
@@ -128,12 +127,11 @@ export function YearSummaryBar({
                       : "text-destructive",
                   )}
                 >
-                  {formatCompactEuro(entry.net)}
+                  {formatEuro(entry.net)}
                 </p>
               </button>
             );
           })}
-        </div>
       </div>
     </section>
   );

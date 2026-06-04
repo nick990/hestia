@@ -55,19 +55,11 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 
-function todayIsoDate(): string {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Europe/Rome",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date());
-}
-
 type MovementsManagerProps = {
   from: string;
   to: string;
   year: number;
+  defaultOccurredOn: string;
   movements: Movement[];
   summary: MonthSummary;
   yearSummary: YearSummary;
@@ -78,6 +70,7 @@ export function MovementsManager({
   from,
   to,
   year,
+  defaultOccurredOn,
   movements,
   summary,
   yearSummary,
@@ -90,7 +83,7 @@ export function MovementsManager({
   const [movementToDelete, setMovementToDelete] = useState<Movement | null>(null);
   const [type, setType] = useState<MovementType>("expense");
   const [amount, setAmount] = useState("");
-  const [occurredOn, setOccurredOn] = useState(todayIsoDate());
+  const [occurredOn, setOccurredOn] = useState(defaultOccurredOn);
   const [description, setDescription] = useState("");
   const [categoryId, setCategoryId] = useState("none");
 
@@ -109,7 +102,7 @@ export function MovementsManager({
     setEditingMovement(null);
     setType("expense");
     setAmount("");
-    setOccurredOn(todayIsoDate());
+    setOccurredOn(defaultOccurredOn);
     setDescription("");
     setCategoryId("none");
   }
@@ -197,7 +190,7 @@ export function MovementsManager({
       />
 
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <DateRangeFilter key={`${from}-${to}`} from={from} to={to} year={year} />
+        <DateRangeFilter from={from} to={to} year={year} />
 
         <Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
           <DialogTrigger render={<Button onClick={openCreateDialog} />}>

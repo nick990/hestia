@@ -1,10 +1,20 @@
 import type { MovementType } from "@/lib/cashflow/types";
 
+const MINUS = "−";
+
+function formatDecimalIt(amount: number, fractionDigits: number): string {
+  const [integerPart, fractionalPart = ""] = Math.abs(amount)
+    .toFixed(fractionDigits)
+    .split(".");
+  const groupedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  return fractionDigits > 0
+    ? `${groupedInteger},${fractionalPart}`
+    : groupedInteger;
+}
+
 export function formatEuro(amount: number): string {
-  return new Intl.NumberFormat("it-IT", {
-    style: "currency",
-    currency: "EUR",
-  }).format(amount);
+  const sign = amount < 0 ? MINUS : "";
+  return `${sign}${formatDecimalIt(amount, 2)} €`;
 }
 
 export function movementTypeLabel(type: MovementType): string {
@@ -18,24 +28,5 @@ export function formatOccurredOn(isoDate: string): string {
 
 export function formatSignedAmount(type: MovementType, amount: number): string {
   const formatted = formatEuro(amount);
-  return type === "income" ? `+${formatted}` : `−${formatted}`;
-}
-
-export function formatCompactEuro(amount: number): string {
-  const abs = Math.abs(amount);
-  const sign = amount < 0 ? "−" : "";
-
-  if (abs >= 1000) {
-    const compact = new Intl.NumberFormat("it-IT", {
-      maximumFractionDigits: 1,
-      notation: "compact",
-    }).format(abs);
-    return `${sign}${compact} €`;
-  }
-
-  return `${sign}${new Intl.NumberFormat("it-IT", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 0,
-  }).format(abs)}`;
+  return type === "income" ? `+${formatted}` : `${MINUS}${formatDecimalIt(amount, 2)} €`;
 }

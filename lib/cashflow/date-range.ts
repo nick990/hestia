@@ -27,6 +27,15 @@ export function getCurrentYear(): number {
   return Number(getCurrentMonthKey().slice(0, 4));
 }
 
+export function getTodayIsoDate(): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Rome",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
 export function parseDateRangeParams(
   fromParam: string | undefined,
   toParam: string | undefined,

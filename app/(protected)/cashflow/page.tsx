@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { parseDateRangeParams, parseYearParam } from "@/lib/cashflow/date-range";
+import { getTodayIsoDate, parseDateRangeParams, parseYearParam } from "@/lib/cashflow/date-range";
 import { listCategoryOptions } from "@/lib/categories/queries";
 import {
   getRangeSummary,
@@ -54,6 +54,7 @@ export default async function CashflowPage({ searchParams }: PageProps) {
             from={from}
             to={to}
             year={year}
+            defaultOccurredOn={getTodayIsoDate()}
             movements={movements}
             summary={summary}
             yearSummary={yearSummary}

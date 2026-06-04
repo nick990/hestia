@@ -6,7 +6,6 @@ import { Label } from "@/components/ui/label";
 import { buildCashflowSearchParams, shiftMonthRange } from "@/lib/cashflow/date-range";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 
 type DateRangeFilterProps = {
   from: string;
@@ -16,8 +15,6 @@ type DateRangeFilterProps = {
 
 export function DateRangeFilter({ from, to, year }: DateRangeFilterProps) {
   const router = useRouter();
-  const [localFrom, setLocalFrom] = useState(from);
-  const [localTo, setLocalTo] = useState(to);
 
   function navigate(nextFrom: string, nextTo: string) {
     router.push(
@@ -30,6 +27,14 @@ export function DateRangeFilter({ from, to, year }: DateRangeFilterProps) {
       return;
     }
     navigate(nextFrom, nextTo);
+  }
+
+  function handleFromBlur(event: React.FocusEvent<HTMLInputElement>) {
+    commitRange(event.target.value, to);
+  }
+
+  function handleToBlur(event: React.FocusEvent<HTMLInputElement>) {
+    commitRange(from, event.target.value);
   }
 
   function shiftMonth(delta: number) {
@@ -52,22 +57,22 @@ export function DateRangeFilter({ from, to, year }: DateRangeFilterProps) {
       <div className="space-y-1">
         <Label htmlFor="range-from">Da</Label>
         <Input
+          key={`range-from-${from}`}
           id="range-from"
           type="date"
-          value={localFrom}
-          onChange={(event) => setLocalFrom(event.target.value)}
-          onBlur={() => commitRange(localFrom, localTo)}
+          defaultValue={from}
+          onBlur={handleFromBlur}
         />
       </div>
 
       <div className="space-y-1">
         <Label htmlFor="range-to">A</Label>
         <Input
+          key={`range-to-${to}`}
           id="range-to"
           type="date"
-          value={localTo}
-          onChange={(event) => setLocalTo(event.target.value)}
-          onBlur={() => commitRange(localFrom, localTo)}
+          defaultValue={to}
+          onBlur={handleToBlur}
         />
       </div>
 
