@@ -18,12 +18,14 @@ const ERROR_MESSAGES: Record<string, string> = {
 };
 
 type LoginPageProps = {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; reason?: string }>;
 };
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
-  const { error } = await searchParams;
-  const errorMessage = error ? ERROR_MESSAGES[error] ?? ERROR_MESSAGES.auth_callback_error : null;
+  const { error, reason } = await searchParams;
+  const errorMessage = error
+    ? (ERROR_MESSAGES[error] ?? ERROR_MESSAGES.auth_callback_error)
+    : null;
 
   return (
     <div className="flex min-h-full flex-1 items-center justify-center p-6">
@@ -39,7 +41,12 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             <Alert variant="destructive">
               <AlertCircle />
               <AlertTitle>Errore di accesso</AlertTitle>
-              <AlertDescription>{errorMessage}</AlertDescription>
+              <AlertDescription>
+                {errorMessage}
+                {reason ? (
+                  <span className="mt-2 block text-xs opacity-80">{reason}</span>
+                ) : null}
+              </AlertDescription>
             </Alert>
           ) : null}
           <GoogleSignInButton />
