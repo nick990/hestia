@@ -1,36 +1,40 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Hestia
 
-## Getting Started
+Web app con accesso riservato via **Google OAuth** e **Supabase**. Solo gli indirizzi email presenti in `allowed_emails` possono registrarsi.
 
-First, run the development server:
+## Stack
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- Next.js 16 (App Router), React 19, TypeScript
+- Tailwind CSS v4, shadcn/ui
+- Supabase Auth + Postgres (`@supabase/ssr`)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Avvio rapido
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Copia le variabili d'ambiente:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+   ```bash
+   cp .env.local.example .env.local
+   ```
 
-## Learn More
+2. Configura Supabase e Google OAuth — vedi [docs/SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md).
 
-To learn more about Next.js, take a look at the following resources:
+3. Avvia il dev server:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+   ```bash
+   npm install
+   npm run dev
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Apri [http://localhost:3000](http://localhost:3000): verrai reindirizzato a `/login` o `/dashboard` in base alla sessione.
 
-## Deploy on Vercel
+## Script
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Comando | Descrizione |
+| ------- | ----------- |
+| `npm run dev` | Server di sviluppo |
+| `npm run build` | Build di produzione |
+| `npm run lint` | ESLint |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Test manuali
+
+Checklist in [docs/MANUAL_TEST.md](docs/MANUAL_TEST.md).

@@ -1,0 +1,3 @@
+-- Seed opzionale per `supabase db reset` (dopo le migrazioni).
+-- Aggiungi qui le email autorizzate, es.:
+-- insert into public.allowed_emails (email) values ('nome@dominio.it') on conflict do nothing;
