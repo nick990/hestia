@@ -1,6 +1,6 @@
 # Hestia
 
-Web app con accesso riservato via **Google OAuth** e **Supabase**. Solo gli utenti censiti in `members` possono registrarsi; ruoli `admin` e `user` controllano l'accesso alla gestione utenti (`/users`).
+Web app con accesso riservato via **Google OAuth** e **Supabase**. Solo gli utenti censiti in `members` possono registrarsi; ruoli `admin` e `user` controllano l'accesso alla gestione utenti (`/users`). La sezione **Cashflow** (`/cashflow`) consente a ogni utente di registrare entrate e uscite personali.
 
 ## Stack
 

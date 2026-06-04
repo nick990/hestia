@@ -44,6 +44,18 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 - [ ] Impossibile eliminare l'**ultimo admin** rimasto (anche se disabilitato).
 - [ ] Utente eliminato con sessione attiva → al prossimo request logout e redirect `/account-disabled`.
 
+## Cashflow (movimenti personali)
+
+- [ ] Link **Cashflow** visibile in nav per user e admin.
+- [ ] Apri `/cashflow` → mese corrente, totali Entrate/Uscite/Netto a zero se vuoto.
+- [ ] **Aggiungi movimento** entrata (es. 1000 €, descrizione «Stipendio», data oggi) → compare in lista con `+`, totali aggiornati.
+- [ ] Aggiungi uscita (es. 45,50 € con virgola nel form) → importo `−`, Netto corretto.
+- [ ] Naviga mese precedente/successivo con ‹ › → solo movimenti di quel mese.
+- [ ] **Modifica** movimento (cambia importo) → lista e totali coerenti.
+- [ ] **Elimina** con conferma → scompare; totali aggiornati.
+- [ ] Secondo utente (altro login) non vede movimenti del primo (RLS).
+- [ ] Mese senza movimenti → empty state con CTA.
+
 ## Callback
 
 - [ ] URL callback configurato: `http://localhost:3000/auth/callback` in Supabase Redirect URLs.
