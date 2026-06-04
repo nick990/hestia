@@ -9,12 +9,18 @@ Progetto cloud **hestia** (ref: `ifxgeqsdrowcbbtmjowx`, regione `eu-central-1`).
 
 Per collegare la CLI locale: `supabase link --project-ref ifxgeqsdrowcbbtmjowx`
 
-## 2. Migrazioni e allowlist
+## 2. Modello dati utenti
+
+| Tabella | Ruolo |
+| ------- | ----- |
+| `auth.users` | Autenticazione (Supabase Auth, Google OAuth) |
+| `public.members` | Utenti autorizzati **prima** del primo login (email censita) |
+| `public.profiles` | Dati app 1:1 con `auth.users` (creata al signup via trigger) |
 
 Applica le migrazioni sul progetto remoto:
 
 ```bash
-supabase link --project-ref YOUR_PROJECT_REF
+supabase link --project-ref ifxgeqsdrowcbbtmjowx
 supabase db push
 ```
 
@@ -25,23 +31,25 @@ supabase start
 supabase db reset
 ```
 
-Aggiungi le email autorizzate (sostituisci con indirizzi reali):
+Aggiungi un utente autorizzato:
 
 ```sql
-insert into public.allowed_emails (email)
-values ('tuo.nome@dominio.it')
-on conflict do nothing;
+insert into public.members (email, full_name)
+values ('tuo.nome@dominio.it', 'Nome Cognome')
+on conflict (email) do nothing;
 ```
 
-La migrazione include un placeholder `your.email@example.com` — rimuovilo o sostituiscilo in produzione.
+Dopo il primo login Google, `members.auth_user_id` viene collegato automaticamente e viene creata la riga in `profiles`.
 
 ## 3. Auth Hook `before-user-created`
 
-In **Authentication → Hooks** (Dashboard), abilita **Before user created** e punta alla funzione Postgres:
+In [Authentication → Hooks](https://supabase.com/dashboard/project/ifxgeqsdrowcbbtmjowx/auth/hooks), abilita **Before user created** e punta alla funzione Postgres:
 
-`public.hook_restrict_signup_by_allowed_email`
+`public.hook_restrict_signup_by_member_email`
 
-In sviluppo locale è già configurato in `supabase/config.toml`.
+> **Importante:** se l’hook punta ancora a `hook_restrict_signup_by_allowed_email` (rimossa), aggiorna alla funzione sopra.
+
+In sviluppo locale è configurato in [`supabase/config.toml`](../supabase/config.toml).
 
 ## 4. Google OAuth
 
@@ -51,7 +59,7 @@ In sviluppo locale è già configurato in `supabase/config.toml`.
 2. **Authorized redirect URIs** (obbligatorio):
 
    ```
-   https://YOUR_PROJECT_REF.supabase.co/auth/v1/callback
+   https://ifxgeqsdrowcbbtmjowx.supabase.co/auth/v1/callback
    ```
 
 ### Supabase Dashboard
@@ -67,8 +75,8 @@ In sviluppo locale è già configurato in `supabase/config.toml`.
 
 | Scenario | Risultato atteso |
 | -------- | ---------------- |
-| Email in `allowed_emails` + login Google | Redirect a `/dashboard`, sessione attiva |
-| Email **non** in lista + primo accesso | Errore 403, utente non creato |
+| Email in `members` + login Google | Redirect a `/dashboard`, sessione attiva, riga in `profiles` |
+| Email **non** in `members` + primo accesso | Errore 403, utente non creato |
 | `/dashboard` senza sessione | Redirect a `/login` |
 | Logout | Redirect a `/login`, cookie sessione rimossi |
 

@@ -275,10 +275,10 @@ max_frequency = "5s"
 # Force log out if the user has been inactive longer than the specified duration.
 # inactivity_timeout = "8h"
 
-# Blocca registrazione se l'email non è in public.allowed_emails
+# Blocca registrazione se l'email non è in public.members
 [auth.hook.before_user_created]
 enabled = true
-uri = "pg-functions://postgres/public/hook_restrict_signup_by_allowed_email"
+uri = "pg-functions://postgres/public/hook_restrict_signup_by_member_email"
 
 # This hook runs before a token is issued and allows you to add additional claims based on the authentication method used.
 # [auth.hook.custom_access_token]

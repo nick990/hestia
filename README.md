@@ -1,6 +1,6 @@
 # Hestia
 
-Web app con accesso riservato via **Google OAuth** e **Supabase**. Solo gli indirizzi email presenti in `allowed_emails` possono registrarsi.
+Web app con accesso riservato via **Google OAuth** e **Supabase**. Solo gli utenti censiti in `members` possono registrarsi; dopo il login i dati app vivono in `profiles` (collegata a `auth.users`).
 
 ## Stack
 
