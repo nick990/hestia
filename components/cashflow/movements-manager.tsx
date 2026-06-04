@@ -37,7 +37,6 @@ import {
   formatEuro,
   formatOccurredOn,
   formatSignedAmount,
-  movementTypeLabel,
 } from "@/lib/cashflow/format";
 import { shiftMonthKey } from "@/lib/cashflow/month";
 import type { MonthSummary, Movement, MovementType } from "@/lib/cashflow/types";
@@ -340,7 +339,6 @@ export function MovementsManager({
             <TableRow>
               <TableHead>Data</TableHead>
               <TableHead>Descrizione</TableHead>
-              <TableHead>Tipo</TableHead>
               <TableHead className="text-right">Importo</TableHead>
               <TableHead className="w-12 text-right">Azioni</TableHead>
             </TableRow>
@@ -349,7 +347,7 @@ export function MovementsManager({
             {movements.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={5}
+                  colSpan={4}
                   className="space-y-3 py-8 text-center text-muted-foreground"
                 >
                   <p>Nessun movimento in {monthLabel}.</p>
@@ -367,7 +365,6 @@ export function MovementsManager({
                   <TableCell className="max-w-xs truncate font-medium">
                     {movement.description}
                   </TableCell>
-                  <TableCell>{movementTypeLabel(movement.type)}</TableCell>
                   <TableCell
                     className={cn(
                       "text-right font-medium whitespace-nowrap",
