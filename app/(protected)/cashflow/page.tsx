@@ -6,14 +6,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { formatMonthLabel, parseMonthParam } from "@/lib/cashflow/month";
+import { parseDateRangeParams, parseYearParam } from "@/lib/cashflow/date-range";
 import { listCategoryOptions } from "@/lib/categories/queries";
-import { getMonthSummary, listMovementsForMonth } from "@/lib/cashflow/queries";
+import {
+  getRangeSummary,
+  getYearMonthlySummaries,
+  listMovementsForRange,
+} from "@/lib/cashflow/queries";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
 type PageProps = {
-  searchParams: Promise<{ month?: string }>;
+  searchParams: Promise<{ from?: string; to?: string; year?: string }>;
 };
 
 export default async function CashflowPage({ searchParams }: PageProps) {
@@ -27,10 +31,12 @@ export default async function CashflowPage({ searchParams }: PageProps) {
   }
 
   const params = await searchParams;
-  const monthKey = parseMonthParam(params.month);
-  const [movements, summary, categories] = await Promise.all([
-    listMovementsForMonth(monthKey),
-    getMonthSummary(monthKey),
+  const { from, to } = parseDateRangeParams(params.from, params.to);
+  const year = parseYearParam(params.year);
+  const [movements, summary, yearSummary, categories] = await Promise.all([
+    listMovementsForRange(from, to),
+    getRangeSummary(from, to),
+    getYearMonthlySummaries(year),
     listCategoryOptions(),
   ]);
 
@@ -40,15 +46,17 @@ export default async function CashflowPage({ searchParams }: PageProps) {
         <CardHeader>
           <CardTitle>Cashflow</CardTitle>
           <CardDescription>
-            Registra entrate e uscite e consulta i movimenti del mese.
+            Registra entrate e uscite e consulta i movimenti del periodo selezionato.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <MovementsManager
-            monthKey={monthKey}
-            monthLabel={formatMonthLabel(monthKey)}
+            from={from}
+            to={to}
+            year={year}
             movements={movements}
             summary={summary}
+            yearSummary={yearSummary}
             categories={categories}
           />
         </CardContent>

@@ -5,6 +5,8 @@ import {
   deleteMovement,
   updateMovement,
 } from "@/app/actions/movements";
+import { DateRangeFilter } from "@/components/cashflow/date-range-filter";
+import { YearSummaryBar } from "@/components/cashflow/year-summary-bar";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -45,11 +47,10 @@ import {
   formatOccurredOn,
   formatSignedAmount,
 } from "@/lib/cashflow/format";
-import { shiftMonthKey } from "@/lib/cashflow/month";
 import type { MovementCategoryOption } from "@/lib/categories/types";
-import type { MonthSummary, Movement, MovementType } from "@/lib/cashflow/types";
+import type { MonthSummary, Movement, MovementType, YearSummary } from "@/lib/cashflow/types";
 import { cn } from "@/lib/utils";
-import { ChevronLeftIcon, ChevronRightIcon, MoreHorizontalIcon } from "lucide-react";
+import { MoreHorizontalIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -64,18 +65,22 @@ function todayIsoDate(): string {
 }
 
 type MovementsManagerProps = {
-  monthKey: string;
-  monthLabel: string;
+  from: string;
+  to: string;
+  year: number;
   movements: Movement[];
   summary: MonthSummary;
+  yearSummary: YearSummary;
   categories: MovementCategoryOption[];
 };
 
 export function MovementsManager({
-  monthKey,
-  monthLabel,
+  from,
+  to,
+  year,
   movements,
   summary,
+  yearSummary,
   categories,
 }: MovementsManagerProps) {
   const router = useRouter();
@@ -132,11 +137,6 @@ export function MovementsManager({
     }
   }
 
-  function navigateMonth(delta: number) {
-    const nextMonth = shiftMonthKey(monthKey, delta);
-    router.push(`/cashflow?month=${nextMonth}`);
-  }
-
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -190,30 +190,14 @@ export function MovementsManager({
 
   return (
     <div className="space-y-6">
+      <YearSummaryBar
+        yearSummary={yearSummary}
+        rangeFrom={from}
+        rangeTo={to}
+      />
+
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-1">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            aria-label="Mese precedente"
-            onClick={() => navigateMonth(-1)}
-          >
-            <ChevronLeftIcon />
-          </Button>
-          <span className="min-w-36 text-center text-sm font-medium capitalize">
-            {monthLabel}
-          </span>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            aria-label="Mese successivo"
-            onClick={() => navigateMonth(1)}
-          >
-            <ChevronRightIcon />
-          </Button>
-        </div>
+        <DateRangeFilter key={`${from}-${to}`} from={from} to={to} year={year} />
 
         <Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
           <DialogTrigger render={<Button onClick={openCreateDialog} />}>
@@ -397,7 +381,7 @@ export function MovementsManager({
                   colSpan={5}
                   className="space-y-3 py-8 text-center text-muted-foreground"
                 >
-                  <p>Nessun movimento in {monthLabel}.</p>
+                  <p>Nessun movimento nel periodo selezionato.</p>
                   <Button type="button" variant="outline" size="sm" onClick={openCreateDialog}>
                     Aggiungi movimento
                   </Button>
