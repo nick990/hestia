@@ -8,6 +8,7 @@ import {
   MoreHorizontalIcon,
 } from "lucide-react";
 import { ColumnFacetedFilter } from "@/components/cashflow/column-faceted-filter";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -31,6 +32,8 @@ import { cn } from "@/lib/utils";
 
 type MovementColumnActions = {
   pending: boolean;
+  showAuthor: boolean;
+  showPersonalBadge: boolean;
   onEdit: (movement: Movement) => void;
   onDelete: (movement: Movement) => void;
 };
@@ -67,10 +70,12 @@ function SortableHeader({
 
 export function createMovementColumns({
   pending,
+  showAuthor,
+  showPersonalBadge,
   onEdit,
   onDelete,
 }: MovementColumnActions): ColumnDef<Movement>[] {
-  return [
+  const columns: ColumnDef<Movement>[] = [
     {
       accessorKey: "occurred_on",
       header: ({ column }) => (
@@ -132,6 +137,11 @@ export function createMovementColumns({
       cell: ({ row }) => (
         <span className="max-w-xs truncate font-medium">
           {normalizeDescriptionDisplay(row.original.description)}
+          {showPersonalBadge && row.original.scope === "personal" ? (
+            <Badge variant="secondary" className="ml-2 align-middle">
+              Personale
+            </Badge>
+          ) : null}
         </span>
       ),
       sortingFn: (rowA, rowB, columnId) => {
@@ -146,6 +156,23 @@ export function createMovementColumns({
           normalizeDescriptionDisplay,
         ),
     },
+  ];
+
+  if (showAuthor) {
+    columns.push({
+      accessorKey: "author_name",
+      header: "Inserito da",
+      enableSorting: false,
+      enableColumnFilter: false,
+      cell: ({ row }) => (
+        <span className="text-muted-foreground whitespace-nowrap">
+          {row.original.author_name ?? "—"}
+        </span>
+      ),
+    });
+  }
+
+  columns.push(
     {
       accessorKey: "amount",
       header: ({ column }) => (
@@ -206,5 +233,7 @@ export function createMovementColumns({
         </div>
       ),
     },
-  ];
+  );
+
+  return columns;
 }

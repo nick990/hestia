@@ -1,3 +1,4 @@
+import type { CashflowView } from "@/lib/cashflow/view";
 import type {
   MonthSummary,
   MonthSummaryEntry,
@@ -14,10 +15,22 @@ type MovementRow = {
   description: string;
   created_at: string;
   category_id: string | null;
+  scope: string;
+  family_id: string | null;
+  user_id: string;
   movement_categories: { name: string } | { name: string }[] | null;
 };
 
-function mapMovement(row: MovementRow): Movement {
+type ProfileRow = {
+  id: string;
+  full_name: string | null;
+  email: string;
+};
+
+function mapMovement(
+  row: MovementRow,
+  authorNames: Map<string, string | null>,
+): Movement {
   const categoryRelation = row.movement_categories;
   const categoryName = Array.isArray(categoryRelation)
     ? (categoryRelation[0]?.name ?? null)
@@ -32,7 +45,52 @@ function mapMovement(row: MovementRow): Movement {
     created_at: row.created_at,
     category_id: row.category_id,
     category_name: categoryName,
+    scope: row.scope as Movement["scope"],
+    family_id: row.family_id,
+    user_id: row.user_id,
+    author_name: authorNames.get(row.user_id) ?? null,
   };
+}
+
+async function loadAuthorNames(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userIds: string[],
+): Promise<Map<string, string | null>> {
+  if (userIds.length === 0) {
+    return new Map();
+  }
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, full_name, email")
+    .in("id", userIds);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return new Map(
+    (data ?? []).map((profile: ProfileRow) => [
+      profile.id,
+      profile.full_name?.trim() || profile.email,
+    ]),
+  );
+}
+
+function applyViewFilter<
+  T extends {
+    eq(column: string, value: string): T;
+  },
+>(query: T, view: CashflowView): T {
+  if (view === "family") {
+    return query.eq("scope", "family");
+  }
+
+  if (view === "mine") {
+    return query.eq("scope", "personal");
+  }
+
+  return query;
 }
 
 function emptyMonthSummary(month: number, year: number): MonthSummaryEntry {
@@ -49,28 +107,43 @@ function emptyMonthSummary(month: number, year: number): MonthSummaryEntry {
 export async function listMovementsForRange(
   from: string,
   to: string,
+  view: CashflowView = "all",
 ): Promise<Movement[]> {
   const supabase = await createClient();
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("movements")
     .select(
-      "id, type, amount, occurred_on, description, created_at, category_id, movement_categories(name)",
+      "id, type, amount, occurred_on, description, created_at, category_id, scope, family_id, user_id, movement_categories(name)",
     )
     .gte("occurred_on", from)
     .lte("occurred_on", to)
     .order("occurred_on", { ascending: false })
     .order("created_at", { ascending: false });
 
+  query = applyViewFilter(query, view);
+
+  const { data, error } = await query;
+
   if (error) {
     throw new Error(error.message);
   }
 
-  return (data ?? []).map((row) => mapMovement(row as MovementRow));
+  const rows = (data ?? []) as MovementRow[];
+  const authorNames = await loadAuthorNames(
+    supabase,
+    [...new Set(rows.map((row) => row.user_id))],
+  );
+
+  return rows.map((row) => mapMovement(row, authorNames));
 }
 
-export async function getRangeSummary(from: string, to: string): Promise<MonthSummary> {
-  const movements = await listMovementsForRange(from, to);
+export async function getRangeSummary(
+  from: string,
+  to: string,
+  view: CashflowView = "all",
+): Promise<MonthSummary> {
+  const movements = await listMovementsForRange(from, to, view);
 
   const totalIncome = movements
     .filter((m) => m.type === "income")
@@ -87,16 +160,23 @@ export async function getRangeSummary(from: string, to: string): Promise<MonthSu
   };
 }
 
-export async function getYearMonthlySummaries(year: number): Promise<YearSummary> {
+export async function getYearMonthlySummaries(
+  year: number,
+  view: CashflowView = "all",
+): Promise<YearSummary> {
   const supabase = await createClient();
   const from = `${year}-01-01`;
   const to = `${year}-12-31`;
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("movements")
     .select("type, amount, occurred_on")
     .gte("occurred_on", from)
     .lte("occurred_on", to);
+
+  query = applyViewFilter(query, view);
+
+  const { data, error } = await query;
 
   if (error) {
     throw new Error(error.message);

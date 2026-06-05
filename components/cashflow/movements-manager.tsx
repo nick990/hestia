@@ -11,8 +11,10 @@ import {
   PeriodSummaryCards,
   type FilterSummaryState,
 } from "@/components/cashflow/period-summary-cards";
+import { ViewFilter } from "@/components/cashflow/view-filter";
 import { YearSummaryBar } from "@/components/cashflow/year-summary-bar";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogClose,
@@ -34,6 +36,7 @@ import {
 } from "@/components/ui/select";
 import type { MovementCategoryOption } from "@/lib/categories/types";
 import type { MonthSummary, Movement, MovementType, YearSummary } from "@/lib/cashflow/types";
+import type { CashflowView } from "@/lib/cashflow/view";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -42,6 +45,9 @@ type MovementsManagerProps = {
   from: string;
   to: string;
   year: number;
+  view: CashflowView;
+  hasFamily: boolean;
+  familyName?: string;
   defaultOccurredOn: string;
   movements: Movement[];
   summary: MonthSummary;
@@ -53,6 +59,9 @@ export function MovementsManager({
   from,
   to,
   year,
+  view,
+  hasFamily,
+  familyName,
   defaultOccurredOn,
   movements,
   summary,
@@ -69,6 +78,7 @@ export function MovementsManager({
   const [occurredOn, setOccurredOn] = useState(defaultOccurredOn);
   const [description, setDescription] = useState("");
   const [categoryId, setCategoryId] = useState("none");
+  const [sharedWithFamily, setSharedWithFamily] = useState(hasFamily);
   const [filterSummary, setFilterSummary] = useState<FilterSummaryState>({
     active: false,
     summary: { totalIncome: 0, totalExpense: 0, net: 0 },
@@ -96,6 +106,7 @@ export function MovementsManager({
     setOccurredOn(defaultOccurredOn);
     setDescription("");
     setCategoryId("none");
+    setSharedWithFamily(hasFamily);
   }
 
   function openCreateDialog() {
@@ -110,6 +121,7 @@ export function MovementsManager({
     setOccurredOn(movement.occurred_on);
     setDescription(movement.description);
     setCategoryId(movement.category_id ?? "none");
+    setSharedWithFamily(movement.scope === "family");
     setDialogOpen(true);
   }
 
@@ -131,6 +143,7 @@ export function MovementsManager({
         occurredOn,
         description,
         categoryId: categoryId === "none" ? null : categoryId,
+        sharedWithFamily: hasFamily ? sharedWithFamily : false,
       };
 
       const result = editingMovement
@@ -174,14 +187,23 @@ export function MovementsManager({
 
   return (
     <div className="space-y-6">
+      <ViewFilter
+        view={view}
+        from={from}
+        to={to}
+        year={year}
+        hasFamily={hasFamily}
+      />
+
       <YearSummaryBar
         yearSummary={yearSummary}
         rangeFrom={from}
         rangeTo={to}
+        view={view}
       />
 
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <DateRangeFilter from={from} to={to} year={year} />
+        <DateRangeFilter from={from} to={to} year={year} view={view} />
 
         <Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
           <DialogTrigger render={<Button onClick={openCreateDialog} />}>
@@ -265,6 +287,21 @@ export function MovementsManager({
                   onChange={(event) => setDescription(event.target.value)}
                 />
               </div>
+              {hasFamily ? (
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="shared-with-family"
+                    checked={sharedWithFamily}
+                    onCheckedChange={(checked) =>
+                      setSharedWithFamily(checked === true)
+                    }
+                  />
+                  <Label htmlFor="shared-with-family" className="font-normal">
+                    Condiviso con la famiglia
+                    {familyName ? ` (${familyName})` : ""}
+                  </Label>
+                </div>
+              ) : null}
               <DialogFooter>
                 <DialogClose render={<Button type="button" variant="outline" />}>
                   Annulla
@@ -326,6 +363,7 @@ export function MovementsManager({
         movements={movements}
         from={from}
         to={to}
+        view={view}
         pending={pending}
         onEdit={openEditDialog}
         onDelete={setMovementToDelete}

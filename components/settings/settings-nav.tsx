@@ -5,7 +5,9 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const items = [
+  { href: "/settings/account", label: "Account", adminOnly: false },
   { href: "/settings/categories", label: "Categorie", adminOnly: false },
+  { href: "/settings/families", label: "Famiglie", adminOnly: true },
   { href: "/settings/users", label: "Utenti", adminOnly: true },
 ] as const;
 

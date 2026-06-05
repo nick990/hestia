@@ -13,11 +13,13 @@ import {
   getYearMonthlySummaries,
   listMovementsForRange,
 } from "@/lib/cashflow/queries";
+import { parseCashflowViewParam } from "@/lib/cashflow/view";
+import { getCurrentUserFamily } from "@/lib/families/queries";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
 type PageProps = {
-  searchParams: Promise<{ from?: string; to?: string; year?: string }>;
+  searchParams: Promise<{ from?: string; to?: string; year?: string; view?: string }>;
 };
 
 export default async function CashflowPage({ searchParams }: PageProps) {
@@ -33,10 +35,12 @@ export default async function CashflowPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const { from, to } = parseDateRangeParams(params.from, params.to);
   const year = parseYearParam(params.year);
+  const view = parseCashflowViewParam(params.view);
+  const family = await getCurrentUserFamily();
   const [movements, summary, yearSummary, categories] = await Promise.all([
-    listMovementsForRange(from, to),
-    getRangeSummary(from, to),
-    getYearMonthlySummaries(year),
+    listMovementsForRange(from, to, view),
+    getRangeSummary(from, to, view),
+    getYearMonthlySummaries(year, view),
     listCategoryOptions(),
   ]);
 
@@ -54,6 +58,9 @@ export default async function CashflowPage({ searchParams }: PageProps) {
             from={from}
             to={to}
             year={year}
+            view={view}
+            hasFamily={family !== null}
+            familyName={family?.family_name}
             defaultOccurredOn={getTodayIsoDate()}
             movements={movements}
             summary={summary}

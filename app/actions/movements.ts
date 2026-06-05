@@ -1,6 +1,7 @@
 "use server";
 
-import type { MovementType } from "@/lib/cashflow/types";
+import type { MovementScope, MovementType } from "@/lib/cashflow/types";
+import { getCurrentUserFamily } from "@/lib/families/queries";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
@@ -80,12 +81,29 @@ async function validateCategoryId(
   return null;
 }
 
+async function resolveMovementScope(
+  sharedWithFamily: boolean | undefined,
+): Promise<ActionResult | { scope: MovementScope; family_id: string | null }> {
+  if (!sharedWithFamily) {
+    return { scope: "personal", family_id: null };
+  }
+
+  const membership = await getCurrentUserFamily();
+
+  if (!membership) {
+    return { ok: false, error: "Non appartieni a una famiglia." };
+  }
+
+  return { scope: "family", family_id: membership.family_id };
+}
+
 export async function createMovement(input: {
   type: string;
   amount: string;
   occurredOn: string;
   description: string;
   categoryId?: string | null;
+  sharedWithFamily?: boolean;
 }): Promise<ActionResult> {
   const supabase = await createClient();
   const {
@@ -124,6 +142,14 @@ export async function createMovement(input: {
     return categoryError;
   }
 
+  const scopeResult = await resolveMovementScope(input.sharedWithFamily);
+
+  if ("ok" in scopeResult) {
+    return scopeResult;
+  }
+
+  const { scope, family_id } = scopeResult;
+
   const { error } = await supabase.from("movements").insert({
     user_id: user.id,
     type,
@@ -131,6 +157,8 @@ export async function createMovement(input: {
     occurred_on,
     description,
     category_id,
+    scope,
+    family_id,
   });
 
   if (error) {
@@ -149,6 +177,7 @@ export async function updateMovement(
     occurredOn: string;
     description: string;
     categoryId?: string | null;
+    sharedWithFamily?: boolean;
   },
 ): Promise<ActionResult> {
   const supabase = await createClient();
@@ -188,11 +217,18 @@ export async function updateMovement(
     return categoryError;
   }
 
+  const scopeResult = await resolveMovementScope(input.sharedWithFamily);
+
+  if ("ok" in scopeResult) {
+    return scopeResult;
+  }
+
+  const { scope, family_id } = scopeResult;
+
   const { error } = await supabase
     .from("movements")
-    .update({ type, amount, occurred_on, description, category_id })
-    .eq("id", id)
-    .eq("user_id", user.id);
+    .update({ type, amount, occurred_on, description, category_id, scope, family_id })
+    .eq("id", id);
 
   if (error) {
     return { ok: false, error: error.message };
@@ -212,11 +248,7 @@ export async function deleteMovement(id: string): Promise<ActionResult> {
     return { ok: false, error: "Sessione scaduta. Accedi di nuovo." };
   }
 
-  const { error } = await supabase
-    .from("movements")
-    .delete()
-    .eq("id", id)
-    .eq("user_id", user.id);
+  const { error } = await supabase.from("movements").delete().eq("id", id);
 
   if (error) {
     return { ok: false, error: error.message };

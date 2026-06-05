@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { getCurrentMember } from "@/lib/auth/member";
+import { getCurrentUserProfile } from "@/lib/profile/queries";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -9,8 +10,13 @@ const navItems = [
 ] as const;
 
 export async function AppNav() {
-  const member = await getCurrentMember();
+  const [member, profile] = await Promise.all([
+    getCurrentMember(),
+    getCurrentUserProfile(),
+  ]);
   const isAdmin = member?.role === "admin" && !member.disabled_at;
+  const displayName =
+    profile?.full_name?.trim() || profile?.email || member?.email || "Utente";
 
   return (
     <header className="border-b bg-background">
@@ -39,7 +45,12 @@ export async function AppNav() {
             })}
           </nav>
         </div>
-        <SignOutButton />
+        <div className="flex items-center gap-3">
+          <span className="max-w-48 truncate text-sm text-muted-foreground">
+            {displayName}
+          </span>
+          <SignOutButton />
+        </div>
       </div>
     </header>
   );

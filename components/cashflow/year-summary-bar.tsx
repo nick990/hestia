@@ -9,6 +9,7 @@ import {
 } from "@/lib/cashflow/date-range";
 import { formatEuro } from "@/lib/cashflow/format";
 import type { YearSummary } from "@/lib/cashflow/types";
+import { buildCashflowViewSearchParams, type CashflowView } from "@/lib/cashflow/view";
 import { cn } from "@/lib/utils";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -17,18 +18,24 @@ type YearSummaryBarProps = {
   yearSummary: YearSummary;
   rangeFrom: string;
   rangeTo: string;
+  view?: CashflowView;
 };
 
 export function YearSummaryBar({
   yearSummary,
   rangeFrom,
   rangeTo,
+  view = "all",
 }: YearSummaryBarProps) {
   const router = useRouter();
   const { year } = yearSummary;
 
   function navigate(params: { from: string; to: string; year: number }) {
-    router.push(`/cashflow?${buildCashflowSearchParams(params)}`);
+    const searchParams = buildCashflowViewSearchParams(
+      new URLSearchParams(buildCashflowSearchParams(params)),
+      view,
+    );
+    router.push(`/cashflow?${searchParams.toString()}`);
   }
 
   function shiftYear(delta: number) {

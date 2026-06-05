@@ -29,8 +29,13 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 ## Nav e Impostazioni
 
 - [ ] Nav: **Cashflow** e **Impostazioni** (nessuna Dashboard).
-- [ ] User: Impostazioni → sidebar solo **Categorie**; `/settings/users` → redirect `/settings/categories`.
-- [ ] Admin: sidebar **Categorie** + **Utenti**; `/users` → redirect `/settings/users`.
+- [ ] User: Impostazioni → sidebar **Account** + **Categorie**; `/settings/users` → redirect `/settings/categories`.
+- [ ] Admin: sidebar **Account** + **Categorie** + **Utenti** + **Famiglie**; `/users` → redirect `/settings/users`.
+
+## Account
+
+- [ ] Impostazioni → Account: email in sola lettura.
+- [ ] Modifica nome → Salva → toast di conferma; nome aggiornato in colonna «Inserito da» del cashflow (se in famiglia).
 
 ## Ruoli admin / user
 
@@ -71,6 +76,20 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 - [ ] Con filtro attivo → totali periodo invariati; nei box compare «Filtrato: €…» (text-xs); tabella non si sposta.
 - [ ] Filtro che esclude tutto → «Nessun movimento corrisponde ai filtri» + «Cancella filtri».
 - [ ] Cambio periodo (‹ › o click mese) → filtri e ordinamento resettati.
+
+## Famiglie e movimenti condivisi
+
+- [ ] Admin: Impostazioni → Famiglie → crea famiglia e assegna 2 utenti registrati.
+- [ ] Utente A: movimento default condiviso → visibile a B in Tutti e Famiglia.
+- [ ] Utente A: movimento personale (toggle off) → visibile ad A in Tutti e Solo miei; B non lo vede.
+- [ ] B modifica/elimina movimento family di A → OK.
+- [ ] Vista Famiglia / Tutti: colonna «Inserito da» valorizzata anche per movimenti di altri membri (nome da Account).
+- [ ] Vista Solo miei: solo movimenti personali propri; nessun family.
+- [ ] Totali periodo cambiano tra Tutti / Famiglia / Solo miei.
+- [ ] Switch a 3 vie (segmented) sopra il riepilogo annuale; segmento attivo evidenziato.
+- [ ] Riepilogo annuale (totali anno + griglia mesi) cambia con la vista; evidenziazione mese resta legata al range Da/A.
+- [ ] Utente senza famiglia: nessun tab vista; solo personali.
+- [ ] Admin rimuove membro: ex-membro non vede più family; movimenti family restano per la famiglia.
 
 ## Categorie (Impostazioni)
 

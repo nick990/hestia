@@ -1,5 +1,7 @@
 export type MovementType = "income" | "expense";
 
+export type MovementScope = "personal" | "family";
+
 export type Movement = {
   id: string;
   type: MovementType;
@@ -9,6 +11,10 @@ export type Movement = {
   created_at: string;
   category_id: string | null;
   category_name: string | null;
+  scope: MovementScope;
+  family_id: string | null;
+  user_id: string;
+  author_name: string | null;
 };
 
 export type MonthSummary = {

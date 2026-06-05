@@ -28,6 +28,7 @@ import {
   summarizeMovements,
 } from "@/lib/cashflow/table-filter";
 import type { Movement } from "@/lib/cashflow/types";
+import type { CashflowView } from "@/lib/cashflow/view";
 import { cn } from "@/lib/utils";
 
 const DEFAULT_SORTING: SortingState = [{ id: "occurred_on", desc: true }];
@@ -36,6 +37,7 @@ type MovementsTableProps = {
   movements: Movement[];
   from: string;
   to: string;
+  view: CashflowView;
   pending: boolean;
   onEdit: (movement: Movement) => void;
   onDelete: (movement: Movement) => void;
@@ -47,6 +49,7 @@ export function MovementsTable({
   movements,
   from,
   to,
+  view,
   pending,
   onEdit,
   onDelete,
@@ -59,11 +62,21 @@ export function MovementsTable({
   useEffect(() => {
     setSorting(DEFAULT_SORTING);
     setColumnFilters([]);
-  }, [from, to]);
+  }, [from, to, view]);
+
+  const showAuthor = view === "all" || view === "family";
+  const showPersonalBadge = view === "all";
 
   const columns = useMemo(
-    () => createMovementColumns({ pending, onEdit, onDelete }),
-    [pending, onEdit, onDelete],
+    () =>
+      createMovementColumns({
+        pending,
+        showAuthor,
+        showPersonalBadge,
+        onEdit,
+        onDelete,
+      }),
+    [pending, showAuthor, showPersonalBadge, onEdit, onDelete],
   );
 
   const table = useReactTable({
