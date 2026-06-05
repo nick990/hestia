@@ -1,4 +1,5 @@
 import type { FamilyMembership } from "@/lib/families/types";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export async function getCurrentUserFamily(): Promise<FamilyMembership | null> {
@@ -24,4 +25,18 @@ export async function getCurrentUserFamily(): Promise<FamilyMembership | null> {
   }
 
   return { family_id: data.family_id, family_name: familyName };
+}
+
+export async function getFamilyMemberCount(familyId: string): Promise<number> {
+  const admin = createAdminClient();
+  const { count, error } = await admin
+    .from("family_members")
+    .select("*", { count: "exact", head: true })
+    .eq("family_id", familyId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return count ?? 0;
 }

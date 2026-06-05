@@ -91,6 +91,19 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 - [ ] Utente senza famiglia: nessun tab vista; solo personali.
 - [ ] Admin rimuove membro: ex-membro non vede più family; movimenti family restano per la famiglia.
 
+## Quota famiglia (share)
+
+- [ ] Toggle «Considera solo la mia quota» visibile in Tutti e Famiglia; nascosto in Solo miei
+- [ ] Default off: importi e totali invariati rispetto a prima del toggle
+- [ ] Toggle on + Famiglia: importo tabella = pieno ÷ N membri; totali periodo e anno coerenti
+- [ ] Toggle on + Tutti: movimenti personali pieni, family divisi; totali mix corretti
+- [ ] Testo aiuto mostra N membri corretto
+- [ ] Cambio periodo (‹ › date picker), anno (‹ › riepilogo), click mese: `share=1` preservato in URL
+- [ ] Cambio vista Tutti ↔ Famiglia: stato share preservato
+- [ ] Vista Solo miei: nessun effetto quota anche con `share=1` in URL
+- [ ] Modifica movimento family: form mostra importo pieno del DB, non la quota
+- [ ] Admin aggiunge terzo membro: totali quota ricalcolati con N=3
+
 ## Categorie (Impostazioni)
 
 - [ ] Admin crea/modifica categoria.

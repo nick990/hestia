@@ -1,3 +1,8 @@
+import {
+  applyShareToMovements,
+  getEffectiveAmount,
+  type FamilyShareOptions,
+} from "@/lib/cashflow/share";
 import type { CashflowView } from "@/lib/cashflow/view";
 import type {
   MonthSummary,
@@ -93,6 +98,23 @@ function applyViewFilter<
   return query;
 }
 
+const DEFAULT_SHARE_OPTIONS: FamilyShareOptions = {
+  shareEnabled: false,
+  memberCount: 0,
+  view: "all",
+};
+
+function resolveShareOptions(
+  view: CashflowView,
+  shareOptions?: Partial<FamilyShareOptions>,
+): FamilyShareOptions {
+  return {
+    ...DEFAULT_SHARE_OPTIONS,
+    view,
+    ...shareOptions,
+  };
+}
+
 function emptyMonthSummary(month: number, year: number): MonthSummaryEntry {
   const monthKey = `${year}-${String(month).padStart(2, "0")}`;
   return {
@@ -108,7 +130,9 @@ export async function listMovementsForRange(
   from: string,
   to: string,
   view: CashflowView = "all",
+  shareOptions?: Partial<FamilyShareOptions>,
 ): Promise<Movement[]> {
+  const options = resolveShareOptions(view, shareOptions);
   const supabase = await createClient();
 
   let query = supabase
@@ -135,15 +159,17 @@ export async function listMovementsForRange(
     [...new Set(rows.map((row) => row.user_id))],
   );
 
-  return rows.map((row) => mapMovement(row, authorNames));
+  const movements = rows.map((row) => mapMovement(row, authorNames));
+  return applyShareToMovements(movements, options);
 }
 
 export async function getRangeSummary(
   from: string,
   to: string,
   view: CashflowView = "all",
+  shareOptions?: Partial<FamilyShareOptions>,
 ): Promise<MonthSummary> {
-  const movements = await listMovementsForRange(from, to, view);
+  const movements = await listMovementsForRange(from, to, view, shareOptions);
 
   const totalIncome = movements
     .filter((m) => m.type === "income")
@@ -163,14 +189,16 @@ export async function getRangeSummary(
 export async function getYearMonthlySummaries(
   year: number,
   view: CashflowView = "all",
+  shareOptions?: Partial<FamilyShareOptions>,
 ): Promise<YearSummary> {
+  const options = resolveShareOptions(view, shareOptions);
   const supabase = await createClient();
   const from = `${year}-01-01`;
   const to = `${year}-12-31`;
 
   let query = supabase
     .from("movements")
-    .select("type, amount, occurred_on")
+    .select("type, amount, occurred_on, scope")
     .gte("occurred_on", from)
     .lte("occurred_on", to);
 
@@ -189,7 +217,10 @@ export async function getYearMonthlySummaries(
   for (const row of data ?? []) {
     const month = Number(String(row.occurred_on).slice(5, 7));
     const entry = months[month - 1];
-    const amount = Number(row.amount);
+    const amount = getEffectiveAmount(
+      { amount: Number(row.amount), scope: row.scope as Movement["scope"] },
+      options,
+    );
 
     if (row.type === "income") {
       entry.totalIncome += amount;

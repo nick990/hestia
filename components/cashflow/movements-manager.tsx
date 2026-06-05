@@ -46,10 +46,13 @@ type MovementsManagerProps = {
   to: string;
   year: number;
   view: CashflowView;
+  share: boolean;
+  memberCount: number;
   hasFamily: boolean;
   familyName?: string;
   defaultOccurredOn: string;
   movements: Movement[];
+  rawMovements: Movement[];
   summary: MonthSummary;
   yearSummary: YearSummary;
   categories: MovementCategoryOption[];
@@ -60,10 +63,13 @@ export function MovementsManager({
   to,
   year,
   view,
+  share,
+  memberCount,
   hasFamily,
   familyName,
   defaultOccurredOn,
   movements,
+  rawMovements,
   summary,
   yearSummary,
   categories,
@@ -115,13 +121,14 @@ export function MovementsManager({
   }
 
   function openEditDialog(movement: Movement) {
-    setEditingMovement(movement);
-    setType(movement.type);
-    setAmount(String(movement.amount));
-    setOccurredOn(movement.occurred_on);
-    setDescription(movement.description);
-    setCategoryId(movement.category_id ?? "none");
-    setSharedWithFamily(movement.scope === "family");
+    const raw = rawMovements.find((item) => item.id === movement.id) ?? movement;
+    setEditingMovement(raw);
+    setType(raw.type);
+    setAmount(String(raw.amount));
+    setOccurredOn(raw.occurred_on);
+    setDescription(raw.description);
+    setCategoryId(raw.category_id ?? "none");
+    setSharedWithFamily(raw.scope === "family");
     setDialogOpen(true);
   }
 
@@ -189,6 +196,8 @@ export function MovementsManager({
     <div className="space-y-6">
       <ViewFilter
         view={view}
+        share={share}
+        memberCount={memberCount}
         from={from}
         to={to}
         year={year}
@@ -200,10 +209,11 @@ export function MovementsManager({
         rangeFrom={from}
         rangeTo={to}
         view={view}
+        share={share}
       />
 
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <DateRangeFilter from={from} to={to} year={year} view={view} />
+        <DateRangeFilter from={from} to={to} year={year} view={view} share={share} />
 
         <Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
           <DialogTrigger render={<Button onClick={openCreateDialog} />}>

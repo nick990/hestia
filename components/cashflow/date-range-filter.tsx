@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { buildCashflowSearchParams, shiftMonthRange } from "@/lib/cashflow/date-range";
+import { buildShareSearchParams } from "@/lib/cashflow/share";
 import { buildCashflowViewSearchParams, type CashflowView } from "@/lib/cashflow/view";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -13,17 +14,27 @@ type DateRangeFilterProps = {
   to: string;
   year: number;
   view?: CashflowView;
+  share?: boolean;
 };
 
-export function DateRangeFilter({ from, to, year, view = "all" }: DateRangeFilterProps) {
+export function DateRangeFilter({
+  from,
+  to,
+  year,
+  view = "all",
+  share = false,
+}: DateRangeFilterProps) {
   const router = useRouter();
 
   function navigate(nextFrom: string, nextTo: string) {
-    const params = buildCashflowViewSearchParams(
-      new URLSearchParams(
-        buildCashflowSearchParams({ from: nextFrom, to: nextTo, year }),
+    const params = buildShareSearchParams(
+      buildCashflowViewSearchParams(
+        new URLSearchParams(
+          buildCashflowSearchParams({ from: nextFrom, to: nextTo, year }),
+        ),
+        view,
       ),
-      view,
+      share,
     );
     router.push(`/cashflow?${params.toString()}`);
   }
