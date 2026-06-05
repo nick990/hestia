@@ -63,6 +63,14 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 - [ ] Empty state periodo vuoto → CTA «Aggiungi movimento».
 - [ ] Mobile: riepilogo mesi scroll orizzontale.
 - [ ] Movimento con/senza categoria → colonna Categoria corretta.
+- [ ] Tabella: ordine default per data discendente (più recenti in cima).
+- [ ] Tabella: click header Data / Categoria / Descrizione / Importo → ordinamento asc/desc.
+- [ ] Filtro categoria: checkbox multipla → sole righe selezionate; icona filtro attiva.
+- [ ] Filtro descrizione: cerca «bol» nel popover → spunta voci → righe corrispondenti.
+- [ ] Filtro: cerca «casa» con voci già selezionate + Seleziona tutto → tutte le selezioni restano visibili in tabella.
+- [ ] Con filtro attivo → totali periodo invariati; nei box compare «Filtrato: €…» (text-xs); tabella non si sposta.
+- [ ] Filtro che esclude tutto → «Nessun movimento corrisponde ai filtri» + «Cancella filtri».
+- [ ] Cambio periodo (‹ › o click mese) → filtri e ordinamento resettati.
 
 ## Categorie (Impostazioni)
 

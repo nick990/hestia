@@ -6,6 +6,11 @@ import {
   updateMovement,
 } from "@/app/actions/movements";
 import { DateRangeFilter } from "@/components/cashflow/date-range-filter";
+import { MovementsTable } from "@/components/cashflow/movements-table";
+import {
+  PeriodSummaryCards,
+  type FilterSummaryState,
+} from "@/components/cashflow/period-summary-cards";
 import { YearSummaryBar } from "@/components/cashflow/year-summary-bar";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,13 +23,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -34,25 +32,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  formatEuro,
-  formatOccurredOn,
-  formatSignedAmount,
-} from "@/lib/cashflow/format";
 import type { MovementCategoryOption } from "@/lib/categories/types";
 import type { MonthSummary, Movement, MovementType, YearSummary } from "@/lib/cashflow/types";
-import { cn } from "@/lib/utils";
-import { MoreHorizontalIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useMemo, useState, useTransition } from "react";
+import { useCallback, useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 type MovementsManagerProps = {
@@ -86,6 +69,14 @@ export function MovementsManager({
   const [occurredOn, setOccurredOn] = useState(defaultOccurredOn);
   const [description, setDescription] = useState("");
   const [categoryId, setCategoryId] = useState("none");
+  const [filterSummary, setFilterSummary] = useState<FilterSummaryState>({
+    active: false,
+    summary: { totalIncome: 0, totalExpense: 0, net: 0 },
+  });
+
+  const handleFilterSummaryChange = useCallback((state: FilterSummaryState) => {
+    setFilterSummary(state);
+  }, []);
 
   const categorySelectItems = useMemo(
     () => [
@@ -287,32 +278,7 @@ export function MovementsManager({
         </Dialog>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-lg border bg-muted/30 p-4">
-          <p className="text-sm text-muted-foreground">Entrate</p>
-          <p className="text-lg font-semibold text-emerald-600 dark:text-emerald-500">
-            {formatEuro(summary.totalIncome)}
-          </p>
-        </div>
-        <div className="rounded-lg border bg-muted/30 p-4">
-          <p className="text-sm text-muted-foreground">Uscite</p>
-          <p className="text-lg font-semibold">{formatEuro(summary.totalExpense)}</p>
-        </div>
-        <div className="rounded-lg border bg-muted/30 p-4">
-          <p className="text-sm text-muted-foreground">Netto</p>
-          <p
-            className={cn(
-              "text-lg font-semibold",
-              summary.net >= 0
-                ? "text-emerald-600 dark:text-emerald-500"
-                : "text-destructive",
-            )}
-          >
-            {formatEuro(summary.net)}
-          </p>
-          <p className="text-xs text-muted-foreground">entrate − uscite</p>
-        </div>
-      </div>
+      <PeriodSummaryCards summary={summary} filterSummary={filterSummary} />
 
       <Dialog
         open={movementToDelete !== null}
@@ -356,86 +322,16 @@ export function MovementsManager({
         </DialogContent>
       </Dialog>
 
-      <div className="overflow-x-auto rounded-lg border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Data</TableHead>
-              <TableHead>Categoria</TableHead>
-              <TableHead>Descrizione</TableHead>
-              <TableHead className="text-right">Importo</TableHead>
-              <TableHead className="w-12 text-right">Azioni</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {movements.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={5}
-                  className="space-y-3 py-8 text-center text-muted-foreground"
-                >
-                  <p>Nessun movimento nel periodo selezionato.</p>
-                  <Button type="button" variant="outline" size="sm" onClick={openCreateDialog}>
-                    Aggiungi movimento
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ) : (
-              movements.map((movement) => (
-                <TableRow key={movement.id}>
-                  <TableCell className="whitespace-nowrap">
-                    {formatOccurredOn(movement.occurred_on)}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {movement.category_name ?? "—"}
-                  </TableCell>
-                  <TableCell className="max-w-xs truncate font-medium">
-                    {movement.description?.trim() ? movement.description : "—"}
-                  </TableCell>
-                  <TableCell
-                    className={cn(
-                      "text-right font-medium whitespace-nowrap",
-                      movement.type === "income"
-                        ? "text-emerald-600 dark:text-emerald-500"
-                        : "text-destructive",
-                    )}
-                  >
-                    {formatSignedAmount(movement.type, movement.amount)}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger
-                        render={
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            disabled={pending}
-                            aria-label="Azioni movimento"
-                          />
-                        }
-                      >
-                        <MoreHorizontalIcon />
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => openEditDialog(movement)}>
-                          Modifica
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          variant="destructive"
-                          onClick={() => setMovementToDelete(movement)}
-                        >
-                          Elimina
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      <MovementsTable
+        movements={movements}
+        from={from}
+        to={to}
+        pending={pending}
+        onEdit={openEditDialog}
+        onDelete={setMovementToDelete}
+        onCreate={openCreateDialog}
+        onFilterSummaryChange={handleFilterSummaryChange}
+      />
     </div>
   );
 }
