@@ -14,9 +14,9 @@ const familyMovement = (amount: number): Pick<Movement, "amount" | "scope"> => (
   scope: "family",
 });
 
-const personalMovement = (amount: number): Pick<Movement, "amount" | "scope"> => ({
+const privateMovement = (amount: number): Pick<Movement, "amount" | "scope"> => ({
   amount,
-  scope: "personal",
+  scope: "private",
 });
 
 describe("parseShareParam", () => {
@@ -44,8 +44,8 @@ describe("buildShareSearchParams", () => {
 });
 
 describe("isShareActive", () => {
-  it("is inactive for mine view", () => {
-    expect(isShareActive("mine", true)).toBe(false);
+  it("is inactive for private view", () => {
+    expect(isShareActive("private", true)).toBe(false);
   });
 
   it("is inactive when share off", () => {
@@ -75,8 +75,8 @@ describe("getEffectiveAmount", () => {
     ).toBe(90);
   });
 
-  it("returns full amount for personal scope", () => {
-    expect(getEffectiveAmount(personalMovement(50), opts)).toBe(50);
+  it("returns full amount for private scope", () => {
+    expect(getEffectiveAmount(privateMovement(50), opts)).toBe(50);
   });
 
   it("divides family amount by member count", () => {
@@ -89,9 +89,9 @@ describe("getEffectiveAmount", () => {
     ).toBe(100);
   });
 
-  it("ignores share on mine view", () => {
+  it("ignores share on private view", () => {
     expect(
-      getEffectiveAmount(familyMovement(100), { ...opts, view: "mine" }),
+      getEffectiveAmount(familyMovement(100), { ...opts, view: "private" }),
     ).toBe(100);
   });
 });
@@ -122,7 +122,7 @@ describe("applyShareToMovements", () => {
         created_at: "2026-06-01T00:00:00Z",
         category_id: null,
         category_name: null,
-        scope: "personal",
+        scope: "private",
         family_id: null,
         user_id: "u1",
         author_name: null,

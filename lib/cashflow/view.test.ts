@@ -5,11 +5,12 @@ describe("parseCashflowViewParam", () => {
   it("defaults to all", () => {
     expect(parseCashflowViewParam(undefined)).toBe("all");
     expect(parseCashflowViewParam("invalid")).toBe("all");
+    expect(parseCashflowViewParam("mine")).toBe("all");
   });
 
   it("parses valid views", () => {
     expect(parseCashflowViewParam("all")).toBe("all");
     expect(parseCashflowViewParam("family")).toBe("family");
-    expect(parseCashflowViewParam("mine")).toBe("mine");
+    expect(parseCashflowViewParam("private")).toBe("private");
   });
 });

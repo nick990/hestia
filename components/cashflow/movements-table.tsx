@@ -65,18 +65,18 @@ export function MovementsTable({
   }, [from, to, view]);
 
   const showAuthor = view === "all" || view === "family";
-  const showPersonalBadge = view === "all";
+  const showPrivateBadge = view === "all";
 
   const columns = useMemo(
     () =>
       createMovementColumns({
         pending,
         showAuthor,
-        showPersonalBadge,
+        showPrivateBadge,
         onEdit,
         onDelete,
       }),
-    [pending, showAuthor, showPersonalBadge, onEdit, onDelete],
+    [pending, showAuthor, showPrivateBadge, onEdit, onDelete],
   );
 
   const table = useReactTable({

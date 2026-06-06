@@ -12,8 +12,8 @@ import { useRouter } from "next/navigation";
 
 const VIEW_OPTIONS: Array<{ value: CashflowView; label: string }> = [
   { value: "all", label: "Tutti" },
+  { value: "private", label: "Privati" },
   { value: "family", label: "Famiglia" },
-  { value: "mine", label: "Solo miei" },
 ];
 
 type ViewFilterProps = {

@@ -91,8 +91,8 @@ function applyViewFilter<
     return query.eq("scope", "family");
   }
 
-  if (view === "mine") {
-    return query.eq("scope", "personal");
+  if (view === "private") {
+    return query.eq("scope", "private");
   }
 
   return query;

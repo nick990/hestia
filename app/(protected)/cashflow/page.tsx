@@ -75,7 +75,7 @@ export default async function CashflowPage({ searchParams }: PageProps) {
             share={share}
             memberCount={memberCount}
             hasFamily={family !== null}
-            familyName={family?.family_name}
+            currentUserId={user.id}
             defaultOccurredOn={getTodayIsoDate()}
             movements={movements}
             rawMovements={rawMovements}

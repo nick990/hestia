@@ -1,6 +1,6 @@
-export type CashflowView = "all" | "family" | "mine";
+export type CashflowView = "all" | "private" | "family";
 
-const VALID_VIEWS: CashflowView[] = ["all", "family", "mine"];
+const VALID_VIEWS: CashflowView[] = ["all", "private", "family"];
 
 export function parseCashflowViewParam(value: string | undefined): CashflowView {
   if (value && VALID_VIEWS.includes(value as CashflowView)) {

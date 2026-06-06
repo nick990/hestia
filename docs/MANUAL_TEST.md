@@ -54,7 +54,7 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 - [ ] Impossibile eliminare l'**ultimo admin** rimasto (anche se disabilitato).
 - [ ] Utente eliminato con sessione attiva → al prossimo request logout e redirect `/account-disabled`.
 
-## Cashflow (movimenti personali)
+## Cashflow (movimenti privati)
 
 - [ ] Link **Cashflow** visibile in nav per user e admin.
 - [ ] Apri `/cashflow` senza query → griglia mese corrente (`from`/`to`), riepilogo anno corrente.
@@ -81,26 +81,32 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 
 - [ ] Admin: Impostazioni → Famiglie → crea famiglia e assegna 2 utenti registrati.
 - [ ] Utente A: movimento default condiviso → visibile a B in Tutti e Famiglia.
-- [ ] Utente A: movimento personale (toggle off) → visibile ad A in Tutti e Solo miei; B non lo vede.
-- [ ] B modifica/elimina movimento family di A → OK.
+- [ ] Utente A: movimento privato (checkbox «Privato» attiva) → visibile ad A in Tutti e Privati; B non lo vede.
+- [ ] B modifica importo/descrizione movimento family di A → OK; visibilità invariata.
+- [ ] B apre modifica movimento family di A → checkbox «Privato» disabilitato + messaggio aiuto.
+- [ ] B elimina movimento family di A → OK.
+- [ ] A modifica il proprio movimento family → può attivare «Privato»; movimento sparisce a B.
 - [ ] Vista Famiglia / Tutti: colonna «Inserito da» valorizzata anche per movimenti di altri membri (nome da Account).
-- [ ] Vista Solo miei: solo movimenti personali propri; nessun family.
-- [ ] Totali periodo cambiano tra Tutti / Famiglia / Solo miei.
+- [ ] Vista Privati: solo movimenti privati propri; nessun family.
+- [ ] Totali periodo cambiano tra Tutti / Privati / Famiglia.
+- [ ] Segment control: ordine Tutti · Privati · Famiglia.
 - [ ] Switch a 3 vie (segmented) sopra il riepilogo annuale; segmento attivo evidenziato.
 - [ ] Riepilogo annuale (totali anno + griglia mesi) cambia con la vista; evidenziazione mese resta legata al range Da/A.
-- [ ] Utente senza famiglia: nessun tab vista; solo personali.
+- [ ] Utente senza famiglia: nessun tab vista; solo privati.
 - [ ] Admin rimuove membro: ex-membro non vede più family; movimenti family restano per la famiglia.
+- [ ] URL `?view=mine` → vista Tutti (default).
+- [ ] URL `?view=private` → vista Privati.
 
 ## Quota famiglia (share)
 
-- [ ] Toggle «Considera solo la mia quota» visibile in Tutti e Famiglia; nascosto in Solo miei
+- [ ] Toggle «Considera solo la mia quota» visibile in Tutti e Famiglia; nascosto in Privati
 - [ ] Default off: importi e totali invariati rispetto a prima del toggle
 - [ ] Toggle on + Famiglia: importo tabella = pieno ÷ N membri; totali periodo e anno coerenti
-- [ ] Toggle on + Tutti: movimenti personali pieni, family divisi; totali mix corretti
+- [ ] Toggle on + Tutti: movimenti privati pieni, family divisi; totali mix corretti
 - [ ] Testo aiuto mostra N membri corretto
 - [ ] Cambio periodo (‹ › date picker), anno (‹ › riepilogo), click mese: `share=1` preservato in URL
 - [ ] Cambio vista Tutti ↔ Famiglia: stato share preservato
-- [ ] Vista Solo miei: nessun effetto quota anche con `share=1` in URL
+- [ ] Vista Privati: nessun effetto quota anche con `share=1` in URL
 - [ ] Modifica movimento family: form mostra importo pieno del DB, non la quota
 - [ ] Admin aggiunge terzo membro: totali quota ricalcolati con N=3
 

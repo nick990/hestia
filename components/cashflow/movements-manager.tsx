@@ -49,7 +49,7 @@ type MovementsManagerProps = {
   share: boolean;
   memberCount: number;
   hasFamily: boolean;
-  familyName?: string;
+  currentUserId: string;
   defaultOccurredOn: string;
   movements: Movement[];
   rawMovements: Movement[];
@@ -66,7 +66,7 @@ export function MovementsManager({
   share,
   memberCount,
   hasFamily,
-  familyName,
+  currentUserId,
   defaultOccurredOn,
   movements,
   rawMovements,
@@ -84,7 +84,7 @@ export function MovementsManager({
   const [occurredOn, setOccurredOn] = useState(defaultOccurredOn);
   const [description, setDescription] = useState("");
   const [categoryId, setCategoryId] = useState("none");
-  const [sharedWithFamily, setSharedWithFamily] = useState(hasFamily);
+  const [isPrivate, setIsPrivate] = useState(false);
   const [filterSummary, setFilterSummary] = useState<FilterSummaryState>({
     active: false,
     summary: { totalIncome: 0, totalExpense: 0, net: 0 },
@@ -112,7 +112,7 @@ export function MovementsManager({
     setOccurredOn(defaultOccurredOn);
     setDescription("");
     setCategoryId("none");
-    setSharedWithFamily(hasFamily);
+    setIsPrivate(false);
   }
 
   function openCreateDialog() {
@@ -128,7 +128,7 @@ export function MovementsManager({
     setOccurredOn(raw.occurred_on);
     setDescription(raw.description);
     setCategoryId(raw.category_id ?? "none");
-    setSharedWithFamily(raw.scope === "family");
+    setIsPrivate(raw.scope === "private");
     setDialogOpen(true);
   }
 
@@ -150,7 +150,7 @@ export function MovementsManager({
         occurredOn,
         description,
         categoryId: categoryId === "none" ? null : categoryId,
-        sharedWithFamily: hasFamily ? sharedWithFamily : false,
+        isPrivate: hasFamily ? isPrivate : true,
       };
 
       const result = editingMovement
@@ -191,6 +191,9 @@ export function MovementsManager({
       router.refresh();
     });
   }
+
+  const canChangeVisibility =
+    !editingMovement || editingMovement.user_id === currentUserId;
 
   return (
     <div className="space-y-6">
@@ -298,18 +301,23 @@ export function MovementsManager({
                 />
               </div>
               {hasFamily ? (
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id="shared-with-family"
-                    checked={sharedWithFamily}
-                    onCheckedChange={(checked) =>
-                      setSharedWithFamily(checked === true)
-                    }
-                  />
-                  <Label htmlFor="shared-with-family" className="font-normal">
-                    Condiviso con la famiglia
-                    {familyName ? ` (${familyName})` : ""}
-                  </Label>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="movement-private"
+                      checked={isPrivate}
+                      disabled={!canChangeVisibility}
+                      onCheckedChange={(checked) => setIsPrivate(checked === true)}
+                    />
+                    <Label htmlFor="movement-private" className="font-normal">
+                      Privato
+                    </Label>
+                  </div>
+                  {!canChangeVisibility ? (
+                    <p className="text-xs text-muted-foreground">
+                      Solo l&apos;autore può cambiare la visibilità
+                    </p>
+                  ) : null}
                 </div>
               ) : null}
               <DialogFooter>

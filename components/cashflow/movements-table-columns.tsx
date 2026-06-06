@@ -33,7 +33,7 @@ import { cn } from "@/lib/utils";
 type MovementColumnActions = {
   pending: boolean;
   showAuthor: boolean;
-  showPersonalBadge: boolean;
+  showPrivateBadge: boolean;
   onEdit: (movement: Movement) => void;
   onDelete: (movement: Movement) => void;
 };
@@ -71,7 +71,7 @@ function SortableHeader({
 export function createMovementColumns({
   pending,
   showAuthor,
-  showPersonalBadge,
+  showPrivateBadge,
   onEdit,
   onDelete,
 }: MovementColumnActions): ColumnDef<Movement>[] {
@@ -137,9 +137,9 @@ export function createMovementColumns({
       cell: ({ row }) => (
         <span className="max-w-xs truncate font-medium">
           {normalizeDescriptionDisplay(row.original.description)}
-          {showPersonalBadge && row.original.scope === "personal" ? (
+          {showPrivateBadge && row.original.scope === "private" ? (
             <Badge variant="secondary" className="ml-2 align-middle">
-              Personale
+              Privato
             </Badge>
           ) : null}
         </span>

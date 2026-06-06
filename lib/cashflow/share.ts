@@ -28,7 +28,7 @@ export function isShareActive(
   view: CashflowView,
   shareEnabled: boolean,
 ): boolean {
-  return shareEnabled && view !== "mine";
+  return shareEnabled && view !== "private";
 }
 
 export function roundMoney(value: number): number {

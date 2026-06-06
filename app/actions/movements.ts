@@ -1,6 +1,11 @@
 "use server";
 
 import type { MovementScope, MovementType } from "@/lib/cashflow/types";
+import {
+  hasVisibilityChanged,
+  isVisibilityChangeAllowed,
+  VISIBILITY_CHANGE_DENIED_MESSAGE,
+} from "@/lib/cashflow/movement-visibility";
 import { getCurrentUserFamily } from "@/lib/families/queries";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
@@ -82,16 +87,16 @@ async function validateCategoryId(
 }
 
 async function resolveMovementScope(
-  sharedWithFamily: boolean | undefined,
+  isPrivate: boolean | undefined,
 ): Promise<ActionResult | { scope: MovementScope; family_id: string | null }> {
-  if (!sharedWithFamily) {
-    return { scope: "personal", family_id: null };
+  if (isPrivate) {
+    return { scope: "private", family_id: null };
   }
 
   const membership = await getCurrentUserFamily();
 
   if (!membership) {
-    return { ok: false, error: "Non appartieni a una famiglia." };
+    return { scope: "private", family_id: null };
   }
 
   return { scope: "family", family_id: membership.family_id };
@@ -103,7 +108,7 @@ export async function createMovement(input: {
   occurredOn: string;
   description: string;
   categoryId?: string | null;
-  sharedWithFamily?: boolean;
+  isPrivate?: boolean;
 }): Promise<ActionResult> {
   const supabase = await createClient();
   const {
@@ -142,7 +147,7 @@ export async function createMovement(input: {
     return categoryError;
   }
 
-  const scopeResult = await resolveMovementScope(input.sharedWithFamily);
+  const scopeResult = await resolveMovementScope(input.isPrivate);
 
   if ("ok" in scopeResult) {
     return scopeResult;
@@ -177,7 +182,7 @@ export async function updateMovement(
     occurredOn: string;
     description: string;
     categoryId?: string | null;
-    sharedWithFamily?: boolean;
+    isPrivate?: boolean;
   },
 ): Promise<ActionResult> {
   const supabase = await createClient();
@@ -217,13 +222,39 @@ export async function updateMovement(
     return categoryError;
   }
 
-  const scopeResult = await resolveMovementScope(input.sharedWithFamily);
+  const { data: existing, error: fetchError } = await supabase
+    .from("movements")
+    .select("user_id, scope, family_id")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (fetchError) {
+    return { ok: false, error: fetchError.message };
+  }
+
+  if (!existing) {
+    return { ok: false, error: "Movimento non trovato." };
+  }
+
+  const scopeResult = await resolveMovementScope(input.isPrivate);
 
   if ("ok" in scopeResult) {
     return scopeResult;
   }
 
   const { scope, family_id } = scopeResult;
+
+  const visibilityChanged = hasVisibilityChanged(
+    {
+      scope: existing.scope as MovementScope,
+      family_id: existing.family_id,
+    },
+    { scope, family_id },
+  );
+
+  if (!isVisibilityChangeAllowed(existing.user_id, user.id, visibilityChanged)) {
+    return { ok: false, error: VISIBILITY_CHANGE_DENIED_MESSAGE };
+  }
 
   const { error } = await supabase
     .from("movements")

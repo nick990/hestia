@@ -1,6 +1,6 @@
 export type MovementType = "income" | "expense";
 
-export type MovementScope = "personal" | "family";
+export type MovementScope = "private" | "family";
 
 export type Movement = {
   id: string;
