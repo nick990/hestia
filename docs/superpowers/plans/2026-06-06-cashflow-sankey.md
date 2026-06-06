@@ -6,9 +6,11 @@
 
 **Architecture:** Logica pura in `lib/cashflow/sankey.ts` (`buildSankeyGraph`); la tabella emette `filteredMovements` via callback; il dialog compone metadati periodo + chart SVG con `d3-sankey`. I link uscite sono invertiti in fase layout (foglie a sinistra → centro) per rispettare il flusso L→R di d3-sankey.
 
-**Tech Stack:** Next.js 16, React 19, Vitest, `d3-sankey`, shadcn Dialog/Badge, Tailwind CSS variables.
+**Tech Stack:** Next.js 16.2.7, React 19.2.4, TanStack Table 8.21, Vitest, `d3-sankey@^0.12.3`, shadcn Dialog/Badge, Tailwind CSS variables.
 
 **Spec:** [`docs/superpowers/specs/2026-06-06-cashflow-sankey-design.md`](../specs/2026-06-06-cashflow-sankey-design.md)
+
+> **Context7 review (2026-06-06):** vedi sezione [Verifica Context7](#verifica-context7) in fondo al documento per versioni pin, API d3-sankey e correzioni applicate.
 
 ---
 
@@ -35,9 +37,11 @@
 - [ ] **Step 1: Installa pacchetti**
 
 ```bash
-npm install d3-sankey
-npm install -D @types/d3-sankey
+npm install d3-sankey@^0.12.3
+npm install -D @types/d3-sankey@^0.12.5
 ```
+
+`d3-sankey` va in **dependencies** (usato in Client Component produzione); `@types/d3-sankey` in **devDependencies**.
 
 - [ ] **Step 2: Verifica build**
 
@@ -137,7 +141,8 @@ export type SankeyGraphNode = {
   fullPath: string | null;
   kind: SankeyNodeKind;
   value: number;
-  depth: number;
+  /** Livello gerarchico semantico (non usare `depth`: d3-sankey sovrascrive quella proprietà). */
+  level: number;
   /** Importo che termina su questo nodo senza link verso figli (padre misto). */
   directAmount: number;
 };
@@ -148,7 +153,7 @@ export type SankeyGraphLink = {
   value: number;
 };
 
-export type SankeyGraph = {
+export type CashflowSankeyGraph = {
   nodes: SankeyGraphNode[];
   links: SankeyGraphLink[];
 };
@@ -169,14 +174,14 @@ export function truncateSankeyLabel(label: string, max = LABEL_MAX): string {
 }
 
 export function findNode(
-  graph: SankeyGraph,
+  graph: CashflowSankeyGraph,
   id: string,
 ): SankeyGraphNode | undefined {
   return graph.nodes.find((node) => node.id === id);
 }
 
 export function findLink(
-  graph: SankeyGraph,
+  graph: CashflowSankeyGraph,
   source: string,
   target: string,
 ): SankeyGraphLink | undefined {
@@ -185,7 +190,7 @@ export function findLink(
   );
 }
 
-export function buildSankeyGraph(_movements: Movement[]): SankeyGraph {
+export function buildSankeyGraph(_movements: Movement[]): CashflowSankeyGraph {
   return { nodes: [], links: [] };
 }
 ```
@@ -249,8 +254,8 @@ it("builds expense hierarchy center → parent → child", () => {
     findLink(graph, "expense:casa", "expense:casa.corrente comune")?.value,
   ).toBe(50);
 
-  expect(casa.depth).toBe(-1);
-  expect(mutuo.depth).toBe(-2);
+  expect(casa.level).toBe(-1);
+  expect(mutuo.level).toBe(-2);
   expect(casa.directAmount).toBe(0);
 });
 ```
@@ -296,7 +301,7 @@ function accumulatePathAmounts(
 }
 
 function addCategorySide(
-  graph: SankeyGraph,
+  graph: CashflowSankeyGraph,
   side: Side,
   pathAmounts: Map<string, number>,
 ): void {
@@ -317,7 +322,7 @@ function addCategorySide(
   }
 
   for (const [path, value] of nodeValues) {
-    const depth =
+    const level =
       side === "expense"
         ? -path.split(".").length
         : path.split(".").length;
@@ -328,7 +333,7 @@ function addCategorySide(
       fullPath: path,
       kind: side,
       value,
-      depth,
+      level,
       directAmount: directAmounts.get(path) ?? 0,
     });
   }
@@ -376,7 +381,7 @@ function addCategorySide(
       kind:
         side === "income" ? "uncategorized-income" : "uncategorized-expense",
       value: uncategorizedAmount,
-      depth: side === "expense" ? -1 : 1,
+      level: side === "expense" ? -1 : 1,
       directAmount: uncategorizedAmount,
     });
     if (side === "expense") {
@@ -407,7 +412,7 @@ export function buildSankeyGraph(movements: Movement[]): SankeyGraph {
     .filter((m) => m.type === "expense")
     .reduce((sum, m) => sum + m.amount, 0);
 
-  const graph: SankeyGraph = {
+  const graph: CashflowSankeyGraph = {
     nodes: [
       {
         id: CENTER_NODE_ID,
@@ -415,7 +420,7 @@ export function buildSankeyGraph(movements: Movement[]): SankeyGraph {
         fullPath: null,
         kind: "center",
         value: Math.max(totalIncome, totalExpense),
-        depth: 0,
+        level: 0,
         directAmount: 0,
       },
     ],
@@ -433,7 +438,7 @@ export function buildSankeyGraph(movements: Movement[]): SankeyGraph {
       fullPath: null,
       kind: "surplus",
       value: surplus,
-      depth: -1,
+      level: -1,
       directAmount: surplus,
     });
     graph.links.push({
@@ -449,7 +454,7 @@ export function buildSankeyGraph(movements: Movement[]): SankeyGraph {
       fullPath: null,
       kind: "deficit",
       value: deficit,
-      depth: -1,
+      level: -1,
       directAmount: deficit,
     });
     graph.links.push({
@@ -507,7 +512,7 @@ it("builds income hierarchy leaf → parent → center", () => {
     100,
   );
   expect(findLink(graph, "income:monade", CENTER_NODE_ID)?.value).toBe(150);
-  expect(monade.depth).toBe(1);
+  expect(monade.level).toBe(1);
 });
 
 it("uses distinct uncategorized nodes for income and expense", () => {
@@ -693,13 +698,13 @@ import {
   sankey as d3Sankey,
   sankeyJustify,
   sankeyLinkHorizontal,
-  type SankeyGraph as D3SankeyGraph,
+  type SankeyGraph as D3LayoutGraph,
   type SankeyLink,
   type SankeyNode,
 } from "d3-sankey";
 import { useMemo, useState } from "react";
 import type {
-  SankeyGraph,
+  CashflowSankeyGraph,
   SankeyGraphLink,
   SankeyGraphNode,
   SankeyNodeKind,
@@ -712,7 +717,7 @@ type LayoutNode = SankeyNode<SankeyGraphNode, SankeyGraphLink> & SankeyGraphNode
 type LayoutLink = SankeyLink<SankeyGraphNode, SankeyGraphLink> & SankeyGraphLink;
 
 type CashflowSankeyChartProps = {
-  graph: SankeyGraph;
+  graph: CashflowSankeyGraph;
   className?: string;
 };
 
@@ -752,7 +757,7 @@ function toLayoutLinks(links: SankeyGraphLink[]): SankeyGraphLink[] {
 }
 
 function addDirectTerminalLinks(
-  graph: SankeyGraph,
+  graph: CashflowSankeyGraph,
 ): SankeyGraphLink[] {
   const extra: SankeyGraphLink[] = [];
 
@@ -805,7 +810,7 @@ export function CashflowSankeyChart({ graph, className }: CashflowSankeyChartPro
           fullPath: parent?.fullPath ?? null,
           kind: parent?.kind ?? ("expense" as const),
           value: 0,
-          depth: parent?.depth ?? 0,
+          level: parent?.level ?? 0,
           directAmount: 0,
         } satisfies SankeyGraphNode;
       });
@@ -813,7 +818,7 @@ export function CashflowSankeyChart({ graph, className }: CashflowSankeyChartPro
     const nodes = [...graph.nodes, ...terminalNodes];
     const nodeMap = new Map(nodes.map((node) => [node.id, { ...node }]));
 
-    const data: D3SankeyGraph<SankeyGraphNode, SankeyGraphLink> = {
+    const data: D3LayoutGraph<SankeyGraphNode, SankeyGraphLink> = {
       nodes: Array.from(nodeMap.values()),
       links: layoutLinks.map((link) => ({ ...link })),
     };
@@ -1167,5 +1172,52 @@ Solo se lint/build richiedono aggiustamenti minori (es. import non usati).
 ## Note implementative
 
 1. **Link uscite invertiti in layout** (`toLayoutLinks`): il grafo semantico resta `center → casa → mutuo`; d3 riceve `mutuo → casa → center` così le foglie sono a sinistra.
-2. **Nodi `::__terminal__`**: solo per bilanciare d3 quando un padre ha `directAmount > 0`; non mostrati in UI (R11).
-3. **Colori**: usare CSS variables con fallback HSL; opzionale aggiungere in `globals.css` se si vogliono token dedicati `--chart-income` ecc.
+2. **Nodi `::__terminal__`**: solo per bilanciare d3 quando un padre ha `directAmount > 0`; non mostrati in UI (R11). Alternativa documentata da `@types/d3-sankey`: `node.fixedValue` — valutare in implementazione se elimina i nodi helper.
+3. **Spessore link**: usare `link.width` calcolato dal layout (best practice ufficiale d3-sankey), non ricalcolare da `link.value`.
+4. **Non usare `depth` sui nodi dominio**: d3-sankey sovrascrive `node.depth` con la profondità topologica; usare `level` nel grafo applicativo.
+5. **`'use client'`** in cima ai file chart/dialog (Next.js 16): prima di qualsiasi import.
+6. **Colori**: usare CSS variables con fallback HSL; opzionale aggiungere in `globals.css` token `--chart-income` ecc.
+
+---
+
+## Verifica Context7
+
+Verifica eseguita con Context7 MCP + README ufficiale `d3/d3-sankey` (2026-06-06).
+
+### Versioni (allineate al progetto)
+
+| Pacchetto | Progetto / piano | npm latest | Esito |
+|-----------|------------------|------------|-------|
+| Next.js | 16.2.7 | 16.2.x | OK — usare `/vercel/next.js/v16.2.2` |
+| React | 19.2.4 | 19.2.x | OK |
+| TanStack Table | 8.21.3 | 8.x (Context7 alpha = v9) | OK — **restare su v8 API** (`getFilteredRowModel`) |
+| d3-sankey | da installare | **0.12.3** | OK — pin `^0.12.3` |
+| @types/d3-sankey | da installare | **0.12.5** | OK — validato per 0.12 |
+
+### Best practice confermate
+
+| Area | Piano | Fonte | Esito |
+|------|-------|-------|-------|
+| Client Components | `'use client'` su chart + dialog | Next.js 16 docs | OK |
+| d3 in Client Component | import diretto (no dynamic obbligatorio) | Next.js 16 | OK |
+| Sankey layout | `sankey().nodeId().nodeAlign(sankeyJustify).extent()` | d3-sankey README | OK |
+| Link path | `sankeyLinkHorizontal()` + `d={...}` | d3-sankey README | OK |
+| Link width | `strokeWidth={link.width}` | d3-sankey README | OK (corretto in piano) |
+| Node height | `y1 - y0 ∝ node.value` (layout engine) | d3-sankey README | OK (R12) |
+| String link ids | `nodeId: (d) => d.id` + source/target string | d3-sankey README | OK |
+| Grafo aciclico | alberi gerarchici entrate/uscite | d3-sankey README | OK |
+| Filtri tabella | `getFilteredRowModel()` in `useEffect` | TanStack v8 (codice esistente) | OK |
+
+### Correzioni applicate al piano
+
+1. **`depth` → `level`** su `SankeyGraphNode` — evita conflitto con `node.depth` calcolato da d3-sankey.
+2. **`SankeyGraph` → `CashflowSankeyGraph`** — evita omonimia con `SankeyGraph<N,L>` di `@types/d3-sankey`.
+3. **Pin versioni** esplicite `d3-sankey@^0.12.3` e `@types/d3-sankey@^0.12.5`.
+4. **`d3-sankey` in dependencies** (runtime client), types in devDependencies.
+5. **Nota `fixedValue`** come alternativa ai nodi `::__terminal__`.
+
+### Non necessario / fuori scope
+
+- Importare l'intero pacchetto `d3` (~3000 moduli) — `d3-sankey` standalone è sufficiente e più leggero.
+- Migrare TanStack Table a v9 — il progetto usa v8 con API diversa.
+- `@nivo/sankey` / `echarts` — coerente con decisione spec.

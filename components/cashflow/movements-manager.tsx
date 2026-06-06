@@ -6,6 +6,7 @@ import {
   updateMovement,
 } from "@/app/actions/movements";
 import { DateRangeFilter } from "@/components/cashflow/date-range-filter";
+import { CashflowSankeyDialog } from "@/components/cashflow/cashflow-sankey-dialog";
 import { MovementsTable } from "@/components/cashflow/movements-table";
 import {
   PeriodSummaryCards,
@@ -39,6 +40,7 @@ import type { MonthSummary, Movement, MovementType, YearSummary } from "@/lib/ca
 import type { CashflowView } from "@/lib/cashflow/view";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState, useTransition } from "react";
+import { BarChart3 } from "lucide-react";
 import { toast } from "sonner";
 
 type MovementsManagerProps = {
@@ -89,9 +91,15 @@ export function MovementsManager({
     active: false,
     summary: { totalIncome: 0, totalExpense: 0, net: 0 },
   });
+  const [filteredMovements, setFilteredMovements] = useState<Movement[]>(movements);
+  const [sankeyOpen, setSankeyOpen] = useState(false);
 
   const handleFilterSummaryChange = useCallback((state: FilterSummaryState) => {
     setFilterSummary(state);
+  }, []);
+
+  const handleFilteredMovementsChange = useCallback((next: Movement[]) => {
+    setFilteredMovements(next);
   }, []);
 
   const categorySelectItems = useMemo(
@@ -335,6 +343,19 @@ export function MovementsManager({
 
       <PeriodSummaryCards summary={summary} filterSummary={filterSummary} />
 
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <p className="text-sm text-muted-foreground">Movimenti</p>
+        <Button
+          type="button"
+          variant="outline"
+          disabled={filteredMovements.length === 0}
+          onClick={() => setSankeyOpen(true)}
+        >
+          <BarChart3 className="size-4" />
+          Grafico Sankey
+        </Button>
+      </div>
+
       <Dialog
         open={movementToDelete !== null}
         onOpenChange={(open) => {
@@ -387,6 +408,16 @@ export function MovementsManager({
         onDelete={setMovementToDelete}
         onCreate={openCreateDialog}
         onFilterSummaryChange={handleFilterSummaryChange}
+        onFilteredMovementsChange={handleFilteredMovementsChange}
+      />
+
+      <CashflowSankeyDialog
+        open={sankeyOpen}
+        onOpenChange={setSankeyOpen}
+        movements={filteredMovements}
+        from={from}
+        to={to}
+        filtersActive={filterSummary.active}
       />
     </div>
   );

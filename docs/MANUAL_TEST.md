@@ -113,6 +113,21 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 - [ ] Riepilogo annuale coerente con tabella periodo (share on)
 - [ ] Admin aggiunge terzo membro: uscite ricalcolate con N=3
 
+## Grafico Sankey
+
+- [ ] Cashflow con movimenti categorizzati → pulsante **Grafico Sankey** abilitato sopra la griglia
+- [ ] Periodo senza movimenti filtrati → pulsante disabilitato
+- [ ] Apri modal → titolo, intervallo date, chart visibile (min-height ~400px)
+- [ ] Entrate gerarchiche (es. `monade.stipendio`, `monade.rimborsi`) → foglie a sinistra, padre `monade`, flusso verso centro
+- [ ] Uscite gerarchiche (es. `casa.mutuo`, `casa.corrente comune`) → flusso dal centro verso destra (foglie a destra)
+- [ ] Movimento senza categoria entrata e uscita → due nodi «Senza categoria» distinti
+- [ ] Periodo con entrate > uscite → nodo **Avanzo** a destra del centro
+- [ ] Periodo con uscite > entrate → nessun nodo Disavanzo (solo flussi uscite)
+- [ ] Hover nodo → tooltip con path completo e importo €
+- [ ] Applica filtro colonna categoria → badge «Filtri colonna attivi»; chart coerente con righe visibili e totali «Filtrato»
+- [ ] Cambio filtro con modal aperto → chart aggiornato
+- [ ] Mobile: scroll orizzontale chart se necessario
+
 ## Categorie (Impostazioni)
 
 - [ ] Admin crea/modifica categoria.

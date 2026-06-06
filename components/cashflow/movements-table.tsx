@@ -43,6 +43,7 @@ type MovementsTableProps = {
   onDelete: (movement: Movement) => void;
   onCreate: () => void;
   onFilterSummaryChange: (state: FilterSummaryState) => void;
+  onFilteredMovementsChange: (movements: Movement[]) => void;
 };
 
 export function MovementsTable({
@@ -55,6 +56,7 @@ export function MovementsTable({
   onDelete,
   onCreate,
   onFilterSummaryChange,
+  onFilteredMovementsChange,
 }: MovementsTableProps) {
   const [sorting, setSorting] = useState<SortingState>(DEFAULT_SORTING);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -107,6 +109,18 @@ export function MovementsTable({
       summary,
     });
   }, [filtersActive, columnFilters, sorting, movements, table, onFilterSummaryChange]);
+
+  useEffect(() => {
+    onFilteredMovementsChange(
+      table.getFilteredRowModel().rows.map((row) => row.original),
+    );
+  }, [
+    columnFilters,
+    sorting,
+    movements,
+    table,
+    onFilteredMovementsChange,
+  ]);
 
   function clearAllFilters() {
     setColumnFilters([]);
