@@ -1,6 +1,7 @@
 import {
-  applyShareToMovements,
+  applyPersonalViewToMovements,
   getEffectiveAmount,
+  isIncludedInPersonalView,
   type FamilyShareOptions,
 } from "@/lib/cashflow/share";
 import type { CashflowView } from "@/lib/cashflow/view";
@@ -102,6 +103,7 @@ const DEFAULT_SHARE_OPTIONS: FamilyShareOptions = {
   shareEnabled: false,
   memberCount: 0,
   view: "all",
+  currentUserId: "",
 };
 
 function resolveShareOptions(
@@ -160,7 +162,7 @@ export async function listMovementsForRange(
   );
 
   const movements = rows.map((row) => mapMovement(row, authorNames));
-  return applyShareToMovements(movements, options);
+  return applyPersonalViewToMovements(movements, options);
 }
 
 export async function getRangeSummary(
@@ -198,7 +200,7 @@ export async function getYearMonthlySummaries(
 
   let query = supabase
     .from("movements")
-    .select("type, amount, occurred_on, scope")
+    .select("type, amount, occurred_on, scope, user_id")
     .gte("occurred_on", from)
     .lte("occurred_on", to);
 
@@ -217,10 +219,18 @@ export async function getYearMonthlySummaries(
   for (const row of data ?? []) {
     const month = Number(String(row.occurred_on).slice(5, 7));
     const entry = months[month - 1];
-    const amount = getEffectiveAmount(
-      { amount: Number(row.amount), scope: row.scope as Movement["scope"] },
-      options,
-    );
+    const movement = {
+      amount: Number(row.amount),
+      scope: row.scope as Movement["scope"],
+      type: row.type as Movement["type"],
+      user_id: row.user_id as string,
+    };
+
+    if (!isIncludedInPersonalView(movement, options)) {
+      continue;
+    }
+
+    const amount = getEffectiveAmount(movement, options);
 
     if (row.type === "income") {
       entry.totalIncome += amount;

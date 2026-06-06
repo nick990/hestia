@@ -46,7 +46,12 @@ export default async function CashflowPage({ searchParams }: PageProps) {
   const share = parseShareParam(params.share);
   const family = await getCurrentUserFamily();
   const memberCount = family ? await getFamilyMemberCount(family.family_id) : 0;
-  const shareOptions = { shareEnabled: share, memberCount, view };
+  const shareOptions = {
+    shareEnabled: share,
+    memberCount,
+    view,
+    currentUserId: user.id,
+  };
 
   const [movements, rawMovements, summary, yearSummary, categories] =
     await Promise.all([

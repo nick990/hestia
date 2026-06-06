@@ -107,12 +107,13 @@ export function ViewFilter({
               onCheckedChange={(checked) => handleShareChange(checked === true)}
             />
             <Label htmlFor="family-share-quota" className="font-normal">
-              Considera solo la mia quota
+              Vista personale
             </Label>
           </div>
           <p className="text-xs text-muted-foreground">
-            I movimenti famiglia sono divisi per {memberCount}{" "}
-            {memberCount === 1 ? "membro" : "membri"}
+            Uscite famiglia divise per {memberCount}{" "}
+            {memberCount === 1 ? "membro" : "membri"}; entrate famiglia solo le
+            tue; privati interi.
           </p>
         </div>
       ) : null}

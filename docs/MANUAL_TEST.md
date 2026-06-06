@@ -97,18 +97,21 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 - [ ] URL `?view=mine` → vista Tutti (default).
 - [ ] URL `?view=private` → vista Privati.
 
-## Quota famiglia (share)
+## Vista personale (share)
 
-- [ ] Toggle «Considera solo la mia quota» visibile in Tutti e Famiglia; nascosto in Privati
-- [ ] Default off: importi e totali invariati rispetto a prima del toggle
-- [ ] Toggle on + Famiglia: importo tabella = pieno ÷ N membri; totali periodo e anno coerenti
-- [ ] Toggle on + Tutti: movimenti privati pieni, family divisi; totali mix corretti
-- [ ] Testo aiuto mostra N membri corretto
+- [ ] Toggle «Vista personale» visibile in Tutti e Famiglia; nascosto in Privati
+- [ ] Default off: importi e righe invariati rispetto a prima del toggle
+- [ ] Toggle on + uscita famiglia 300 €, N=3 → 100 € in tabella e totali
+- [ ] Toggle on + entrata famiglia propria → importo intero (non diviso)
+- [ ] Toggle on + entrata famiglia altrui → riga assente; totali senza quella entrata
+- [ ] Toggle on + privato → importo intero
+- [ ] Testo aiuto: uscite divise, entrate solo tue, privati interi
 - [ ] Cambio periodo (‹ › date picker), anno (‹ › riepilogo), click mese: `share=1` preservato in URL
 - [ ] Cambio vista Tutti ↔ Famiglia: stato share preservato
-- [ ] Vista Privati: nessun effetto quota anche con `share=1` in URL
-- [ ] Modifica movimento family: form mostra importo pieno del DB, non la quota
-- [ ] Admin aggiunge terzo membro: totali quota ricalcolati con N=3
+- [ ] Vista Privati: nessun effetto share anche con `share=1` in URL
+- [ ] Modifica movimento family: form mostra importo pieno del DB
+- [ ] Riepilogo annuale coerente con tabella periodo (share on)
+- [ ] Admin aggiunge terzo membro: uscite ricalcolate con N=3
 
 ## Categorie (Impostazioni)
 

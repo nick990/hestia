@@ -1,22 +1,42 @@
 import { describe, expect, it } from "vitest";
 import type { Movement } from "@/lib/cashflow/types";
 import {
-  applyShareToMovements,
+  applyPersonalViewToMovements,
   buildShareSearchParams,
   getEffectiveAmount,
+  isIncludedInPersonalView,
   isShareActive,
   parseShareParam,
   roundMoney,
 } from "@/lib/cashflow/share";
 
-const familyMovement = (amount: number): Pick<Movement, "amount" | "scope"> => ({
+const familyExpense = (
+  amount: number,
+  userId = "u1",
+): Pick<Movement, "amount" | "scope" | "type" | "user_id"> => ({
   amount,
   scope: "family",
+  type: "expense",
+  user_id: userId,
 });
 
-const privateMovement = (amount: number): Pick<Movement, "amount" | "scope"> => ({
+const familyIncome = (
+  amount: number,
+  userId = "u1",
+): Pick<Movement, "amount" | "scope" | "type" | "user_id"> => ({
+  amount,
+  scope: "family",
+  type: "income",
+  user_id: userId,
+});
+
+const privateMovement = (
+  amount: number,
+): Pick<Movement, "amount" | "scope" | "type" | "user_id"> => ({
   amount,
   scope: "private",
+  type: "expense",
+  user_id: "u1",
 });
 
 describe("parseShareParam", () => {
@@ -66,12 +86,47 @@ describe("roundMoney", () => {
   });
 });
 
+describe("isIncludedInPersonalView", () => {
+  const opts = {
+    shareEnabled: true,
+    memberCount: 2,
+    view: "all" as const,
+    currentUserId: "u1",
+  };
+
+  it("includes all when share inactive", () => {
+    expect(
+      isIncludedInPersonalView(familyIncome(100, "u2"), {
+        ...opts,
+        shareEnabled: false,
+      }),
+    ).toBe(true);
+  });
+
+  it("excludes other members family income", () => {
+    expect(isIncludedInPersonalView(familyIncome(100, "u2"), opts)).toBe(false);
+  });
+
+  it("includes own family income", () => {
+    expect(isIncludedInPersonalView(familyIncome(100, "u1"), opts)).toBe(true);
+  });
+
+  it("includes family expenses from anyone", () => {
+    expect(isIncludedInPersonalView(familyExpense(100, "u2"), opts)).toBe(true);
+  });
+});
+
 describe("getEffectiveAmount", () => {
-  const opts = { shareEnabled: true, memberCount: 3, view: "family" as const };
+  const opts = {
+    shareEnabled: true,
+    memberCount: 3,
+    view: "family" as const,
+    currentUserId: "u1",
+  };
 
   it("returns full amount when share inactive", () => {
     expect(
-      getEffectiveAmount(familyMovement(90), { ...opts, shareEnabled: false }),
+      getEffectiveAmount(familyExpense(90), { ...opts, shareEnabled: false }),
     ).toBe(90);
   });
 
@@ -79,63 +134,92 @@ describe("getEffectiveAmount", () => {
     expect(getEffectiveAmount(privateMovement(50), opts)).toBe(50);
   });
 
-  it("divides family amount by member count", () => {
-    expect(getEffectiveAmount(familyMovement(100), opts)).toBe(33.33);
+  it("divides family expense by member count", () => {
+    expect(getEffectiveAmount(familyExpense(100), opts)).toBe(33.33);
+  });
+
+  it("returns full amount for own family income", () => {
+    expect(getEffectiveAmount(familyIncome(2000), opts)).toBe(2000);
   });
 
   it("does not divide when memberCount is zero", () => {
     expect(
-      getEffectiveAmount(familyMovement(100), { ...opts, memberCount: 0 }),
+      getEffectiveAmount(familyExpense(100), { ...opts, memberCount: 0 }),
     ).toBe(100);
   });
 
   it("ignores share on private view", () => {
     expect(
-      getEffectiveAmount(familyMovement(100), { ...opts, view: "private" }),
+      getEffectiveAmount(familyExpense(100), { ...opts, view: "private" }),
     ).toBe(100);
   });
 });
 
-describe("applyShareToMovements", () => {
-  it("transforms only family rows when share active", () => {
-    const movements: Movement[] = [
-      {
-        id: "1",
-        type: "expense",
-        amount: 90,
-        occurred_on: "2026-06-01",
-        description: "",
-        created_at: "2026-06-01T00:00:00Z",
-        category_id: null,
-        category_name: null,
-        scope: "family",
-        family_id: "f1",
-        user_id: "u1",
-        author_name: null,
-      },
-      {
+describe("applyPersonalViewToMovements", () => {
+  const baseMovement = (overrides: Partial<Movement>): Movement => ({
+    id: "1",
+    type: "expense",
+    amount: 90,
+    occurred_on: "2026-06-01",
+    description: "",
+    created_at: "2026-06-01T00:00:00Z",
+    category_id: null,
+    category_name: null,
+    scope: "family",
+    family_id: "f1",
+    user_id: "u1",
+    author_name: null,
+    ...overrides,
+  });
+
+  it("filters other members income and divides family expenses", () => {
+    const movements = [
+      baseMovement({ id: "1", type: "expense", amount: 90, scope: "family" }),
+      baseMovement({
         id: "2",
+        type: "income",
+        amount: 2000,
+        scope: "family",
+        user_id: "u1",
+      }),
+      baseMovement({
+        id: "3",
+        type: "income",
+        amount: 5000,
+        scope: "family",
+        user_id: "u2",
+      }),
+      baseMovement({
+        id: "4",
         type: "expense",
         amount: 20,
-        occurred_on: "2026-06-01",
-        description: "",
-        created_at: "2026-06-01T00:00:00Z",
-        category_id: null,
-        category_name: null,
         scope: "private",
         family_id: null,
-        user_id: "u1",
-        author_name: null,
-      },
+      }),
     ];
 
-    const result = applyShareToMovements(movements, {
+    const result = applyPersonalViewToMovements(movements, {
       shareEnabled: true,
       memberCount: 3,
       view: "all",
+      currentUserId: "u1",
     });
 
-    expect(result[0].amount).toBe(30);
-    expect(result[1].amount).toBe(20);
+    expect(result).toHaveLength(3);
+    expect(result.find((m) => m.id === "3")).toBeUndefined();
+    expect(result.find((m) => m.id === "1")?.amount).toBe(30);
+    expect(result.find((m) => m.id === "2")?.amount).toBe(2000);
+    expect(result.find((m) => m.id === "4")?.amount).toBe(20);
+  });
+
+  it("returns movements unchanged when share inactive", () => {
+    const movements = [baseMovement({ id: "1" })];
+    const result = applyPersonalViewToMovements(movements, {
+      shareEnabled: false,
+      memberCount: 3,
+      view: "all",
+      currentUserId: "u1",
+    });
+    expect(result).toEqual(movements);
   });
 });

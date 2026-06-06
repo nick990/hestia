@@ -5,7 +5,10 @@ export type FamilyShareOptions = {
   shareEnabled: boolean;
   memberCount: number;
   view: CashflowView;
+  currentUserId: string;
 };
+
+type ShareMovement = Pick<Movement, "amount" | "scope" | "type" | "user_id">;
 
 export function parseShareParam(value: string | undefined): boolean {
   return value === "1";
@@ -35,8 +38,27 @@ export function roundMoney(value: number): number {
   return Math.round(value * 100) / 100;
 }
 
+export function isIncludedInPersonalView(
+  movement: ShareMovement,
+  options: FamilyShareOptions,
+): boolean {
+  if (!isShareActive(options.view, options.shareEnabled)) {
+    return true;
+  }
+
+  if (
+    movement.scope === "family" &&
+    movement.type === "income" &&
+    movement.user_id !== options.currentUserId
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
 export function getEffectiveAmount(
-  movement: Pick<Movement, "amount" | "scope">,
+  movement: ShareMovement,
   options: FamilyShareOptions,
 ): number {
   if (!isShareActive(options.view, options.shareEnabled)) {
@@ -47,6 +69,10 @@ export function getEffectiveAmount(
     return movement.amount;
   }
 
+  if (movement.type === "income") {
+    return movement.amount;
+  }
+
   if (options.memberCount <= 0) {
     return movement.amount;
   }
@@ -54,7 +80,7 @@ export function getEffectiveAmount(
   return roundMoney(movement.amount / options.memberCount);
 }
 
-export function applyShareToMovements(
+export function applyPersonalViewToMovements(
   movements: Movement[],
   options: FamilyShareOptions,
 ): Movement[] {
@@ -62,8 +88,18 @@ export function applyShareToMovements(
     return movements;
   }
 
-  return movements.map((movement) => ({
-    ...movement,
-    amount: getEffectiveAmount(movement, options),
-  }));
+  return movements
+    .filter((movement) => isIncludedInPersonalView(movement, options))
+    .map((movement) => ({
+      ...movement,
+      amount: getEffectiveAmount(movement, options),
+    }));
+}
+
+/** @deprecated Use applyPersonalViewToMovements */
+export function applyShareToMovements(
+  movements: Movement[],
+  options: FamilyShareOptions,
+): Movement[] {
+  return applyPersonalViewToMovements(movements, options);
 }
