@@ -8,7 +8,7 @@ import {
   type SankeyLink,
   type SankeyNode,
 } from "d3-sankey";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { formatEuro } from "@/lib/cashflow/format";
 import {
   augmentSankeyGraphForLayout,
@@ -23,6 +23,7 @@ import {
   applyGroupedNodeOrder,
   reorderLayoutLinks,
 } from "@/lib/cashflow/sankey-layout";
+import { SankeyZoomViewport } from "@/components/cashflow/sankey-zoom-viewport";
 import { cn } from "@/lib/utils";
 
 type LayoutNode = SankeyNode<SankeyGraphNode, SankeyGraphLink> &
@@ -234,11 +235,6 @@ export function CashflowSankeyChart({
   graph,
   className,
 }: CashflowSankeyChartProps) {
-  const [hovered, setHovered] = useState<{
-    label: string;
-    detail: string;
-  } | null>(null);
-
   const layout = useMemo(() => {
     if (graph.nodes.length === 0) {
       return null;
@@ -288,6 +284,15 @@ export function CashflowSankeyChart({
     };
   }, [graph]);
 
+  const contentKey = useMemo(
+    () =>
+      graph.nodes
+        .filter((node) => !isAuxiliarySankeyNodeId(node.id))
+        .map((node) => `${node.id}:${node.value}`)
+        .join("|"),
+    [graph],
+  );
+
   if (!layout || layout.graph.links.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
@@ -299,20 +304,12 @@ export function CashflowSankeyChart({
   const { graph: sankeyLayout, viewHeight } = layout;
 
   return (
-    <div className={cn("space-y-3", className)}>
-      {hovered ? (
-        <p className="text-sm">
-          <span className="font-medium">{hovered.label}</span>{" "}
-          <span className="text-muted-foreground">{hovered.detail}</span>
-        </p>
-      ) : null}
-
-      <div className="overflow-x-auto rounded-md border bg-card">
-        <svg
-          viewBox={`0 0 ${SVG_VIEW_WIDTH} ${viewHeight}`}
-          className="min-h-[calc(100dvh-12rem)] w-full"
-          preserveAspectRatio="xMidYMid meet"
-        >
+    <div className={cn("flex h-full min-h-0 flex-col", className)}>
+      <SankeyZoomViewport
+        contentWidth={SVG_VIEW_WIDTH}
+        contentHeight={viewHeight}
+        contentKey={contentKey}
+      >
           {sankeyLayout.links.map((link, index) => {
             const layoutLink = link as LayoutLink;
             if (isAuxiliaryLink(layoutLink)) {
@@ -359,7 +356,6 @@ export function CashflowSankeyChart({
             if (isAuxiliarySankeyNodeId(n.id)) {
               return null;
             }
-            const tooltipPath = n.fullPath ?? n.label;
             const isCenter = n.kind === "center";
             const labelX = isCenter
               ? ((n.x0 ?? 0) + (n.x1 ?? 0)) / 2
@@ -377,13 +373,6 @@ export function CashflowSankeyChart({
                   stroke={isCenter ? "var(--border, hsl(0 0% 80%))" : undefined}
                   strokeWidth={isCenter ? 2 : 0}
                   rx={isCenter ? 4 : 2}
-                  onMouseEnter={() =>
-                    setHovered({
-                      label: tooltipPath,
-                      detail: formatEuro(n.value ?? 0),
-                    })
-                  }
-                  onMouseLeave={() => setHovered(null)}
                 />
                 {n.label ? (
                   <text
@@ -421,8 +410,7 @@ export function CashflowSankeyChart({
               </g>
             );
           })}
-        </svg>
-      </div>
+      </SankeyZoomViewport>
     </div>
   );
 }

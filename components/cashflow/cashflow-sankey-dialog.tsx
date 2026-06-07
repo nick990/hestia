@@ -47,8 +47,8 @@ export function CashflowSankeyDialog({
             ) : null}
           </DialogDescription>
         </DialogHeader>
-        <div className="min-h-0 flex-1 overflow-auto">
-          <CashflowSankeyChart graph={graph} className="h-full" />
+        <div className="flex min-h-0 flex-1 flex-col">
+          <CashflowSankeyChart graph={graph} className="h-full min-h-0" />
         </div>
       </DialogContent>
     </Dialog>

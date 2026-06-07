@@ -137,6 +137,17 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 - [ ] Ripetere lato entrate (gerarchia con almeno due radici)
 - [ ] Con «Senza categoria» presente: verificare che partecipi all'ordinamento per importo tra le radici
 
+### Viewport zoom e pan
+
+- [ ] Apertura modale → grafico intero visibile (fit automatico)
+- [ ] Drag → pan fluido; cursore grab/grabbing
+- [ ] Rotella mouse → zoom sul puntatore; la modale non scrolla
+- [ ] Pinch su mobile/tablet
+- [ ] Pulsante **+** → zoom avanti; disabilitato al massimo
+- [ ] Pulsante **−** → zoom indietro; disabilitato al minimo
+- [ ] Pulsante **Adatta** → reset al fit iniziale
+- [ ] Cambio filtro con modale aperta → fit ricalcolato sul nuovo grafico
+
 ## Categorie (Impostazioni)
 
 - [ ] Admin crea/modifica categoria.
