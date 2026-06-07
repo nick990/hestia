@@ -1,7 +1,7 @@
 # Cashflow — Ordinamento nodi Sankey raggruppato per padre
 
 **Data:** 2026-06-07  
-**Stato:** In revisione
+**Stato:** Approvato
 
 ## Contesto
 
