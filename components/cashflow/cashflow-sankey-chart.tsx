@@ -8,7 +8,7 @@ import {
   type SankeyLink,
   type SankeyNode,
 } from "d3-sankey";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { formatEuro } from "@/lib/cashflow/format";
 import {
   augmentSankeyGraphForLayout,
@@ -20,9 +20,21 @@ import {
   type SankeyNodeKind,
 } from "@/lib/cashflow/sankey";
 import {
+  alignSankeyLinks,
   applyGroupedNodeOrder,
+  enforceMinColumnGap,
+  expandColumnGaps,
+  finalizeLinkAlignment,
   reorderLayoutLinks,
+  snapMisalignedLinks,
 } from "@/lib/cashflow/sankey-layout";
+import {
+  computeLayoutInnerHeight,
+  SANKEY_COLUMN_GAP_X_DEFAULT,
+  SANKEY_COLUMN_GAP_Y_DEFAULT,
+  SANKEY_LINK_PADDING,
+} from "@/lib/cashflow/sankey-layout-config";
+import { SankeyLayoutControls } from "@/components/cashflow/sankey-layout-controls";
 import { SankeyZoomViewport } from "@/components/cashflow/sankey-zoom-viewport";
 import { cn } from "@/lib/utils";
 
@@ -44,7 +56,7 @@ const CHART_MARGIN_TOP = 8;
 const CHART_MARGIN_BOTTOM = 12;
 const MIN_INNER_HEIGHT = 472;
 const SVG_VIEW_WIDTH = 960;
-const NODE_PADDING = 12;
+const CONTENT_WIDTH_MARGIN = 32;
 
 function makeChartExtent(
   innerHeight: number,
@@ -55,53 +67,8 @@ function makeChartExtent(
   ];
 }
 
-function countMaxNodesPerLevel(nodes: SankeyGraphNode[]): number {
-  const counts = new Map<number, number>();
-  for (const node of nodes) {
-    if (isAuxiliarySankeyNodeId(node.id)) {
-      continue;
-    }
-    counts.set(node.level, (counts.get(node.level) ?? 0) + 1);
-  }
-  return Math.max(1, ...counts.values());
-}
-
 function initialInnerHeight(nodes: SankeyGraphNode[]): number {
-  const maxInColumn = countMaxNodesPerLevel(nodes);
-  return Math.max(MIN_INNER_HEIGHT, maxInColumn * 56);
-}
-
-function resolveSameLevelOverlaps(
-  layout: D3LayoutGraph<SankeyGraphNode, SankeyGraphLink>,
-  minGap = NODE_PADDING,
-): number {
-  const byLevel = new Map<number, LayoutNode[]>();
-  for (const node of layout.nodes as LayoutNode[]) {
-    if (isAuxiliarySankeyNodeId(node.id)) {
-      continue;
-    }
-    const group = byLevel.get(node.level) ?? [];
-    group.push(node);
-    byLevel.set(node.level, group);
-  }
-
-  let maxY = CHART_MARGIN_TOP;
-  for (const levelNodes of byLevel.values()) {
-    const sorted = [...levelNodes].sort((a, b) => (a.y0 ?? 0) - (b.y0 ?? 0));
-    let nextY0 = sorted[0]?.y0 ?? CHART_MARGIN_TOP;
-    for (const node of sorted) {
-      const height = Math.max(1, (node.y1 ?? 0) - (node.y0 ?? 0));
-      let y0 = node.y0 ?? 0;
-      if (y0 < nextY0) {
-        y0 = nextY0;
-      }
-      node.y0 = y0;
-      node.y1 = y0 + height;
-      nextY0 = node.y1 + minGap;
-      maxY = Math.max(maxY, node.y1);
-    }
-  }
-  return maxY;
+  return computeLayoutInnerHeight(nodes, MIN_INNER_HEIGHT);
 }
 
 function getColumnLayout(graph: CashflowSankeyGraph) {
@@ -171,22 +138,30 @@ function applyColumnLayout(
     SankeyGraphLink
   >,
   extent: [[number, number], [number, number]],
-) {
+  columnGapX: number,
+): number {
   const { centerColumn, totalColumns } = getColumnLayout(graph);
   const [[x0], [x1]] = extent;
-  const span = x1 - x0;
-  const step = totalColumns > 1 ? span / (totalColumns - 1) : 0;
+  const baseSpan = x1 - x0;
+  const columnGaps = Math.max(0, totalColumns - 1);
+  const span = baseSpan + columnGaps * columnGapX;
+  const step = columnGaps > 0 ? span / columnGaps : 0;
 
   for (const node of layout.nodes) {
     const data = node as SankeyGraphNode;
     const column = resolveColumn(data, centerColumn);
     const width = data.kind === "center" ? CENTER_NODE_WIDTH : NODE_WIDTH;
     const slotX = x0 + column * step - width / 2;
-    node.x0 = Math.max(x0, Math.min(slotX, x1 - width));
+    node.x0 = Math.max(x0, slotX);
     node.x1 = node.x0 + width;
   }
 
   layoutGenerator.update(layout);
+
+  return Math.max(
+    x1,
+    ...layout.nodes.map((node) => node.x1 ?? 0),
+  );
 }
 
 function getLinkMidpoint(link: LayoutLink): { x: number; y: number } {
@@ -235,6 +210,9 @@ export function CashflowSankeyChart({
   graph,
   className,
 }: CashflowSankeyChartProps) {
+  const [columnGapY, setColumnGapY] = useState(SANKEY_COLUMN_GAP_Y_DEFAULT);
+  const [columnGapX, setColumnGapX] = useState(SANKEY_COLUMN_GAP_X_DEFAULT);
+
   const layout = useMemo(() => {
     if (graph.nodes.length === 0) {
       return null;
@@ -254,43 +232,86 @@ export function CashflowSankeyChart({
     const layoutGenerator = d3Sankey<SankeyGraphNode, SankeyGraphLink>()
       .nodeId((node) => node.id)
       .nodeWidth(NODE_WIDTH)
-      .nodePadding(NODE_PADDING)
+      .nodePadding(SANKEY_LINK_PADDING)
       .extent(extent);
 
     const result = layoutGenerator({
       nodes: data.nodes.map((node) => ({ ...node })),
       links: data.links.map((link) => ({ ...link })),
     });
-    applyColumnLayout(result, graph, layoutGenerator, extent);
+    const maxNodeX1 = applyColumnLayout(
+      result,
+      graph,
+      layoutGenerator,
+      extent,
+      columnGapX,
+    );
     applyGroupedNodeOrder(result, links, {
       marginTop: CHART_MARGIN_TOP,
-      nodePadding: NODE_PADDING,
+      nodePadding: 0,
     });
     reorderLayoutLinks(
       result as unknown as Parameters<typeof reorderLayoutLinks>[0],
     );
     layoutGenerator.update(result);
 
-    const maxY = resolveSameLevelOverlaps(result);
+    alignSankeyLinks(
+      result as unknown as Parameters<typeof alignSankeyLinks>[0],
+      {
+        nodePadding: SANKEY_LINK_PADDING,
+        iterations: 6,
+      },
+    );
     reorderLayoutLinks(
       result as unknown as Parameters<typeof reorderLayoutLinks>[0],
     );
     layoutGenerator.update(result);
-    const chartY1 = maxY + CHART_MARGIN_TOP;
+    snapMisalignedLinks(
+      result as unknown as Parameters<typeof snapMisalignedLinks>[0],
+      { nodePadding: SANKEY_LINK_PADDING },
+    );
+    reorderLayoutLinks(
+      result as unknown as Parameters<typeof reorderLayoutLinks>[0],
+    );
+    layoutGenerator.update(result);
+    finalizeLinkAlignment(
+      result as unknown as Parameters<typeof finalizeLinkAlignment>[0],
+    );
+    expandColumnGaps(
+      result as unknown as Parameters<typeof expandColumnGaps>[0],
+      columnGapY,
+    );
+    enforceMinColumnGap(
+      result as unknown as Parameters<typeof enforceMinColumnGap>[0],
+      0,
+    );
+
+    const chartY1 =
+      Math.max(...result.nodes.map((n) => n.y1 ?? 0)) + CHART_MARGIN_TOP;
+    const contentWidth = Math.max(
+      SVG_VIEW_WIDTH,
+      Math.ceil(maxNodeX1) + CONTENT_WIDTH_MARGIN,
+    );
 
     return {
       graph: result,
       viewHeight: chartY1 + CHART_MARGIN_BOTTOM,
+      contentWidth,
     };
-  }, [graph]);
+  }, [graph, columnGapY, columnGapX]);
 
-  const contentKey = useMemo(
+  const dataKey = useMemo(
     () =>
       graph.nodes
         .filter((node) => !isAuxiliarySankeyNodeId(node.id))
         .map((node) => `${node.id}:${node.value}`)
         .join("|"),
     [graph],
+  );
+
+  const contentKey = useMemo(
+    () => [dataKey, `v${columnGapY}`, `h${columnGapX}`].join("|"),
+    [dataKey, columnGapY, columnGapX],
   );
 
   if (!layout || layout.graph.links.length === 0) {
@@ -301,14 +322,23 @@ export function CashflowSankeyChart({
     );
   }
 
-  const { graph: sankeyLayout, viewHeight } = layout;
+  const { graph: sankeyLayout, viewHeight, contentWidth } = layout;
 
   return (
     <div className={cn("flex h-full min-h-0 flex-col", className)}>
       <SankeyZoomViewport
-        contentWidth={SVG_VIEW_WIDTH}
+        contentWidth={contentWidth}
         contentHeight={viewHeight}
         contentKey={contentKey}
+        fitKey={dataKey}
+        toolbarExtra={
+          <SankeyLayoutControls
+            columnGapY={columnGapY}
+            columnGapX={columnGapX}
+            onColumnGapYChange={setColumnGapY}
+            onColumnGapXChange={setColumnGapX}
+          />
+        }
       >
           {sankeyLayout.links.map((link, index) => {
             const layoutLink = link as LayoutLink;
@@ -359,7 +389,7 @@ export function CashflowSankeyChart({
             const isCenter = n.kind === "center";
             const labelX = isCenter
               ? ((n.x0 ?? 0) + (n.x1 ?? 0)) / 2
-              : (n.x0 ?? 0) < SVG_VIEW_WIDTH / 2
+              : (n.x0 ?? 0) < contentWidth / 2
                 ? (n.x1 ?? 0) + 6
                 : (n.x0 ?? 0) - 6;
             return (
@@ -381,7 +411,7 @@ export function CashflowSankeyChart({
                     textAnchor={
                       isCenter
                         ? "middle"
-                        : (n.x0 ?? 0) < SVG_VIEW_WIDTH / 2
+                        : (n.x0 ?? 0) < contentWidth / 2
                           ? "start"
                           : "end"
                     }

@@ -25,8 +25,11 @@ type SankeyZoomViewportProps = {
   contentWidth: number;
   contentHeight: number;
   contentKey: string;
+  /** When set, auto-fit runs only when this key changes (not on spacing tweaks). */
+  fitKey?: string;
   children: ReactNode;
   className?: string;
+  toolbarExtra?: ReactNode;
 };
 
 function toZoomIdentity(transform: SankeyZoomTransform): ZoomTransform {
@@ -49,9 +52,12 @@ export function SankeyZoomViewport({
   contentWidth,
   contentHeight,
   contentKey,
+  fitKey,
   children,
   className,
+  toolbarExtra,
 }: SankeyZoomViewportProps) {
+  const autoFitKey = fitKey ?? contentKey;
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const zoomLayerRef = useRef<SVGGElement>(null);
@@ -86,7 +92,7 @@ export function SankeyZoomViewport({
   }, []);
 
   useEffect(() => {
-    if (fittedContentKeyRef.current === contentKey) {
+    if (fittedContentKeyRef.current === autoFitKey) {
       return;
     }
 
@@ -103,7 +109,7 @@ export function SankeyZoomViewport({
         return false;
       }
       select(svg).call(zoom.transform, toZoomIdentity(fit));
-      fittedContentKeyRef.current = contentKey;
+      fittedContentKeyRef.current = autoFitKey;
       return true;
     };
 
@@ -112,7 +118,7 @@ export function SankeyZoomViewport({
     }
 
     const observer = new ResizeObserver(() => {
-      if (fittedContentKeyRef.current === contentKey) {
+      if (fittedContentKeyRef.current === autoFitKey) {
         return;
       }
       if (applyFit()) {
@@ -121,7 +127,7 @@ export function SankeyZoomViewport({
     });
     observer.observe(container);
     return () => observer.disconnect();
-  }, [contentKey, contentWidth, contentHeight]);
+  }, [autoFitKey, contentWidth, contentHeight]);
 
   function handleZoomIn() {
     const svg = svgRef.current;
@@ -158,7 +164,7 @@ export function SankeyZoomViewport({
     if (!fit) {
       return;
     }
-    fittedContentKeyRef.current = contentKey;
+    fittedContentKeyRef.current = autoFitKey;
     select(svg)
       .transition()
       .duration(300)
@@ -180,8 +186,14 @@ export function SankeyZoomViewport({
       <div
         role="toolbar"
         aria-label="Controlli zoom grafico"
-        className="absolute top-2 right-2 z-10 flex gap-1"
+        className="absolute top-2 right-2 z-10 flex items-center gap-1"
       >
+        {toolbarExtra ? (
+          <>
+            {toolbarExtra}
+            <div className="mx-0.5 h-6 w-px bg-border" aria-hidden />
+          </>
+        ) : null}
         <Button
           type="button"
           variant="outline"

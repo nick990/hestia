@@ -148,6 +148,24 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 - [ ] Pulsante **Adatta** → reset al fit iniziale
 - [ ] Cambio filtro con modale aperta → fit ricalcolato sul nuovo grafico
 
+### Allineamento link Sankey
+
+- [ ] Aprire Sankey con dati maggio 2026 (o mese con monade + uscite multiple)
+- [ ] Flusso monade → Disponibilità: nessuna «ala» triangolare ai bordi del nodo
+- [ ] Flussi uscite da Disponibilità (mutuo, luce, gas, …): bordi flush sui nodi
+- [ ] Zoom +/− e Adatta: link restano allineati dopo fit
+- [ ] Ordinamento nodi per padre invariato rispetto a prima del fix
+
+### Controlli spacing layout
+
+- [ ] Toolbar **V** a 12 (minimo): grafico compatto, nessuna sovrapposizione nodi
+- [ ] **V +1 px** alla volta: altezza grafico cresce; gap visivo uniforme su income L1/L2 e expense L−1/L−2
+- [ ] **V** alto (es. 48+): nessun cap superiore; scroll verticale ok
+- [ ] Pulsante **V −** disabilitato a 12; **V +** sempre attivo
+- [ ] Nessuna sovrapposizione nodi/etichette nella stessa colonna a qualsiasi V
+- [ ] Toolbar **H** a 12 (minimo): layout base; **H +1 px** allarga colonne senza cap; **H −** disabilitato a 12
+- [ ] Dopo cambio V/H, link restano flush sui nodi (incluso Avanzo)
+
 ## Categorie (Impostazioni)
 
 - [ ] Admin crea/modifica categoria.
