@@ -50,14 +50,23 @@ function EditableValueControl({
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState(String(value));
 
-  function commitDraft() {
+  function handleChange(next: string) {
+    setDraft(next);
+    const parsed = Number.parseInt(next, 10);
+    if (!Number.isNaN(parsed)) {
+      onChange(clamp(parsed));
+    }
+  }
+
+  function handleBlur() {
     const parsed = Number.parseInt(draft, 10);
     if (Number.isNaN(parsed)) {
       setDraft(String(value));
-      setIsEditing(false);
-      return;
+    } else {
+      const clamped = clamp(parsed);
+      onChange(clamped);
+      setDraft(String(clamped));
     }
-    onChange(clamp(parsed));
     setIsEditing(false);
   }
 
@@ -85,11 +94,11 @@ function EditableValueControl({
           setDraft(String(value));
           setIsEditing(true);
         }}
-        onChange={(event) => setDraft(event.target.value)}
-        onBlur={commitDraft}
+        onChange={(event) => handleChange(event.target.value)}
+        onBlur={handleBlur}
         onKeyDown={(event) => {
           if (event.key === "Enter") {
-            commitDraft();
+            handleBlur();
             event.currentTarget.blur();
           }
           if (event.key === "Escape") {
