@@ -36,6 +36,7 @@ import {
 import { SankeyLayoutControls } from "@/components/cashflow/sankey-layout-controls";
 import {
   createSankeyLinkPath,
+  isStraightRibbonMode,
   SANKEY_LINK_PATH_MODE_DEFAULT,
   type SankeyLinkPathMode,
 } from "@/lib/cashflow/sankey-link-path";
@@ -181,6 +182,7 @@ function SankeyFlowLink({
   layoutLink,
   path,
   sourceKind,
+  filled,
   isHovered,
   onHoverStart,
   onHoverEnd,
@@ -188,6 +190,7 @@ function SankeyFlowLink({
   layoutLink: LayoutLink;
   path: string;
   sourceKind: SankeyNodeKind;
+  filled: boolean;
   isHovered: boolean;
   onHoverStart: () => void;
   onHoverEnd: () => void;
@@ -196,6 +199,7 @@ function SankeyFlowLink({
   const stroke = nodeFill(sourceKind);
   const midpoint = getLinkMidpoint(layoutLink);
   const hitWidth = Math.max(width + 10, 14);
+  const opacity = isHovered ? 0.7 : 0.35;
 
   return (
     <g
@@ -203,21 +207,41 @@ function SankeyFlowLink({
       onMouseEnter={onHoverStart}
       onMouseLeave={onHoverEnd}
     >
-      <path
-        d={path}
-        fill="none"
-        stroke={stroke}
-        strokeOpacity={isHovered ? 0.7 : 0.35}
-        strokeWidth={width}
-        pointerEvents="none"
-      />
-      <path
-        d={path}
-        fill="none"
-        stroke="transparent"
-        strokeWidth={hitWidth}
-        pointerEvents="stroke"
-      />
+      {filled ? (
+        <>
+          <path
+            d={path}
+            fill={stroke}
+            fillOpacity={opacity}
+            stroke="none"
+            pointerEvents="none"
+          />
+          <path
+            d={path}
+            fill="transparent"
+            stroke="none"
+            pointerEvents="fill"
+          />
+        </>
+      ) : (
+        <>
+          <path
+            d={path}
+            fill="none"
+            stroke={stroke}
+            strokeOpacity={opacity}
+            strokeWidth={width}
+            pointerEvents="none"
+          />
+          <path
+            d={path}
+            fill="none"
+            stroke="transparent"
+            strokeWidth={hitWidth}
+            pointerEvents="stroke"
+          />
+        </>
+      )}
       {isHovered ? (
         <text
           x={midpoint.x}
@@ -440,6 +464,7 @@ export function CashflowSankeyChart({
                 layoutLink={layoutLink}
                 path={path}
                 sourceKind={sourceKind}
+                filled={isStraightRibbonMode(linkPathMode)}
                 isHovered={hoveredLinkIndex === index}
                 onHoverStart={() => setHoveredLinkIndex(index)}
                 onHoverEnd={() =>
