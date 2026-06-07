@@ -12,8 +12,8 @@ import { useRouter } from "next/navigation";
 
 const VIEW_OPTIONS: Array<{ value: CashflowView; label: string }> = [
   { value: "all", label: "Tutti" },
-  { value: "private", label: "Privati" },
   { value: "family", label: "Famiglia" },
+  { value: "private", label: "Privati" },
 ];
 
 type ViewFilterProps = {
@@ -55,14 +55,18 @@ export function ViewFilter({
     if (nextView === view) {
       return;
     }
-    router.push(`/cashflow?${buildNavigationParams(nextView, share).toString()}`);
+    router.push(
+      `/cashflow?${buildNavigationParams(nextView, share).toString()}`,
+    );
   }
 
   function handleShareChange(nextShare: boolean) {
     if (nextShare === share) {
       return;
     }
-    router.push(`/cashflow?${buildNavigationParams(view, nextShare).toString()}`);
+    router.push(
+      `/cashflow?${buildNavigationParams(view, nextShare).toString()}`,
+    );
   }
 
   const showShareToggle = view === "all" || view === "family";
