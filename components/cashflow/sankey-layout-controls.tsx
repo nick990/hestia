@@ -1,6 +1,6 @@
 "use client";
 
-import { Minus, Plus } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   clampColumnGapX,
@@ -10,112 +10,152 @@ import {
   SANKEY_COLUMN_GAP_Y_MIN,
   SANKEY_COLUMN_GAP_Y_STEP,
 } from "@/lib/cashflow/sankey-layout-config";
+import { type SankeyLinkPathMode } from "@/lib/cashflow/sankey-link-path";
+import { cn } from "@/lib/utils";
+
+const LINK_PATH_OPTIONS: Array<{
+  value: SankeyLinkPathMode;
+  label: string;
+}> = [
+  { value: "curved", label: "Curvo" },
+  { value: "straight", label: "Dritto" },
+];
 
 type SankeyLayoutControlsProps = {
   columnGapY: number;
   columnGapX: number;
+  linkPathMode: SankeyLinkPathMode;
   onColumnGapYChange: (value: number) => void;
   onColumnGapXChange: (value: number) => void;
+  onLinkPathModeChange: (value: SankeyLinkPathMode) => void;
 };
 
-function StepControl({
+function EditableValueControl({
   label,
-  valueLabel,
+  value,
+  min,
+  step,
   ariaLabel,
-  canDecrease,
-  canIncrease,
-  onDecrease,
-  onIncrease,
+  clamp,
+  onChange,
 }: {
   label: string;
-  valueLabel: string;
+  value: number;
+  min: number;
+  step: number;
   ariaLabel: string;
-  canDecrease: boolean;
-  canIncrease: boolean;
-  onDecrease: () => void;
-  onIncrease: () => void;
+  clamp: (value: number) => number;
+  onChange: (value: number) => void;
 }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [draft, setDraft] = useState(String(value));
+
+  function commitDraft() {
+    const parsed = Number.parseInt(draft, 10);
+    if (Number.isNaN(parsed)) {
+      setDraft(String(value));
+      setIsEditing(false);
+      return;
+    }
+    onChange(clamp(parsed));
+    setIsEditing(false);
+  }
+
   return (
-    <div
-      role="group"
+    <label
       aria-label={ariaLabel}
-      className="flex items-center gap-0.5 rounded-md border bg-background/90 p-0.5"
+      className="flex items-center gap-1 rounded-md border bg-background/90 px-1.5 py-0.5"
     >
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        className="size-7"
-        aria-label={`Diminuisci ${label}`}
-        disabled={!canDecrease}
-        onClick={onDecrease}
-      >
-        <Minus className="size-3.5" />
-      </Button>
-      <span className="min-w-13 px-1 text-center text-[11px] font-medium tabular-nums">
-        {label}:{valueLabel}
+      <span className="text-[11px] font-medium text-muted-foreground">
+        {label}:
       </span>
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        className="size-7"
-        aria-label={`Aumenta ${label}`}
-        disabled={!canIncrease}
-        onClick={onIncrease}
-      >
-        <Plus className="size-3.5" />
-      </Button>
-    </div>
+      <input
+        type="number"
+        inputMode="numeric"
+        min={min}
+        step={step}
+        value={isEditing ? draft : String(value)}
+        aria-label={`${label} in pixel`}
+        className={cn(
+          "h-7 w-11 rounded-sm border border-transparent bg-transparent",
+          "text-center text-[11px] font-medium tabular-nums",
+          "focus:border-ring focus:bg-background focus:outline-none",
+        )}
+        onFocus={() => {
+          setDraft(String(value));
+          setIsEditing(true);
+        }}
+        onChange={(event) => setDraft(event.target.value)}
+        onBlur={commitDraft}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") {
+            commitDraft();
+            event.currentTarget.blur();
+          }
+          if (event.key === "Escape") {
+            setDraft(String(value));
+            setIsEditing(false);
+            event.currentTarget.blur();
+          }
+        }}
+      />
+    </label>
   );
 }
 
 export function SankeyLayoutControls({
   columnGapY,
   columnGapX,
+  linkPathMode,
   onColumnGapYChange,
   onColumnGapXChange,
+  onLinkPathModeChange,
 }: SankeyLayoutControlsProps) {
-  const canDecreaseV = columnGapY > SANKEY_COLUMN_GAP_Y_MIN;
-  const canIncreaseV = true;
-  const canDecreaseH = columnGapX > SANKEY_COLUMN_GAP_X_MIN;
-  const canIncreaseH = true;
-
   return (
     <div className="flex items-center gap-1">
-      <StepControl
+      <div
+        role="radiogroup"
+        aria-label="Forma flussi Sankey"
+        className="flex items-center rounded-md border bg-background/90 p-0.5"
+      >
+        {LINK_PATH_OPTIONS.map((option) => {
+          const selected = linkPathMode === option.value;
+          return (
+            <Button
+              key={option.value}
+              type="button"
+              role="radio"
+              aria-checked={selected}
+              variant={selected ? "secondary" : "ghost"}
+              size="sm"
+              className={cn(
+                "h-7 px-2 text-[11px] shadow-none",
+                !selected && "text-muted-foreground hover:text-foreground",
+              )}
+              onClick={() => onLinkPathModeChange(option.value)}
+            >
+              {option.label}
+            </Button>
+          );
+        })}
+      </div>
+      <EditableValueControl
         label="V"
-        valueLabel={String(columnGapY)}
+        value={columnGapY}
+        min={SANKEY_COLUMN_GAP_Y_MIN}
+        step={SANKEY_COLUMN_GAP_Y_STEP}
         ariaLabel="Spaziatura verticale tra nodi in pixel"
-        canDecrease={canDecreaseV}
-        canIncrease={canIncreaseV}
-        onDecrease={() =>
-          onColumnGapYChange(
-            clampColumnGapY(columnGapY - SANKEY_COLUMN_GAP_Y_STEP),
-          )
-        }
-        onIncrease={() =>
-          onColumnGapYChange(
-            clampColumnGapY(columnGapY + SANKEY_COLUMN_GAP_Y_STEP),
-          )
-        }
+        clamp={clampColumnGapY}
+        onChange={onColumnGapYChange}
       />
-      <StepControl
+      <EditableValueControl
         label="H"
-        valueLabel={String(columnGapX)}
+        value={columnGapX}
+        min={SANKEY_COLUMN_GAP_X_MIN}
+        step={SANKEY_COLUMN_GAP_X_STEP}
         ariaLabel="Spaziatura orizzontale tra colonne in pixel"
-        canDecrease={canDecreaseH}
-        canIncrease={canIncreaseH}
-        onDecrease={() =>
-          onColumnGapXChange(
-            clampColumnGapX(columnGapX - SANKEY_COLUMN_GAP_X_STEP),
-          )
-        }
-        onIncrease={() =>
-          onColumnGapXChange(
-            clampColumnGapX(columnGapX + SANKEY_COLUMN_GAP_X_STEP),
-          )
-        }
+        clamp={clampColumnGapX}
+        onChange={onColumnGapXChange}
       />
     </div>
   );

@@ -2,7 +2,6 @@
 
 import {
   sankey as d3Sankey,
-  sankeyLinkHorizontal,
   type SankeyGraph as D3LayoutGraph,
   type SankeyLayout,
   type SankeyLink,
@@ -35,6 +34,11 @@ import {
   SANKEY_LINK_PADDING,
 } from "@/lib/cashflow/sankey-layout-config";
 import { SankeyLayoutControls } from "@/components/cashflow/sankey-layout-controls";
+import {
+  createSankeyLinkPath,
+  SANKEY_LINK_PATH_MODE_DEFAULT,
+  type SankeyLinkPathMode,
+} from "@/lib/cashflow/sankey-link-path";
 import { SankeyZoomViewport } from "@/components/cashflow/sankey-zoom-viewport";
 import { cn } from "@/lib/utils";
 
@@ -173,6 +177,66 @@ function getLinkMidpoint(link: LayoutLink): { x: number; y: number } {
   };
 }
 
+function SankeyFlowLink({
+  layoutLink,
+  path,
+  sourceKind,
+  isHovered,
+  onHoverStart,
+  onHoverEnd,
+}: {
+  layoutLink: LayoutLink;
+  path: string;
+  sourceKind: SankeyNodeKind;
+  isHovered: boolean;
+  onHoverStart: () => void;
+  onHoverEnd: () => void;
+}) {
+  const width = Math.max(1, layoutLink.width ?? 1);
+  const stroke = nodeFill(sourceKind);
+  const midpoint = getLinkMidpoint(layoutLink);
+  const hitWidth = Math.max(width + 10, 14);
+
+  return (
+    <g
+      className="cursor-pointer"
+      onMouseEnter={onHoverStart}
+      onMouseLeave={onHoverEnd}
+    >
+      <path
+        d={path}
+        fill="none"
+        stroke={stroke}
+        strokeOpacity={isHovered ? 0.7 : 0.35}
+        strokeWidth={width}
+        pointerEvents="none"
+      />
+      <path
+        d={path}
+        fill="none"
+        stroke="transparent"
+        strokeWidth={hitWidth}
+        pointerEvents="stroke"
+      />
+      {isHovered ? (
+        <text
+          x={midpoint.x}
+          y={midpoint.y}
+          dy="0.35em"
+          textAnchor="middle"
+          pointerEvents="none"
+          className="fill-foreground text-[10px] font-semibold"
+          paintOrder="stroke"
+          stroke="var(--card, #fff)"
+          strokeWidth={3}
+        >
+          {formatEuro(layoutLink.value)}
+        </text>
+      ) : null}
+    </g>
+  );
+}
+
 function isAuxiliaryLink(link: LayoutLink): boolean {
   const source = link.source as LayoutNode;
   const target = link.target as LayoutNode;
@@ -212,6 +276,17 @@ export function CashflowSankeyChart({
 }: CashflowSankeyChartProps) {
   const [columnGapY, setColumnGapY] = useState(SANKEY_COLUMN_GAP_Y_DEFAULT);
   const [columnGapX, setColumnGapX] = useState(SANKEY_COLUMN_GAP_X_DEFAULT);
+  const [linkPathMode, setLinkPathMode] = useState<SankeyLinkPathMode>(
+    SANKEY_LINK_PATH_MODE_DEFAULT,
+  );
+  const [hoveredLinkIndex, setHoveredLinkIndex] = useState<number | null>(
+    null,
+  );
+
+  const linkPath = useMemo(
+    () => createSankeyLinkPath(linkPathMode),
+    [linkPathMode],
+  );
 
   const layout = useMemo(() => {
     if (graph.nodes.length === 0) {
@@ -335,8 +410,10 @@ export function CashflowSankeyChart({
           <SankeyLayoutControls
             columnGapY={columnGapY}
             columnGapX={columnGapX}
+            linkPathMode={linkPathMode}
             onColumnGapYChange={setColumnGapY}
             onColumnGapXChange={setColumnGapX}
+            onLinkPathModeChange={setLinkPathMode}
           />
         }
       >
@@ -345,7 +422,9 @@ export function CashflowSankeyChart({
             if (isAuxiliaryLink(layoutLink)) {
               return null;
             }
-            const path = sankeyLinkHorizontal()(layoutLink);
+            const path = linkPath(
+              layoutLink as unknown as Parameters<typeof linkPath>[0],
+            );
             if (!path) {
               return null;
             }
@@ -354,30 +433,21 @@ export function CashflowSankeyChart({
               typeof sourceNode === "object" && sourceNode !== null
                 ? sourceNode.kind
                 : "center";
-            const midpoint = getLinkMidpoint(layoutLink);
 
             return (
-              <g key={`link-${index}`}>
-                <path
-                  d={path}
-                  fill="none"
-                  stroke={nodeFill(sourceKind)}
-                  strokeOpacity={0.35}
-                  strokeWidth={Math.max(1, layoutLink.width ?? 1)}
-                />
-                <text
-                  x={midpoint.x}
-                  y={midpoint.y}
-                  dy="0.35em"
-                  textAnchor="middle"
-                  className="fill-foreground text-[10px] font-medium"
-                  paintOrder="stroke"
-                  stroke="var(--card, #fff)"
-                  strokeWidth={3}
-                >
-                  {formatEuro(layoutLink.value)}
-                </text>
-              </g>
+              <SankeyFlowLink
+                key={`link-${index}`}
+                layoutLink={layoutLink}
+                path={path}
+                sourceKind={sourceKind}
+                isHovered={hoveredLinkIndex === index}
+                onHoverStart={() => setHoveredLinkIndex(index)}
+                onHoverEnd={() =>
+                  setHoveredLinkIndex((current) =>
+                    current === index ? null : current,
+                  )
+                }
+              />
             );
           })}
 
