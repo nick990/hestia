@@ -317,7 +317,7 @@ export function buildSankeyGraph(movements: Movement[]): CashflowSankeyGraph {
     nodes: [
       {
         id: CENTER_NODE_ID,
-        label: "Totale periodo",
+        label: "Disponibilità",
         fullPath: null,
         kind: "center",
         value: Math.max(totalIncome, totalExpense),

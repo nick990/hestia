@@ -21,8 +21,10 @@ import {
 } from "@/lib/cashflow/sankey";
 import { cn } from "@/lib/utils";
 
-type LayoutNode = SankeyNode<SankeyGraphNode, SankeyGraphLink> & SankeyGraphNode;
-type LayoutLink = SankeyLink<SankeyGraphNode, SankeyGraphLink> & SankeyGraphLink;
+type LayoutNode = SankeyNode<SankeyGraphNode, SankeyGraphLink> &
+  SankeyGraphNode;
+type LayoutLink = SankeyLink<SankeyGraphNode, SankeyGraphLink> &
+  SankeyGraphLink;
 
 type CashflowSankeyChartProps = {
   graph: CashflowSankeyGraph;
@@ -30,13 +32,72 @@ type CashflowSankeyChartProps = {
 };
 
 const NODE_WIDTH = 16;
-const CENTER_NODE_WIDTH = 28;
-const CHART_EXTENT: [[number, number], [number, number]] = [
-  [8, 8],
-  [920, 480],
-];
+const CENTER_NODE_WIDTH = 90;
+const CHART_X0 = 8;
+const CHART_X1 = 920;
+const CHART_MARGIN_TOP = 8;
+const CHART_MARGIN_BOTTOM = 12;
+const MIN_INNER_HEIGHT = 472;
 const SVG_VIEW_WIDTH = 960;
-const SVG_VIEW_HEIGHT = 500;
+const NODE_PADDING = 12;
+
+function makeChartExtent(
+  innerHeight: number,
+): [[number, number], [number, number]] {
+  return [
+    [CHART_X0, CHART_MARGIN_TOP],
+    [CHART_X1, CHART_MARGIN_TOP + innerHeight],
+  ];
+}
+
+function countMaxNodesPerLevel(nodes: SankeyGraphNode[]): number {
+  const counts = new Map<number, number>();
+  for (const node of nodes) {
+    if (isAuxiliarySankeyNodeId(node.id)) {
+      continue;
+    }
+    counts.set(node.level, (counts.get(node.level) ?? 0) + 1);
+  }
+  return Math.max(1, ...counts.values());
+}
+
+function initialInnerHeight(nodes: SankeyGraphNode[]): number {
+  const maxInColumn = countMaxNodesPerLevel(nodes);
+  return Math.max(MIN_INNER_HEIGHT, maxInColumn * 56);
+}
+
+function resolveSameLevelOverlaps(
+  layout: D3LayoutGraph<SankeyGraphNode, SankeyGraphLink>,
+  minGap = NODE_PADDING,
+): number {
+  const byLevel = new Map<number, LayoutNode[]>();
+  for (const node of layout.nodes as LayoutNode[]) {
+    if (isAuxiliarySankeyNodeId(node.id)) {
+      continue;
+    }
+    const group = byLevel.get(node.level) ?? [];
+    group.push(node);
+    byLevel.set(node.level, group);
+  }
+
+  let maxY = CHART_MARGIN_TOP;
+  for (const levelNodes of byLevel.values()) {
+    const sorted = [...levelNodes].sort((a, b) => (a.y0 ?? 0) - (b.y0 ?? 0));
+    let nextY0 = sorted[0]?.y0 ?? CHART_MARGIN_TOP;
+    for (const node of sorted) {
+      const height = Math.max(1, (node.y1 ?? 0) - (node.y0 ?? 0));
+      let y0 = node.y0 ?? 0;
+      if (y0 < nextY0) {
+        y0 = nextY0;
+      }
+      node.y0 = y0;
+      node.y1 = y0 + height;
+      nextY0 = node.y1 + minGap;
+      maxY = Math.max(maxY, node.y1);
+    }
+  }
+  return maxY;
+}
 
 function getColumnLayout(graph: CashflowSankeyGraph) {
   const rawExpenseDepth = Math.max(
@@ -56,7 +117,9 @@ function getColumnLayout(graph: CashflowSankeyGraph) {
       node.kind === "uncategorized-expense" ||
       node.kind === "surplus",
   );
-  const expenseDepth = hasExpense ? rawExpenseDepth : Math.max(1, rawExpenseDepth);
+  const expenseDepth = hasExpense
+    ? rawExpenseDepth
+    : Math.max(1, rawExpenseDepth);
 
   const rawIncomeDepth = Math.max(
     0,
@@ -68,8 +131,7 @@ function getColumnLayout(graph: CashflowSankeyGraph) {
       .map((node) => node.level),
   );
   const hasIncome = graph.nodes.some(
-    (node) =>
-      node.kind === "income" || node.kind === "uncategorized-income",
+    (node) => node.kind === "income" || node.kind === "uncategorized-income",
   );
   const incomeDepth = hasIncome ? rawIncomeDepth : Math.max(1, rawIncomeDepth);
 
@@ -79,10 +141,7 @@ function getColumnLayout(graph: CashflowSankeyGraph) {
   return { centerColumn, totalColumns };
 }
 
-function resolveColumn(
-  node: SankeyGraphNode,
-  centerColumn: number,
-): number {
+function resolveColumn(node: SankeyGraphNode, centerColumn: number): number {
   if (node.kind === "center") {
     return centerColumn;
   }
@@ -106,9 +165,10 @@ function applyColumnLayout(
     SankeyGraphNode,
     SankeyGraphLink
   >,
+  extent: [[number, number], [number, number]],
 ) {
   const { centerColumn, totalColumns } = getColumnLayout(graph);
-  const [[x0], [x1]] = CHART_EXTENT;
+  const [[x0], [x1]] = extent;
   const span = x1 - x0;
   const step = totalColumns > 1 ? span / (totalColumns - 1) : 0;
 
@@ -166,7 +226,10 @@ function nodeFill(kind: SankeyNodeKind): string {
   }
 }
 
-export function CashflowSankeyChart({ graph, className }: CashflowSankeyChartProps) {
+export function CashflowSankeyChart({
+  graph,
+  className,
+}: CashflowSankeyChartProps) {
   const [hovered, setHovered] = useState<{
     label: string;
     detail: string;
@@ -185,44 +248,43 @@ export function CashflowSankeyChart({ graph, className }: CashflowSankeyChartPro
       links: links.map((link) => ({ ...link })),
     };
 
+    const innerHeight = initialInnerHeight(nodes);
+    const extent = makeChartExtent(innerHeight);
+
     const layoutGenerator = d3Sankey<SankeyGraphNode, SankeyGraphLink>()
       .nodeId((node) => node.id)
       .nodeWidth(NODE_WIDTH)
-      .nodePadding(12)
-      .extent(CHART_EXTENT);
+      .nodePadding(NODE_PADDING)
+      .extent(extent);
 
-    const result = layoutGenerator(data);
-    applyColumnLayout(result, graph, layoutGenerator);
-    return result;
+    const result = layoutGenerator({
+      nodes: data.nodes.map((node) => ({ ...node })),
+      links: data.links.map((link) => ({ ...link })),
+    });
+    applyColumnLayout(result, graph, layoutGenerator, extent);
+
+    const maxY = resolveSameLevelOverlaps(result);
+    layoutGenerator.update(result);
+    const chartY1 = maxY + CHART_MARGIN_TOP;
+
+    return {
+      graph: result,
+      viewHeight: chartY1 + CHART_MARGIN_BOTTOM,
+    };
   }, [graph]);
 
-  if (!layout || layout.links.length === 0) {
+  if (!layout || layout.graph.links.length === 0) {
     return (
-      <p className="text-sm text-muted-foreground">Nessun dato da visualizzare.</p>
+      <p className="text-sm text-muted-foreground">
+        Nessun dato da visualizzare.
+      </p>
     );
   }
 
+  const { graph: sankeyLayout, viewHeight } = layout;
+
   return (
     <div className={cn("space-y-3", className)}>
-      <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
-        <span className="inline-flex items-center gap-1">
-          <span className="size-2 rounded-sm bg-[var(--chart-income,hsl(142_76%_36%))]" />
-          Entrate
-        </span>
-        <span className="inline-flex items-center gap-1">
-          <span className="size-2 rounded-sm bg-[var(--chart-expense,hsl(0_72%_51%))]" />
-          Uscite
-        </span>
-        <span className="inline-flex items-center gap-1">
-          <span className="size-2 rounded-sm bg-[var(--chart-surplus,hsl(142_40%_45%))]" />
-          Avanzo
-        </span>
-        <span className="inline-flex items-center gap-1">
-          <span className="size-2 rounded-sm bg-foreground" />
-          Totale periodo
-        </span>
-      </div>
-
       {hovered ? (
         <p className="text-sm">
           <span className="font-medium">{hovered.label}</span>{" "}
@@ -232,11 +294,11 @@ export function CashflowSankeyChart({ graph, className }: CashflowSankeyChartPro
 
       <div className="overflow-x-auto rounded-md border bg-card">
         <svg
-          viewBox={`0 0 ${SVG_VIEW_WIDTH} ${SVG_VIEW_HEIGHT}`}
+          viewBox={`0 0 ${SVG_VIEW_WIDTH} ${viewHeight}`}
           className="min-h-[calc(100dvh-12rem)] w-full"
           preserveAspectRatio="xMidYMid meet"
         >
-          {layout.links.map((link, index) => {
+          {sankeyLayout.links.map((link, index) => {
             const layoutLink = link as LayoutLink;
             if (isAuxiliaryLink(layoutLink)) {
               return null;
@@ -277,7 +339,7 @@ export function CashflowSankeyChart({ graph, className }: CashflowSankeyChartPro
             );
           })}
 
-          {layout.nodes.map((node) => {
+          {sankeyLayout.nodes.map((node) => {
             const n = node as LayoutNode;
             if (isAuxiliarySankeyNodeId(n.id)) {
               return null;
@@ -298,8 +360,8 @@ export function CashflowSankeyChart({ graph, className }: CashflowSankeyChartPro
                   height={Math.max(1, (n.y1 ?? 0) - (n.y0 ?? 0))}
                   fill={nodeFill(n.kind)}
                   stroke={isCenter ? "var(--border, hsl(0 0% 80%))" : undefined}
-                  strokeWidth={isCenter ? 1.5 : 0}
-                  rx={2}
+                  strokeWidth={isCenter ? 2 : 0}
+                  rx={isCenter ? 4 : 2}
                   onMouseEnter={() =>
                     setHovered({
                       label: tooltipPath,
@@ -320,17 +382,22 @@ export function CashflowSankeyChart({ graph, className }: CashflowSankeyChartPro
                           : "end"
                     }
                     className={cn(
-                      "text-[11px]",
-                      isCenter ? "fill-foreground font-medium" : "fill-foreground",
+                      isCenter
+                        ? "fill-background text-[12px] font-semibold"
+                        : "fill-foreground text-[11px]",
                     )}
                   >
-                    <tspan x={labelX} dy="-0.35em">
+                    <tspan x={labelX} dy={isCenter ? "-0.45em" : "-0.35em"}>
                       {truncateSankeyLabel(n.label)}
                     </tspan>
                     <tspan
                       x={labelX}
-                      dy="1.15em"
-                      className="fill-muted-foreground text-[10px] font-normal"
+                      dy="1.2em"
+                      className={
+                        isCenter
+                          ? "fill-background/90 text-[11px] font-medium"
+                          : "fill-muted-foreground text-[10px] font-normal"
+                      }
                     >
                       {formatEuro(n.value ?? 0)}
                     </tspan>
