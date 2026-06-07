@@ -1,5 +1,3 @@
-import { linkHorizontal } from "d3-shape";
-
 export type SankeyLinkPathMode = "curved" | "straight";
 
 export const SANKEY_LINK_PATH_MODE_DEFAULT: SankeyLinkPathMode = "curved";
@@ -42,13 +40,6 @@ export function curvedLinkPath(
   return `M${x0},${y0}C${xc},${y0},${xc},${y1},${x1},${y1}`;
 }
 
-const defaultCurvedLink = linkHorizontal<
-  SankeyLinkPathInput,
-  SankeyLinkPathInput
->()
-  .source((d) => [d.source.x1 ?? 0, d.y0 ?? 0])
-  .target((d) => [d.target.x0 ?? 0, d.y1 ?? 0]);
-
 /** Nastro trapezoidale flush sulle facce dei nodi (bordi dritti). */
 export function straightRibbonPath(link: SankeyLinkPathInput): string {
   const x0 = link.source.x1 ?? 0;
@@ -75,10 +66,6 @@ export function createSankeyLinkPath(
   }
 
   const fraction = linkCurveBendToFraction(curveBend);
-  if (fraction === 0.5) {
-    return (link) => defaultCurvedLink(link);
-  }
-
   return (link) => curvedLinkPath(link, fraction);
 }
 
