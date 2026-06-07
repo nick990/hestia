@@ -19,6 +19,10 @@ import {
   type SankeyGraphNode,
   type SankeyNodeKind,
 } from "@/lib/cashflow/sankey";
+import {
+  applyGroupedNodeOrder,
+  reorderLayoutLinks,
+} from "@/lib/cashflow/sankey-layout";
 import { cn } from "@/lib/utils";
 
 type LayoutNode = SankeyNode<SankeyGraphNode, SankeyGraphLink> &
@@ -262,8 +266,19 @@ export function CashflowSankeyChart({
       links: data.links.map((link) => ({ ...link })),
     });
     applyColumnLayout(result, graph, layoutGenerator, extent);
+    applyGroupedNodeOrder(result, links, {
+      marginTop: CHART_MARGIN_TOP,
+      nodePadding: NODE_PADDING,
+    });
+    reorderLayoutLinks(
+      result as unknown as Parameters<typeof reorderLayoutLinks>[0],
+    );
+    layoutGenerator.update(result);
 
     const maxY = resolveSameLevelOverlaps(result);
+    reorderLayoutLinks(
+      result as unknown as Parameters<typeof reorderLayoutLinks>[0],
+    );
     layoutGenerator.update(result);
     const chartY1 = maxY + CHART_MARGIN_TOP;
 

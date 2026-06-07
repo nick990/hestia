@@ -128,6 +128,15 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 - [ ] Cambio filtro con modal aperto → chart aggiornato
 - [ ] Mobile: scroll orizzontale chart se necessario
 
+### Ordinamento nodi raggruppato per padre
+
+- [ ] Aprire Sankey con almeno due categorie radice con figli (es. `casa.*` e `auto.*`)
+- [ ] Verificare che le radici siano ordinate dall'alto verso il basso per importo decrescente
+- [ ] Verificare che i figli di una radice siano contigui e non mescolati con figli di un'altra radice
+- [ ] Verificare che i figli dentro ogni gruppo siano ordinati per importo decrescente
+- [ ] Ripetere lato entrate (gerarchia con almeno due radici)
+- [ ] Con «Senza categoria» presente: verificare che partecipi all'ordinamento per importo tra le radici
+
 ## Categorie (Impostazioni)
 
 - [ ] Admin crea/modifica categoria.
