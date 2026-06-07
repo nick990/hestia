@@ -37,6 +37,7 @@ import { SankeyLayoutControls } from "@/components/cashflow/sankey-layout-contro
 import {
   createSankeyLinkPath,
   isStraightRibbonMode,
+  SANKEY_LINK_CURVE_BEND_DEFAULT,
   SANKEY_LINK_PATH_MODE_DEFAULT,
   type SankeyLinkPathMode,
 } from "@/lib/cashflow/sankey-link-path";
@@ -303,13 +304,16 @@ export function CashflowSankeyChart({
   const [linkPathMode, setLinkPathMode] = useState<SankeyLinkPathMode>(
     SANKEY_LINK_PATH_MODE_DEFAULT,
   );
+  const [linkCurveBend, setLinkCurveBend] = useState(
+    SANKEY_LINK_CURVE_BEND_DEFAULT,
+  );
   const [hoveredLinkIndex, setHoveredLinkIndex] = useState<number | null>(
     null,
   );
 
   const linkPath = useMemo(
-    () => createSankeyLinkPath(linkPathMode),
-    [linkPathMode],
+    () => createSankeyLinkPath(linkPathMode, linkCurveBend),
+    [linkPathMode, linkCurveBend],
   );
 
   const layout = useMemo(() => {
@@ -435,9 +439,11 @@ export function CashflowSankeyChart({
             columnGapY={columnGapY}
             columnGapX={columnGapX}
             linkPathMode={linkPathMode}
+            linkCurveBend={linkCurveBend}
             onColumnGapYChange={setColumnGapY}
             onColumnGapXChange={setColumnGapX}
             onLinkPathModeChange={setLinkPathMode}
+            onLinkCurveBendChange={setLinkCurveBend}
           />
         }
       >

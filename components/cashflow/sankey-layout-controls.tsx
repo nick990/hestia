@@ -10,7 +10,13 @@ import {
   SANKEY_COLUMN_GAP_Y_MIN,
   SANKEY_COLUMN_GAP_Y_STEP,
 } from "@/lib/cashflow/sankey-layout-config";
-import { type SankeyLinkPathMode } from "@/lib/cashflow/sankey-link-path";
+import {
+  clampLinkCurveBend,
+  SANKEY_LINK_CURVE_BEND_MAX,
+  SANKEY_LINK_CURVE_BEND_MIN,
+  SANKEY_LINK_CURVE_BEND_STEP,
+  type SankeyLinkPathMode,
+} from "@/lib/cashflow/sankey-link-path";
 import { cn } from "@/lib/utils";
 
 const LINK_PATH_OPTIONS: Array<{
@@ -25,15 +31,18 @@ type SankeyLayoutControlsProps = {
   columnGapY: number;
   columnGapX: number;
   linkPathMode: SankeyLinkPathMode;
+  linkCurveBend: number;
   onColumnGapYChange: (value: number) => void;
   onColumnGapXChange: (value: number) => void;
   onLinkPathModeChange: (value: SankeyLinkPathMode) => void;
+  onLinkCurveBendChange: (value: number) => void;
 };
 
 function EditableValueControl({
   label,
   value,
   min,
+  max,
   step,
   ariaLabel,
   clamp,
@@ -42,6 +51,7 @@ function EditableValueControl({
   label: string;
   value: number;
   min: number;
+  max?: number;
   step: number;
   ariaLabel: string;
   clamp: (value: number) => number;
@@ -82,6 +92,7 @@ function EditableValueControl({
         type="number"
         inputMode="numeric"
         min={min}
+        max={max}
         step={step}
         value={isEditing ? draft : String(value)}
         aria-label={`${label} in pixel`}
@@ -116,9 +127,11 @@ export function SankeyLayoutControls({
   columnGapY,
   columnGapX,
   linkPathMode,
+  linkCurveBend,
   onColumnGapYChange,
   onColumnGapXChange,
   onLinkPathModeChange,
+  onLinkCurveBendChange,
 }: SankeyLayoutControlsProps) {
   return (
     <div className="flex items-center gap-1">
@@ -148,6 +161,18 @@ export function SankeyLayoutControls({
           );
         })}
       </div>
+      {linkPathMode === "curved" ? (
+        <EditableValueControl
+          label="C"
+          value={linkCurveBend}
+          min={SANKEY_LINK_CURVE_BEND_MIN}
+          max={SANKEY_LINK_CURVE_BEND_MAX}
+          step={SANKEY_LINK_CURVE_BEND_STEP}
+          ariaLabel="Curvatura flussi in percentuale (solo modalità Curvo)"
+          clamp={clampLinkCurveBend}
+          onChange={onLinkCurveBendChange}
+        />
+      ) : null}
       <EditableValueControl
         label="V"
         value={columnGapY}
