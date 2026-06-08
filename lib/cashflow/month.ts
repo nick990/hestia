@@ -1,5 +1,20 @@
 const TIMEZONE = "Europe/Rome";
 
+const MONTH_NAMES_IT = [
+  "Gennaio",
+  "Febbraio",
+  "Marzo",
+  "Aprile",
+  "Maggio",
+  "Giugno",
+  "Luglio",
+  "Agosto",
+  "Settembre",
+  "Ottobre",
+  "Novembre",
+  "Dicembre",
+] as const;
+
 export function getCurrentMonthKey(): string {
   const parts = new Intl.DateTimeFormat("en-GB", {
     timeZone: TIMEZONE,
@@ -28,6 +43,17 @@ export function monthDateBounds(monthKey: string): { start: string; end: string 
     start: `${monthKey}-01`,
     end: `${monthKey}-${day}`,
   };
+}
+
+export function formatMonthYearLabel(monthKey: string): string {
+  const [yearStr, monthStr] = monthKey.split("-");
+  const monthIndex = Number(monthStr) - 1;
+
+  if (monthIndex < 0 || monthIndex >= MONTH_NAMES_IT.length) {
+    return monthKey;
+  }
+
+  return `${MONTH_NAMES_IT[monthIndex]} ${yearStr}`;
 }
 
 export function shiftMonthKey(monthKey: string, delta: number): string {

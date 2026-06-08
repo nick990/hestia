@@ -18,7 +18,7 @@ export async function AppNav() {
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-4 px-6">
         <div className="flex items-center gap-6">
           <Link
-            href="/cashflow"
+            href="/"
             className="text-sm font-semibold tracking-tight text-primary"
           >
             Hestia

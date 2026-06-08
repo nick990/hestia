@@ -12,6 +12,7 @@ export type FilterSummaryState = {
 type PeriodSummaryCardsProps = {
   summary: MonthSummary;
   filterSummary: FilterSummaryState;
+  compact?: boolean;
 };
 
 function FilteredTotalLine({
@@ -39,8 +40,39 @@ function FilteredTotalLine({
 export function PeriodSummaryCards({
   summary,
   filterSummary,
+  compact = false,
 }: PeriodSummaryCardsProps) {
   const { active, summary: filtered } = filterSummary;
+
+  if (compact) {
+    return (
+      <div className="grid grid-cols-3 gap-2">
+        <div className="rounded-lg border border-income/15 bg-income-muted px-2.5 py-2.5">
+          <p className="text-xs text-muted-foreground">Entrate</p>
+          <p className="text-base font-semibold text-income tabular-nums">
+            {formatEuro(summary.totalIncome)}
+          </p>
+        </div>
+        <div className="rounded-lg border border-destructive/15 bg-expense-muted px-2.5 py-2.5">
+          <p className="text-xs text-muted-foreground">Uscite</p>
+          <p className="text-base font-semibold text-destructive tabular-nums">
+            {formatEuro(summary.totalExpense)}
+          </p>
+        </div>
+        <div className="rounded-lg border bg-muted/40 px-2.5 py-2.5">
+          <p className="text-xs text-muted-foreground">Netto</p>
+          <p
+            className={cn(
+              "text-base font-semibold tabular-nums",
+              summary.net >= 0 ? "text-income" : "text-destructive",
+            )}
+          >
+            {formatEuro(summary.net)}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">

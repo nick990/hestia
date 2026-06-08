@@ -33,6 +33,8 @@ type ViewFilterProps = {
   to: string;
   year: number;
   hasFamily: boolean;
+  basePath?: "/" | "/cashflow";
+  compact?: boolean;
 };
 
 export function ViewFilter({
@@ -43,6 +45,8 @@ export function ViewFilter({
   to,
   year,
   hasFamily,
+  basePath = "/cashflow",
+  compact = false,
 }: ViewFilterProps) {
   const router = useRouter();
 
@@ -51,6 +55,14 @@ export function ViewFilter({
   }
 
   function buildNavigationParams(nextView: CashflowView, nextShare: boolean) {
+    if (basePath === "/") {
+      const next = buildShareSearchParams(
+        buildCashflowViewSearchParams(new URLSearchParams(), nextView),
+        nextShare,
+      );
+      return next;
+    }
+
     return buildShareSearchParams(
       buildCashflowViewSearchParams(
         new URLSearchParams(buildCashflowSearchParams({ from, to, year })),
@@ -60,34 +72,39 @@ export function ViewFilter({
     );
   }
 
+  function navigate(nextView: CashflowView, nextShare: boolean) {
+    const params = buildNavigationParams(nextView, nextShare);
+    const query = params.toString();
+    router.push(query ? `${basePath}?${query}` : basePath);
+  }
+
   function handleViewChange(nextView: CashflowView) {
     if (nextView === view) {
       return;
     }
-    router.push(
-      `/cashflow?${buildNavigationParams(nextView, share).toString()}`,
-    );
+    navigate(nextView, share);
   }
 
   function handleShareChange(nextShare: boolean) {
     if (nextShare === share) {
       return;
     }
-    router.push(
-      `/cashflow?${buildNavigationParams(view, nextShare).toString()}`,
-    );
+    navigate(view, nextShare);
   }
 
-  const showShareToggle = view === "all" || view === "family";
+  const showShareToggle = basePath === "/cashflow" && (view === "all" || view === "family");
   const memberLabel = memberCount === 1 ? "membro" : "membri";
 
   return (
-    <div className="space-y-3">
+    <div className={cn(compact ? "space-y-2" : "space-y-3")}>
       <div
         role="radiogroup"
         aria-label="Vista movimenti"
         data-slot="button-group"
-        className="inline-flex w-full rounded-lg border bg-muted/30 p-0.5"
+        className={cn(
+          "inline-flex w-full border bg-muted/30 p-0.5",
+          compact ? "rounded-md" : "rounded-lg",
+        )}
       >
         {VIEW_OPTIONS.map((option) => {
           const selected = view === option.value;
@@ -99,9 +116,10 @@ export function ViewFilter({
               role="radio"
               aria-checked={selected}
               variant={selected ? "default" : "ghost"}
-              size="sm"
+              size={compact ? "xs" : "sm"}
               className={cn(
-                "h-8 flex-1 rounded-md shadow-none",
+                "flex-1 shadow-none",
+                compact ? "h-7 rounded-sm text-xs" : "h-8 rounded-md",
                 !selected && "text-muted-foreground hover:text-foreground",
               )}
               onClick={() => handleViewChange(option.value)}

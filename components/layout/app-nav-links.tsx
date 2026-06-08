@@ -26,7 +26,7 @@ export function AppNavLinks({ isAdmin }: AppNavLinksProps) {
         const active =
           item.href === "/cashflow"
             ? pathname === "/cashflow" || pathname.startsWith("/cashflow/")
-            : pathname.startsWith(item.href);
+            : pathname === item.href || pathname.startsWith(`${item.href}/`);
 
         return (
           <Link
