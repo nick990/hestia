@@ -127,7 +127,7 @@ export function YearSummaryBar({
         </Button>
 
         {monthsOpen ? (
-          <div className="mt-2 grid grid-cols-6 gap-1">
+          <div className="mt-2 grid grid-cols-3 gap-1 sm:grid-cols-6">
             {yearSummary.months.map((entry) => {
               const highlighted = isFullMonthRange(
                 rangeFrom,

@@ -101,13 +101,13 @@ components:
 
 Hestia è uno strumento privato per coppie e coinquilini: tutti devono vedere lo stesso riepilogo, capire subito cosa è personale e cosa è condiviso, e agire senza attrito. Il design segue quella metafora: una bacheca chiara, leggibile, senza ornamenti da marketing né densità da home banking.
 
-La base visiva è **Strumento Chiaro**: palette neutra achromatica (shadcn `neutral`), tipografia Geist, componenti compatti. Il calore non arriva da sfondi cream o gradienti, ma da micro-interazioni domestiche, copy diretto in italiano e semantica finanziaria leggibile (verde entrate, rosso uscite). L'elevazione è **leggermente sollevata**: le superfici riposano con ombra soft e bordo sottile, non piatte né flottanti.
+La base visiva è **Restrained** con accento **Terracotta Focolare**: neutri tintati (mai cream), tipografia Geist, componenti compatti. Il calore arriva dal terracotta sulle azioni e dalla semantica finanziaria (verde salvia entrate, rosso caldo uscite), non da sfondi decorativi. L'elevazione è **leggermente sollevata**: ombra soft e ring sottile, non piatte né flottanti.
 
 Il sistema rifiuta esplicitamente landing SaaS cream, fintech flashy, home banking corporate, estetica infantile e pattern "AI slop" elencati in `PRODUCT.md`.
 
 **Key Characteristics:**
 
-- Neutri achromatici come fondo; colore solo per azioni, stati e dati finanziari
+- Neutri tintati come fondo; terracotta per azioni e brand; verde/rosso solo per dati finanziari
 - Una sola famiglia tipografica (Geist) per tutta l'UI prodotto
 - Componenti compatti (32px di altezza standard), angoli morbidi (8–14px), transizioni brevi
 - Profondità tramite ombra leggera + ring sottile, non glassmorphism né gradienti

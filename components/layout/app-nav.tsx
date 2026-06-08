@@ -1,13 +1,8 @@
 import Link from "next/link";
 import { SignOutButton } from "@/components/auth/sign-out-button";
+import { AppNavLinks } from "@/components/layout/app-nav-links";
 import { getCurrentMember } from "@/lib/auth/member";
 import { getCurrentUserProfile } from "@/lib/profile/queries";
-import { cn } from "@/lib/utils";
-
-const navItems = [
-  { href: "/cashflow", label: "Cashflow", adminOnly: false },
-  { href: "/settings", label: "Impostazioni", adminOnly: false },
-] as const;
 
 export async function AppNav() {
   const [member, profile] = await Promise.all([
@@ -28,25 +23,7 @@ export async function AppNav() {
           >
             Hestia
           </Link>
-          <nav className="flex items-center gap-1">
-            {navItems.map((item) => {
-              if (item.adminOnly && !isAdmin) {
-                return null;
-              }
-
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "rounded-lg px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
-                  )}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
-          </nav>
+          <AppNavLinks isAdmin={isAdmin} />
         </div>
         <div className="flex items-center gap-3">
           <span className="max-w-48 truncate text-sm text-muted-foreground">
