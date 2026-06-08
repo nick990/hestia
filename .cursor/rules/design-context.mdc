@@ -1,0 +1,35 @@
+---
+description: Contesto design e prodotto Hestia — leggere prima di modifiche UI
+alwaysApply: true
+---
+
+# Design Context
+
+Prima di modifiche UI, copy o layout, leggi i file canonici:
+
+- **Strategia:** `PRODUCT.md` (register, utenti, personalità, anti-riferimenti, principi)
+- **Visuale:** `DESIGN.md` (quando presente — palette, tipografia, componenti)
+
+## Sintesi rapida
+
+| Campo | Valore |
+|-------|--------|
+| Register | **product** — design serve lo strumento, non è marketing |
+| Utenti | Coppia/coinquilini, spese domestiche condivise |
+| Lingua | Italiano (v1, no i18n) |
+| Personalità | Calda, domestica, collaborativa |
+| Riferimento UX | Splitwise — pratico, orientato all'azione (non copiare l'estetica) |
+
+## Principi guida
+
+1. **Casa, non banca** — tono domestico, mai istituzionale
+2. **Azione prima del report** — su mobile, aggiungere un movimento deve essere immediato
+3. **Chiarezza sui flussi** — totali e Sankey rispondono a "dove va il denaro?"
+4. **Trasparenza condivisa** — personale vs famiglia sempre evidente
+5. **Cresce per sezioni** — Cashflow oggi, altre aree in futuro
+
+## Evitare
+
+Landing SaaS cream, fintech flashy, home banking corporate, estetica infantile, pattern "AI slop" (card identiche, eyebrow uppercase, palette generica).
+
+Per lavoro design strutturato usa `/impeccable` (legge automaticamente `PRODUCT.md` e `DESIGN.md`).
