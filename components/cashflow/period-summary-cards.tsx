@@ -44,30 +44,34 @@ export function PeriodSummaryCards({
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-      <div className="rounded-lg border bg-muted/30 p-4">
+      <div className="rounded-lg border border-income/15 bg-income-muted p-4">
         <p className="text-sm text-muted-foreground">Entrate</p>
-        <p className="text-lg font-semibold text-emerald-600 dark:text-emerald-500">
+        <p className="text-lg font-semibold text-income">
           {formatEuro(summary.totalIncome)}
         </p>
         <FilteredTotalLine
           active={active}
           amount={filtered.totalIncome}
-          className="text-emerald-600 dark:text-emerald-500"
+          className="text-income"
         />
       </div>
-      <div className="rounded-lg border bg-muted/30 p-4">
+      <div className="rounded-lg border border-destructive/15 bg-expense-muted p-4">
         <p className="text-sm text-muted-foreground">Uscite</p>
-        <p className="text-lg font-semibold">{formatEuro(summary.totalExpense)}</p>
-        <FilteredTotalLine active={active} amount={filtered.totalExpense} />
+        <p className="text-lg font-semibold text-destructive">
+          {formatEuro(summary.totalExpense)}
+        </p>
+        <FilteredTotalLine
+          active={active}
+          amount={filtered.totalExpense}
+          className="text-destructive"
+        />
       </div>
-      <div className="rounded-lg border bg-muted/30 p-4">
+      <div className="rounded-lg border bg-muted/40 p-4">
         <p className="text-sm text-muted-foreground">Netto</p>
         <p
           className={cn(
             "text-lg font-semibold",
-            summary.net >= 0
-              ? "text-emerald-600 dark:text-emerald-500"
-              : "text-destructive",
+            summary.net >= 0 ? "text-income" : "text-destructive",
           )}
         >
           {formatEuro(summary.net)}
@@ -75,11 +79,7 @@ export function PeriodSummaryCards({
         <FilteredTotalLine
           active={active}
           amount={filtered.net}
-          className={
-            filtered.net >= 0
-              ? "text-emerald-600 dark:text-emerald-500"
-              : "text-destructive"
-          }
+          className={filtered.net >= 0 ? "text-income" : "text-destructive"}
         />
         <p className="text-xs text-muted-foreground">entrate − uscite</p>
       </div>

@@ -12,8 +12,9 @@ import type { YearSummary } from "@/lib/cashflow/types";
 import { buildCashflowViewSearchParams, type CashflowView } from "@/lib/cashflow/view";
 import { buildShareSearchParams } from "@/lib/cashflow/share";
 import { cn } from "@/lib/utils";
-import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 type YearSummaryBarProps = {
   yearSummary: YearSummary;
@@ -31,6 +32,7 @@ export function YearSummaryBar({
   share = false,
 }: YearSummaryBarProps) {
   const router = useRouter();
+  const [monthsOpen, setMonthsOpen] = useState(false);
   const { year } = yearSummary;
 
   function navigate(params: { from: string; to: string; year: number }) {
@@ -54,7 +56,7 @@ export function YearSummaryBar({
   }
 
   return (
-    <section className="space-y-3 rounded-lg border bg-muted/20 p-4">
+    <section className="rounded-lg border bg-muted/20 p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-1">
           <Button
@@ -77,28 +79,28 @@ export function YearSummaryBar({
             <ChevronRightIcon />
           </Button>
         </div>
-        <p className="text-sm text-muted-foreground">Riepilogo annuale</p>
+        <p className="text-xs text-muted-foreground">Riepilogo annuale</p>
       </div>
 
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+      <div className="mt-3 grid grid-cols-3 gap-3 text-center sm:text-left">
         <div>
-          <p className="text-xs text-muted-foreground">Entrate anno</p>
-          <p className="font-semibold text-emerald-600 dark:text-emerald-500">
+          <p className="text-xs text-muted-foreground">Entrate</p>
+          <p className="text-sm font-semibold text-income">
             {formatEuro(yearSummary.totalIncome)}
           </p>
         </div>
         <div>
-          <p className="text-xs text-muted-foreground">Uscite anno</p>
-          <p className="font-semibold">{formatEuro(yearSummary.totalExpense)}</p>
+          <p className="text-xs text-muted-foreground">Uscite</p>
+          <p className="text-sm font-semibold text-destructive">
+            {formatEuro(yearSummary.totalExpense)}
+          </p>
         </div>
         <div>
-          <p className="text-xs text-muted-foreground">Netto anno</p>
+          <p className="text-xs text-muted-foreground">Netto</p>
           <p
             className={cn(
-              "font-semibold",
-              yearSummary.net >= 0
-                ? "text-emerald-600 dark:text-emerald-500"
-                : "text-destructive",
+              "text-sm font-semibold",
+              yearSummary.net >= 0 ? "text-income" : "text-destructive",
             )}
           >
             {formatEuro(yearSummary.net)}
@@ -106,45 +108,63 @@ export function YearSummaryBar({
         </div>
       </div>
 
-      <div className="grid grid-cols-6 gap-1">
-          {yearSummary.months.map((entry) => {
-            const highlighted = isFullMonthRange(
-              rangeFrom,
-              rangeTo,
-              year,
-              entry.month,
-            );
+      <div className="mt-3 border-t pt-3">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="h-8 w-full justify-between px-2 text-muted-foreground"
+          aria-expanded={monthsOpen}
+          onClick={() => setMonthsOpen((open) => !open)}
+        >
+          <span>{monthsOpen ? "Nascondi mesi" : "Sfoglia per mese"}</span>
+          <ChevronDownIcon
+            className={cn(
+              "size-4 transition-transform duration-200",
+              monthsOpen && "rotate-180",
+            )}
+          />
+        </Button>
 
-            return (
-              <button
-                key={entry.monthKey}
-                type="button"
-                aria-current={highlighted ? "true" : undefined}
-                onClick={() => selectMonth(entry.month)}
-                className={cn(
-                  "rounded-md border bg-background p-2 text-left text-xs transition-colors hover:bg-muted/50",
-                  highlighted && "border-primary ring-1 ring-primary/30",
-                )}
-              >
-                <p className="mb-1 font-medium">{MONTH_ABBR_IT[entry.month - 1]}</p>
-                <p className="text-emerald-600 dark:text-emerald-500">
-                  {formatEuro(entry.totalIncome)}
-                </p>
-                <p className="text-muted-foreground">
-                  {formatEuro(entry.totalExpense)}
-                </p>
-                <p
+        {monthsOpen ? (
+          <div className="mt-2 grid grid-cols-6 gap-1">
+            {yearSummary.months.map((entry) => {
+              const highlighted = isFullMonthRange(
+                rangeFrom,
+                rangeTo,
+                year,
+                entry.month,
+              );
+
+              return (
+                <button
+                  key={entry.monthKey}
+                  type="button"
+                  aria-current={highlighted ? "true" : undefined}
+                  onClick={() => selectMonth(entry.month)}
                   className={cn(
-                    entry.net >= 0
-                      ? "text-emerald-600 dark:text-emerald-500"
-                      : "text-destructive",
+                    "rounded-md border bg-background p-2 text-left text-xs transition-colors hover:bg-muted/50",
+                    highlighted &&
+                      "border-primary bg-primary/5 ring-1 ring-primary/25",
                   )}
                 >
-                  {formatEuro(entry.net)}
-                </p>
-              </button>
-            );
-          })}
+                  <p className="mb-1 font-medium">{MONTH_ABBR_IT[entry.month - 1]}</p>
+                  <p className="text-income">{formatEuro(entry.totalIncome)}</p>
+                  <p className="text-destructive/80">
+                    {formatEuro(entry.totalExpense)}
+                  </p>
+                  <p
+                    className={cn(
+                      entry.net >= 0 ? "text-income" : "text-destructive",
+                    )}
+                  >
+                    {formatEuro(entry.net)}
+                  </p>
+                </button>
+              );
+            })}
+          </div>
+        ) : null}
       </div>
     </section>
   );

@@ -188,9 +188,7 @@ export function createMovementColumns({
         <span
           className={cn(
             "text-right font-medium whitespace-nowrap",
-            row.original.type === "income"
-              ? "text-emerald-600 dark:text-emerald-500"
-              : "text-destructive",
+            row.original.type === "income" ? "text-income" : "text-destructive",
           )}
         >
           {formatSignedAmount(row.original.type, row.original.amount)}

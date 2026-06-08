@@ -1,0 +1,283 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-06-08T12:00:00.000Z",
+  "title": "Design System: Hestia",
+  "extensions": {
+    "colorMeta": {
+      "background": {
+        "role": "neutral",
+        "displayName": "Bianco Bacheca",
+        "canonical": "oklch(1 0 0)",
+        "tonalRamp": [
+          "oklch(0.15 0 0)",
+          "oklch(0.25 0 0)",
+          "oklch(0.35 0 0)",
+          "oklch(0.45 0 0)",
+          "oklch(0.55 0 0)",
+          "oklch(0.65 0 0)",
+          "oklch(0.75 0 0)",
+          "oklch(1 0 0)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Inchiostro",
+        "canonical": "oklch(0.145 0 0)",
+        "tonalRamp": [
+          "oklch(0.145 0 0)",
+          "oklch(0.205 0 0)",
+          "oklch(0.269 0 0)",
+          "oklch(0.371 0 0)",
+          "oklch(0.439 0 0)",
+          "oklch(0.556 0 0)",
+          "oklch(0.708 0 0)",
+          "oklch(0.922 0 0)"
+        ]
+      },
+      "primary": {
+        "role": "primary",
+        "displayName": "Inchiostro Azione",
+        "canonical": "oklch(0.205 0 0)",
+        "tonalRamp": [
+          "oklch(0.10 0 0)",
+          "oklch(0.145 0 0)",
+          "oklch(0.205 0 0)",
+          "oklch(0.269 0 0)",
+          "oklch(0.371 0 0)",
+          "oklch(0.556 0 0)",
+          "oklch(0.708 0 0)",
+          "oklch(0.922 0 0)"
+        ]
+      },
+      "surface-muted": {
+        "role": "neutral",
+        "displayName": "Superficie Muted",
+        "canonical": "oklch(0.97 0 0)",
+        "tonalRamp": [
+          "oklch(0.15 0 0)",
+          "oklch(0.25 0 0)",
+          "oklch(0.35 0 0)",
+          "oklch(0.45 0 0)",
+          "oklch(0.55 0 0)",
+          "oklch(0.75 0 0)",
+          "oklch(0.90 0 0)",
+          "oklch(0.97 0 0)"
+        ]
+      },
+      "income": {
+        "role": "tertiary",
+        "displayName": "Entrata",
+        "canonical": "oklch(0.596 0.145 163.225)",
+        "tonalRamp": [
+          "oklch(0.25 0.08 163)",
+          "oklch(0.35 0.10 163)",
+          "oklch(0.45 0.12 163)",
+          "oklch(0.50 0.13 163)",
+          "oklch(0.55 0.14 163)",
+          "oklch(0.596 0.145 163.225)",
+          "oklch(0.70 0.12 163)",
+          "oklch(0.90 0.06 163)"
+        ]
+      },
+      "destructive": {
+        "role": "tertiary",
+        "displayName": "Uscita / Errore",
+        "canonical": "oklch(0.577 0.245 27.325)",
+        "tonalRamp": [
+          "oklch(0.25 0.12 27)",
+          "oklch(0.35 0.16 27)",
+          "oklch(0.45 0.20 27)",
+          "oklch(0.50 0.22 27)",
+          "oklch(0.55 0.24 27)",
+          "oklch(0.577 0.245 27.325)",
+          "oklch(0.65 0.20 27)",
+          "oklch(0.85 0.10 27)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Titoli pagina: uno per vista (Impostazioni, login)."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Cifre principali nei riepiloghi e totali del periodo."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Titoli card, dialog e sezioni interne."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Testo UI, celle tabella, descrizioni."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Etichette filtri, sottotitoli metriche, note."
+      },
+      "mono": {
+        "displayName": "Mono",
+        "purpose": "Importi tabellari e dati che beneficiano di allineamento."
+      }
+    },
+    "shadows": [
+      {
+        "name": "card-rest",
+        "value": "0 1px 3px oklch(0 0 0 / 8%)",
+        "purpose": "Ombra soft a riposo su card e contenitori sezione."
+      },
+      {
+        "name": "overlay-md",
+        "value": "0 4px 6px -1px oklch(0 0 0 / 10%), 0 2px 4px -2px oklch(0 0 0 / 10%)",
+        "purpose": "Popover, select, dropdown aperti."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-standard",
+        "value": "cubic-bezier(0.4, 0, 0.2, 1)",
+        "purpose": "Transizioni hover, focus e cambio stato componenti."
+      },
+      {
+        "name": "duration-fast",
+        "value": "100ms",
+        "purpose": "Apertura/chiusura overlay e popover."
+      },
+      {
+        "name": "duration-normal",
+        "value": "150ms",
+        "purpose": "Hover righe tabella e cambio colore nav."
+      }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Azione principale: salva, conferma, aggiungi.",
+      "html": "<button class=\"ds-btn-primary\">Aggiungi movimento</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; height: 32px; padding: 0 10px; font-family: Geist, system-ui, sans-serif; font-size: 0.875rem; font-weight: 500; color: oklch(0.985 0 0); background: oklch(0.205 0 0); border: 1px solid transparent; border-radius: 8px; cursor: pointer; transition: background 150ms cubic-bezier(0.4, 0, 0.2, 1), transform 150ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-btn-primary:hover { background: oklch(0.205 0 0 / 80%); } .ds-btn-primary:focus-visible { outline: none; border-color: oklch(0.708 0 0); box-shadow: 0 0 0 3px oklch(0.708 0 0 / 50%); } .ds-btn-primary:active { transform: translateY(1px); }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Azioni secondarie e filtri non distruttivi.",
+      "html": "<button class=\"ds-btn-secondary\">Annulla</button>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; justify-content: center; height: 32px; padding: 0 10px; font-family: Geist, system-ui, sans-serif; font-size: 0.875rem; font-weight: 500; color: oklch(0.205 0 0); background: oklch(0.97 0 0); border: 1px solid transparent; border-radius: 8px; cursor: pointer; transition: background 150ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-btn-secondary:hover { background: color-mix(in oklch, oklch(0.97 0 0), oklch(0.205 0 0) 5%); } .ds-btn-secondary:focus-visible { outline: none; border-color: oklch(0.708 0 0); box-shadow: 0 0 0 3px oklch(0.708 0 0 / 50%); }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost-hover",
+      "description": "Azioni terziarie, icon button, chiusura dialog.",
+      "html": "<button class=\"ds-btn-ghost\">Esci</button>",
+      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; justify-content: center; height: 32px; padding: 0 10px; font-family: Geist, system-ui, sans-serif; font-size: 0.875rem; font-weight: 500; color: oklch(0.145 0 0); background: transparent; border: 1px solid transparent; border-radius: 8px; cursor: pointer; transition: background 150ms cubic-bezier(0.4, 0, 0.2, 1), color 150ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-btn-ghost:hover { background: oklch(0.97 0 0); } .ds-btn-ghost:focus-visible { outline: none; border-color: oklch(0.708 0 0); box-shadow: 0 0 0 3px oklch(0.708 0 0 / 50%); }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input-default",
+      "description": "Campi testo e importi nei form movimento.",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"Descrizione\" />",
+      "css": ".ds-input { display: block; width: 100%; height: 32px; padding: 4px 10px; font-family: Geist, system-ui, sans-serif; font-size: 0.875rem; color: oklch(0.145 0 0); background: transparent; border: 1px solid oklch(0.922 0 0); border-radius: 8px; transition: border-color 150ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-input::placeholder { color: oklch(0.556 0 0); } .ds-input:focus-visible { outline: none; border-color: oklch(0.708 0 0); box-shadow: 0 0 0 3px oklch(0.708 0 0 / 50%); } .ds-input:disabled { opacity: 0.5; cursor: not-allowed; background: oklch(0.922 0 0 / 50%); }"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card-default",
+      "description": "Contenitore principale sezione (es. Cashflow).",
+      "html": "<div class=\"ds-card\"><div class=\"ds-card-header\"><h2 class=\"ds-card-title\">Cashflow</h2><p class=\"ds-card-desc\">Registra entrate e uscite del periodo.</p></div><div class=\"ds-card-body\">Contenuto</div></div>",
+      "css": ".ds-card { display: flex; flex-direction: column; gap: 16px; padding: 16px 0; background: oklch(1 0 0); color: oklch(0.145 0 0); border-radius: 14px; box-shadow: 0 1px 3px oklch(0 0 0 / 8%); outline: 1px solid oklch(0.145 0 0 / 10%); font-family: Geist, system-ui, sans-serif; font-size: 0.875rem; } .ds-card-header { padding: 0 16px; display: flex; flex-direction: column; gap: 4px; } .ds-card-title { margin: 0; font-size: 1rem; font-weight: 500; line-height: 1.35; } .ds-card-desc { margin: 0; font-size: 0.875rem; color: oklch(0.556 0 0); } .ds-card-body { padding: 0 16px; }"
+    },
+    {
+      "name": "Summary Panel",
+      "kind": "custom",
+      "refersTo": "card-default",
+      "description": "Riquadro riepilogo entrate/uscite/netto; non è una Card annidata.",
+      "html": "<div class=\"ds-summary\"><p class=\"ds-summary-label\">Entrate</p><p class=\"ds-summary-value ds-summary-income\">€ 1.240,00</p></div>",
+      "css": ".ds-summary { padding: 16px; background: oklch(0.97 0 0 / 30%); border: 1px solid oklch(0.922 0 0); border-radius: 8px; } .ds-summary-label { margin: 0 0 4px; font-family: Geist, system-ui, sans-serif; font-size: 0.875rem; color: oklch(0.556 0 0); } .ds-summary-value { margin: 0; font-family: Geist, system-ui, sans-serif; font-size: 1.125rem; font-weight: 600; color: oklch(0.145 0 0); } .ds-summary-income { color: oklch(0.596 0.145 163.225); }"
+    },
+    {
+      "name": "Nav Link",
+      "kind": "nav",
+      "refersTo": "button-ghost-hover",
+      "description": "Link navigazione header e settings sidebar.",
+      "html": "<a class=\"ds-nav-link\" href=\"#\">Cashflow</a>",
+      "css": ".ds-nav-link { display: inline-flex; align-items: center; padding: 6px 12px; font-family: Geist, system-ui, sans-serif; font-size: 0.875rem; font-weight: 400; color: oklch(0.556 0 0); text-decoration: none; border-radius: 8px; transition: background 150ms cubic-bezier(0.4, 0, 0.2, 1), color 150ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-nav-link:hover { background: oklch(0.97 0 0); color: oklch(0.145 0 0); } .ds-nav-link:focus-visible { outline: none; box-shadow: 0 0 0 3px oklch(0.708 0 0 / 50%); } .ds-nav-link.ds-nav-active { background: oklch(0.97 0 0); color: oklch(0.145 0 0); font-weight: 500; }"
+    },
+    {
+      "name": "Filter Badge",
+      "kind": "chip",
+      "refersTo": "button-secondary",
+      "description": "Chip filtro e stato compatto.",
+      "html": "<span class=\"ds-badge\">Condiviso</span>",
+      "css": ".ds-badge { display: inline-flex; align-items: center; height: 20px; padding: 0 8px; font-family: Geist, system-ui, sans-serif; font-size: 0.75rem; font-weight: 500; color: oklch(0.985 0 0); background: oklch(0.205 0 0); border-radius: 9999px; white-space: nowrap; transition: background 150ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-badge:hover { background: oklch(0.205 0 0 / 80%); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "La Bacheca Familiare",
+    "overview": "Hestia è uno strumento privato per coppie e coinquilini: tutti devono vedere lo stesso riepilogo, capire subito cosa è personale e cosa è condiviso, e agire senza attrito. Il design segue quella metafora: una bacheca chiara, leggibile, senza ornamenti da marketing né densità da home banking.\n\nLa base visiva è Strumento Chiaro: palette neutra achromatica (shadcn neutral), tipografia Geist, componenti compatti. Il calore non arriva da sfondi cream o gradienti, ma da micro-interazioni domestiche, copy diretto in italiano e semantica finanziaria leggibile (verde entrate, rosso uscite). L'elevazione è leggermente sollevata: le superfici riposano con ombra soft e bordo sottile, non piatte né flottanti.\n\nIl sistema rifiuta esplicitamente landing SaaS cream, fintech flashy, home banking corporate, estetica infantile e pattern \"AI slop\" elencati in PRODUCT.md.",
+    "keyCharacteristics": [
+      "Neutri achromatici come fondo; colore solo per azioni, stati e dati finanziari",
+      "Una sola famiglia tipografica (Geist) per tutta l'UI prodotto",
+      "Componenti compatti (32px di altezza standard), angoli morbidi (8–14px), transizioni brevi",
+      "Profondità tramite ombra leggera + ring sottile, non glassmorphism né gradienti",
+      "Dati in primo piano: totali, tabelle, Sankey leggibili senza rumore decorativo",
+      "Italiano diretto; etichette verbo+oggetto; nessun eyebrow uppercase su ogni sezione"
+    ],
+    "rules": [
+      {
+        "name": "The No-Cream Rule",
+        "body": "Sfondi caldi (cream, sand, linen, parchment) sono vietati. Il calore del brand arriverà da un accento deliberato in fase di colorize, non da un near-white tintato verso il beige.",
+        "section": "colors"
+      },
+      {
+        "name": "The Data-Only Color Rule",
+        "body": "Verde e rosso appaiono solo su numeri, stati e grafici. Mai su sfondi di sezione, mai su bordi decorativi, mai come gradienti.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Family Rule",
+        "body": "Un solo sans (Geist) per heading, body, bottoni e label. Geist Mono solo per dati che beneficiano di allineamento monospace.",
+        "section": "typography"
+      },
+      {
+        "name": "The Fixed Scale Rule",
+        "body": "Scala rem fissa, non fluid clamp. Gli heading non si riducono con il viewport: il layout responsive è strutturale (colonne, sidebar), non tipografico.",
+        "section": "typography"
+      },
+      {
+        "name": "The Lifted-Not-Floating Rule",
+        "body": "Ombre basse e diffuse, mai drop-shadow aggressive. Se la card sembra sospesa nel vuoto, l'ombra è troppo forte.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do usare Geist per tutta l'UI e Geist Mono solo per dati tabellari o codici.",
+      "Do mantenere bottoni e input a 32px di altezza (h-8) per densità operativa coerente.",
+      "Do usare verde solo per entrate/netto positivo e rosso/destructive per uscite, errori e azioni distruttive.",
+      "Do rendere ovvio lo stato personale vs condiviso con label, filtri e badge, non con menu nascosti.",
+      "Do rispettare prefers-reduced-motion: animazioni open/close dei popover come crossfade istantaneo.",
+      "Do scrivere in italiano diretto; etichette bottone verbo+oggetto (\"Salva movimento\", \"Esci\")."
+    ],
+    "donts": [
+      "Don't usare sfondi cream, gradienti decorativi o hero-metric template da landing SaaS generiche.",
+      "Don't adottare estetica fintech flashy: neon, dark mode da trading, grafici aggressivi.",
+      "Don't replicare home banking corporate: interfacce dense, grigio burocratico, gerarchia piatta.",
+      "Don't usare estetica infantile o troppo giocosa.",
+      "Don't replicare pattern \"AI slop\": card identiche ovunque, eyebrow uppercase su ogni sezione, palette predefinita senza identità.",
+      "Don't usare border-left colorato >1px su card, alert o righe lista.",
+      "Don't usare gradient text, glassmorphism decorativo o display font su bottoni e label.",
+      "Don't annidare card dentro card: i riepiloghi usano pannelli con bordo, non Card shadcn.",
+      "Don't aprire modali per azioni che stanno inline (preferire form inline e progressive disclosure)."
+    ]
+  }
+}

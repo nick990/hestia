@@ -24,7 +24,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,9 +37,10 @@ import {
 import type { MovementCategoryOption } from "@/lib/categories/types";
 import type { MonthSummary, Movement, MovementType, YearSummary } from "@/lib/cashflow/types";
 import type { CashflowView } from "@/lib/cashflow/view";
+import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState, useTransition } from "react";
-import { BarChart3 } from "lucide-react";
+import { BarChart3, PlusIcon } from "lucide-react";
 import { toast } from "sonner";
 
 type MovementsManagerProps = {
@@ -204,16 +204,31 @@ export function MovementsManager({
     !editingMovement || editingMovement.user_id === currentUserId;
 
   return (
-    <div className="space-y-6">
-      <ViewFilter
-        view={view}
-        share={share}
-        memberCount={memberCount}
-        from={from}
-        to={to}
-        year={year}
-        hasFamily={hasFamily}
-      />
+    <div className="space-y-8 pb-20 sm:pb-0">
+      <section className="space-y-4">
+        <ViewFilter
+          view={view}
+          share={share}
+          memberCount={memberCount}
+          from={from}
+          to={to}
+          year={year}
+          hasFamily={hasFamily}
+        />
+
+        <PeriodSummaryCards summary={summary} filterSummary={filterSummary} />
+
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <DateRangeFilter from={from} to={to} year={year} view={view} share={share} />
+          <Button
+            type="button"
+            className="hidden shrink-0 sm:inline-flex"
+            onClick={openCreateDialog}
+          >
+            Aggiungi movimento
+          </Button>
+        </div>
+      </section>
 
       <YearSummaryBar
         yearSummary={yearSummary}
@@ -223,13 +238,44 @@ export function MovementsManager({
         share={share}
       />
 
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <DateRangeFilter from={from} to={to} year={year} view={view} share={share} />
+      <section className="space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <p className="text-sm font-medium">Movimenti</p>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={filteredMovements.length === 0}
+            onClick={() => setSankeyOpen(true)}
+          >
+            <BarChart3 className="size-4" />
+            Grafico Sankey
+          </Button>
+        </div>
 
-        <Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
-          <DialogTrigger render={<Button onClick={openCreateDialog} />}>
-            Aggiungi movimento
-          </DialogTrigger>
+        <MovementsTable
+          movements={movements}
+          from={from}
+          to={to}
+          view={view}
+          pending={pending}
+          onEdit={openEditDialog}
+          onDelete={setMovementToDelete}
+          onCreate={openCreateDialog}
+          onFilterSummaryChange={handleFilterSummaryChange}
+          onFilteredMovementsChange={handleFilteredMovementsChange}
+        />
+      </section>
+
+      <Button
+        type="button"
+        className="fixed right-4 bottom-4 z-40 size-14 rounded-full shadow-md sm:hidden"
+        aria-label="Aggiungi movimento"
+        onClick={openCreateDialog}
+      >
+        <PlusIcon className="size-6" />
+      </Button>
+
+      <Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>
@@ -243,16 +289,24 @@ export function MovementsManager({
               <div className="flex gap-2">
                 <Button
                   type="button"
-                  variant={type === "income" ? "default" : "outline"}
-                  className="flex-1"
+                  variant="outline"
+                  className={cn(
+                    "flex-1",
+                    type === "income" &&
+                      "border-income/30 bg-income-muted text-income hover:bg-income-muted/80 hover:text-income",
+                  )}
                   onClick={() => setType("income")}
                 >
                   Entrata
                 </Button>
                 <Button
                   type="button"
-                  variant={type === "expense" ? "default" : "outline"}
-                  className="flex-1"
+                  variant="outline"
+                  className={cn(
+                    "flex-1",
+                    type === "expense" &&
+                      "border-destructive/30 bg-expense-muted text-destructive hover:bg-expense-muted/80 hover:text-destructive",
+                  )}
                   onClick={() => setType("expense")}
                 >
                   Uscita
@@ -338,23 +392,7 @@ export function MovementsManager({
               </DialogFooter>
             </form>
           </DialogContent>
-        </Dialog>
-      </div>
-
-      <PeriodSummaryCards summary={summary} filterSummary={filterSummary} />
-
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <p className="text-sm text-muted-foreground">Movimenti</p>
-        <Button
-          type="button"
-          variant="outline"
-          disabled={filteredMovements.length === 0}
-          onClick={() => setSankeyOpen(true)}
-        >
-          <BarChart3 className="size-4" />
-          Grafico Sankey
-        </Button>
-      </div>
+      </Dialog>
 
       <Dialog
         open={movementToDelete !== null}
@@ -397,19 +435,6 @@ export function MovementsManager({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      <MovementsTable
-        movements={movements}
-        from={from}
-        to={to}
-        view={view}
-        pending={pending}
-        onEdit={openEditDialog}
-        onDelete={setMovementToDelete}
-        onCreate={openCreateDialog}
-        onFilterSummaryChange={handleFilterSummaryChange}
-        onFilteredMovementsChange={handleFilteredMovementsChange}
-      />
 
       <CashflowSankeyDialog
         open={sankeyOpen}

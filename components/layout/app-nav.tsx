@@ -22,7 +22,10 @@ export async function AppNav() {
     <header className="border-b bg-background">
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-4 px-6">
         <div className="flex items-center gap-6">
-          <Link href="/cashflow" className="text-sm font-semibold tracking-tight">
+          <Link
+            href="/cashflow"
+            className="text-sm font-semibold tracking-tight text-primary"
+          >
             Hestia
           </Link>
           <nav className="flex items-center gap-1">
