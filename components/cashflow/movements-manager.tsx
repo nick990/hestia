@@ -160,6 +160,7 @@ export function MovementsManager({
       <section className="space-y-4">
         {hasFamily ? (
           <AssigneeFilterPanel
+            variant="inline"
             filters={filters}
             members={familyMembers}
             currentUserId={currentUserId}

@@ -25,23 +25,29 @@ type AssigneeFilterPanelProps = {
   filters: AssigneeFiltersState;
   members: FamilyMemberOption[];
   currentUserId: string;
+  /** `popover` (default) for Cashflow toolbar; `inline` keeps filters always visible (home). */
+  variant?: "popover" | "inline";
   compact?: boolean;
   onChange: (filters: AssigneeFiltersState) => void;
 };
 
 function TypeFilterSection({
   title,
+  idPrefix,
   typeFilter,
   members,
   currentUserId,
   onChange,
 }: {
   title: string;
+  idPrefix: string;
   typeFilter: TypeFilterState;
   members: FamilyMemberOption[];
   currentUserId: string;
   onChange: (next: TypeFilterState) => void;
 }) {
+  const sectionId = `${idPrefix}-${title.toLowerCase()}`;
+
   function toggleMember(userId: string, checked: boolean) {
     onChange({
       ...typeFilter,
@@ -58,28 +64,28 @@ function TypeFilterSection({
       <div className="space-y-2">
         <div className="flex items-center gap-2">
           <Checkbox
-            id={`${title}-family`}
+            id={`${sectionId}-family`}
             checked={typeFilter.family}
             onCheckedChange={(checked) =>
               onChange({ ...typeFilter, family: checked === true })
             }
           />
-          <Label htmlFor={`${title}-family`} className="font-normal">
+          <Label htmlFor={`${sectionId}-family`} className="font-normal">
             Famiglia
           </Label>
         </div>
         {members.map((member) => (
-          <div key={`${title}-${member.user_id}`} className="space-y-1">
+          <div key={`${sectionId}-${member.user_id}`} className="space-y-1">
             <div className="flex items-center gap-2">
               <Checkbox
-                id={`${title}-${member.user_id}`}
+                id={`${sectionId}-${member.user_id}`}
                 checked={typeFilter.members[member.user_id] ?? false}
                 onCheckedChange={(checked) =>
                   toggleMember(member.user_id, checked === true)
                 }
               />
               <Label
-                htmlFor={`${title}-${member.user_id}`}
+                htmlFor={`${sectionId}-${member.user_id}`}
                 className="font-normal"
               >
                 {member.display_name}
@@ -89,7 +95,7 @@ function TypeFilterSection({
             typeFilter.members[member.user_id] ? (
               <div className="ml-6 flex items-center gap-2">
                 <Checkbox
-                  id={`${title}-${member.user_id}-private`}
+                  id={`${sectionId}-${member.user_id}-private`}
                   checked={typeFilter.showPrivate}
                   onCheckedChange={(checked) =>
                     onChange({
@@ -99,7 +105,7 @@ function TypeFilterSection({
                   }
                 />
                 <Label
-                  htmlFor={`${title}-${member.user_id}-private`}
+                  htmlFor={`${sectionId}-${member.user_id}-private`}
                   className="font-normal text-muted-foreground"
                 >
                   Mostra privati
@@ -113,10 +119,46 @@ function TypeFilterSection({
   );
 }
 
+function FilterSections({
+  idPrefix,
+  filters,
+  members,
+  currentUserId,
+  onUpdate,
+}: {
+  idPrefix: string;
+  filters: AssigneeFiltersState;
+  members: FamilyMemberOption[];
+  currentUserId: string;
+  onUpdate: (next: AssigneeFiltersState) => void;
+}) {
+  return (
+    <>
+      <TypeFilterSection
+        title="Entrate"
+        idPrefix={idPrefix}
+        typeFilter={filters.income}
+        members={members}
+        currentUserId={currentUserId}
+        onChange={(income) => onUpdate({ ...filters, income })}
+      />
+      <TypeFilterSection
+        title="Uscite"
+        idPrefix={idPrefix}
+        typeFilter={filters.expense}
+        members={members}
+        currentUserId={currentUserId}
+        onChange={(expense) => onUpdate({ ...filters, expense })}
+      />
+    </>
+  );
+}
+
 export function AssigneeFilterPanel({
   filters,
   members,
   currentUserId,
+  variant = "popover",
   compact = false,
   onChange,
 }: AssigneeFilterPanelProps) {
@@ -125,6 +167,25 @@ export function AssigneeFilterPanel({
       saveFilters(next, window.localStorage);
     }
     onChange(next);
+  }
+
+  if (variant === "inline") {
+    return (
+      <section
+        aria-label="Filtri movimenti"
+        className="rounded-lg border bg-muted/30 p-3 space-y-3"
+      >
+        <div className="grid grid-cols-2 gap-4 sm:gap-6">
+          <FilterSections
+            idPrefix={compact ? "home" : "cashflow"}
+            filters={filters}
+            members={members}
+            currentUserId={currentUserId}
+            onUpdate={updateFilters}
+          />
+        </div>
+      </section>
+    );
   }
 
   return (
@@ -146,20 +207,15 @@ export function AssigneeFilterPanel({
         <PopoverHeader>
           <PopoverTitle>Filtri movimenti</PopoverTitle>
         </PopoverHeader>
-        <TypeFilterSection
-          title="Entrate"
-          typeFilter={filters.income}
-          members={members}
-          currentUserId={currentUserId}
-          onChange={(income) => updateFilters({ ...filters, income })}
-        />
-        <TypeFilterSection
-          title="Uscite"
-          typeFilter={filters.expense}
-          members={members}
-          currentUserId={currentUserId}
-          onChange={(expense) => updateFilters({ ...filters, expense })}
-        />
+        <div className="space-y-4">
+          <FilterSections
+            idPrefix="cashflow"
+            filters={filters}
+            members={members}
+            currentUserId={currentUserId}
+            onUpdate={updateFilters}
+          />
+        </div>
       </PopoverContent>
     </Popover>
   );

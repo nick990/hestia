@@ -87,10 +87,11 @@ export function MobileHome({
         />
         {hasFamily ? (
           <AssigneeFilterPanel
+            variant="inline"
+            compact
             filters={filters}
             members={familyMembers}
             currentUserId={currentUserId}
-            compact
             onChange={updateFilters}
           />
         ) : null}
