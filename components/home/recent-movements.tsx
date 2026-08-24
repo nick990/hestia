@@ -59,13 +59,13 @@ export function RecentMovements({
                   <p className="truncate text-sm font-medium">{label}</p>
                   <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                     <span>{formatOccurredOn(movement.occurred_on)}</span>
-                    {hasFamily && movement.scope === "private" ? (
+                    {hasFamily && movement.is_private ? (
                       <Badge variant="outline" className="h-5 px-1.5 text-[10px]">
                         Privato
                       </Badge>
                     ) : null}
-                    {hasFamily && movement.author_name ? (
-                      <span className="truncate">{movement.author_name}</span>
+                    {hasFamily && movement.creator_name ? (
+                      <span className="truncate">{movement.creator_name}</span>
                     ) : null}
                   </div>
                 </div>

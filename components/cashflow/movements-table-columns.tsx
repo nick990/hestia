@@ -32,8 +32,7 @@ import { cn } from "@/lib/utils";
 
 type MovementColumnActions = {
   pending: boolean;
-  showAuthor: boolean;
-  showPrivateBadge: boolean;
+  hasFamily: boolean;
   onEdit: (movement: Movement) => void;
   onDelete: (movement: Movement) => void;
 };
@@ -70,8 +69,7 @@ function SortableHeader({
 
 export function createMovementColumns({
   pending,
-  showAuthor,
-  showPrivateBadge,
+  hasFamily,
   onEdit,
   onDelete,
 }: MovementColumnActions): ColumnDef<Movement>[] {
@@ -137,7 +135,7 @@ export function createMovementColumns({
       cell: ({ row }) => (
         <span className="max-w-xs truncate font-medium">
           {normalizeDescriptionDisplay(row.original.description)}
-          {showPrivateBadge && row.original.scope === "private" ? (
+          {row.original.is_private ? (
             <Badge variant="secondary" className="ml-2 align-middle">
               Privato
             </Badge>
@@ -158,18 +156,31 @@ export function createMovementColumns({
     },
   ];
 
-  if (showAuthor) {
-    columns.push({
-      accessorKey: "author_name",
-      header: "Inserito da",
-      enableSorting: false,
-      enableColumnFilter: false,
-      cell: ({ row }) => (
-        <span className="text-muted-foreground whitespace-nowrap">
-          {row.original.author_name ?? "—"}
-        </span>
-      ),
-    });
+  if (hasFamily) {
+    columns.push(
+      {
+        accessorKey: "assignee_name",
+        header: "Assegnatario",
+        enableSorting: false,
+        enableColumnFilter: false,
+        cell: ({ row }) => (
+          <span className="text-muted-foreground whitespace-nowrap">
+            {row.original.assignee_name ?? "—"}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "creator_name",
+        header: "Inserito da",
+        enableSorting: false,
+        enableColumnFilter: false,
+        cell: ({ row }) => (
+          <span className="text-muted-foreground whitespace-nowrap">
+            {row.original.creator_name ?? "—"}
+          </span>
+        ),
+      },
+    );
   }
 
   columns.push(

@@ -25,10 +25,12 @@ function movement(overrides: Partial<Movement> = {}): Movement {
     created_at: "2026-06-01T00:00:00Z",
     category_id: null,
     category_name: null,
-    scope: "private",
-    family_id: null,
-    user_id: "u1",
-    author_name: null,
+    created_by: "u1",
+    assignee_kind: "member",
+    assignee_user_id: "u1",
+    is_private: false,
+    creator_name: null,
+    assignee_name: null,
     ...overrides,
   };
 }

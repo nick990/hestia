@@ -1,10 +1,9 @@
 "use server";
 
-import type { MovementScope, MovementType } from "@/lib/cashflow/types";
+import type { AssigneeKind } from "@/lib/cashflow/types";
 import {
-  hasVisibilityChanged,
-  isVisibilityChangeAllowed,
-  VISIBILITY_CHANGE_DENIED_MESSAGE,
+  canSetPrivate,
+  isPrivateChangeAllowed,
 } from "@/lib/cashflow/movement-visibility";
 import { getCurrentUserFamily } from "@/lib/families/queries";
 import { createClient } from "@/lib/supabase/server";
@@ -14,6 +13,7 @@ type ActionResult = { ok: true } | { ok: false; error: string };
 
 function revalidateCashflow() {
   revalidatePath("/cashflow");
+  revalidatePath("/");
 }
 
 function parseAmount(raw: string): number | null {
@@ -27,7 +27,7 @@ function parseAmount(raw: string): number | null {
   return Math.round(value * 100) / 100;
 }
 
-function parseType(raw: string): MovementType | null {
+function parseType(raw: string): "income" | "expense" | null {
   if (raw === "income" || raw === "expense") {
     return raw;
   }
@@ -86,20 +86,79 @@ async function validateCategoryId(
   return null;
 }
 
-async function resolveMovementScope(
-  isPrivate: boolean | undefined,
-): Promise<ActionResult | { scope: MovementScope; family_id: string | null }> {
-  if (isPrivate) {
-    return { scope: "private", family_id: null };
+async function resolveAssignee(
+  userId: string,
+  input: {
+    isFamily: boolean;
+    assigneeUserId?: string;
+    isPrivate?: boolean;
+  },
+): Promise<
+  ActionResult | {
+    assignee_kind: AssigneeKind;
+    assignee_user_id: string | null;
+    is_private: boolean;
+  }
+> {
+  const family = await getCurrentUserFamily();
+
+  if (input.isFamily) {
+    if (!family) {
+      return { ok: false, error: "Non appartieni a una famiglia." };
+    }
+
+    return {
+      assignee_kind: "family",
+      assignee_user_id: null,
+      is_private: false,
+    };
   }
 
-  const membership = await getCurrentUserFamily();
+  const assigneeUserId = input.assigneeUserId ?? userId;
 
-  if (!membership) {
-    return { scope: "private", family_id: null };
+  if (!family) {
+    if (assigneeUserId !== userId) {
+      return { ok: false, error: "Assegnatario non valido." };
+    }
+
+    return {
+      assignee_kind: "member",
+      assignee_user_id: userId,
+      is_private: input.isPrivate === true,
+    };
   }
 
-  return { scope: "family", family_id: membership.family_id };
+  const supabase = await createClient();
+  const { data: member, error } = await supabase
+    .from("family_members")
+    .select("user_id")
+    .eq("family_id", family.family_id)
+    .eq("user_id", assigneeUserId)
+    .maybeSingle();
+
+  if (error) {
+    return { ok: false, error: error.message };
+  }
+
+  if (!member) {
+    return { ok: false, error: "Assegnatario non valido." };
+  }
+
+  const isPrivate = input.isPrivate === true;
+
+  if (isPrivate && !canSetPrivate(assigneeUserId, userId)) {
+    return {
+      assignee_kind: "member",
+      assignee_user_id: assigneeUserId,
+      is_private: false,
+    };
+  }
+
+  return {
+    assignee_kind: "member",
+    assignee_user_id: assigneeUserId,
+    is_private: isPrivate && canSetPrivate(assigneeUserId, userId),
+  };
 }
 
 export async function createMovement(input: {
@@ -108,6 +167,8 @@ export async function createMovement(input: {
   occurredOn: string;
   description: string;
   categoryId?: string | null;
+  isFamily?: boolean;
+  assigneeUserId?: string;
   isPrivate?: boolean;
 }): Promise<ActionResult> {
   const supabase = await createClient();
@@ -147,23 +208,32 @@ export async function createMovement(input: {
     return categoryError;
   }
 
-  const scopeResult = await resolveMovementScope(input.isPrivate);
+  const family = await getCurrentUserFamily();
+  const isFamilyDefault = type === "expense" && Boolean(family);
+  const isFamily = input.isFamily ?? isFamilyDefault;
 
-  if ("ok" in scopeResult) {
-    return scopeResult;
+  const assigneeResult = await resolveAssignee(user.id, {
+    isFamily,
+    assigneeUserId: input.assigneeUserId ?? user.id,
+    isPrivate: input.isPrivate,
+  });
+
+  if ("ok" in assigneeResult) {
+    return assigneeResult;
   }
 
-  const { scope, family_id } = scopeResult;
+  const { assignee_kind, assignee_user_id, is_private } = assigneeResult;
 
   const { error } = await supabase.from("movements").insert({
-    user_id: user.id,
+    created_by: user.id,
     type,
     amount,
     occurred_on,
     description,
     category_id,
-    scope,
-    family_id,
+    assignee_kind,
+    assignee_user_id,
+    is_private,
   });
 
   if (error) {
@@ -182,6 +252,8 @@ export async function updateMovement(
     occurredOn: string;
     description: string;
     categoryId?: string | null;
+    isFamily?: boolean;
+    assigneeUserId?: string;
     isPrivate?: boolean;
   },
 ): Promise<ActionResult> {
@@ -224,7 +296,7 @@ export async function updateMovement(
 
   const { data: existing, error: fetchError } = await supabase
     .from("movements")
-    .select("user_id, scope, family_id")
+    .select("assignee_kind, assignee_user_id, is_private")
     .eq("id", id)
     .maybeSingle();
 
@@ -236,29 +308,49 @@ export async function updateMovement(
     return { ok: false, error: "Movimento non trovato." };
   }
 
-  const scopeResult = await resolveMovementScope(input.isPrivate);
+  const assigneeResult = await resolveAssignee(user.id, {
+    isFamily: input.isFamily ?? existing.assignee_kind === "family",
+    assigneeUserId:
+      input.assigneeUserId ?? existing.assignee_user_id ?? user.id,
+    isPrivate: input.isPrivate,
+  });
 
-  if ("ok" in scopeResult) {
-    return scopeResult;
+  if ("ok" in assigneeResult) {
+    return assigneeResult;
   }
 
-  const { scope, family_id } = scopeResult;
+  const nextAssignee = assigneeResult;
 
-  const visibilityChanged = hasVisibilityChanged(
-    {
-      scope: existing.scope as MovementScope,
-      family_id: existing.family_id,
-    },
-    { scope, family_id },
-  );
-
-  if (!isVisibilityChangeAllowed(existing.user_id, user.id, visibilityChanged)) {
-    return { ok: false, error: VISIBILITY_CHANGE_DENIED_MESSAGE };
+  if (
+    !isPrivateChangeAllowed(
+      nextAssignee.assignee_user_id,
+      user.id,
+      {
+        assignee_kind: existing.assignee_kind as AssigneeKind,
+        assignee_user_id: existing.assignee_user_id,
+        is_private: existing.is_private,
+      },
+      nextAssignee,
+    )
+  ) {
+    return {
+      ok: false,
+      error: "Solo l'assegnatario può cambiare il flag privato.",
+    };
   }
 
   const { error } = await supabase
     .from("movements")
-    .update({ type, amount, occurred_on, description, category_id, scope, family_id })
+    .update({
+      type,
+      amount,
+      occurred_on,
+      description,
+      category_id,
+      assignee_kind: nextAssignee.assignee_kind,
+      assignee_user_id: nextAssignee.assignee_user_id,
+      is_private: nextAssignee.is_private,
+    })
     .eq("id", id);
 
   if (error) {

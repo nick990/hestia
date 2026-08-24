@@ -54,7 +54,7 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 - [ ] Impossibile eliminare l'**ultimo admin** rimasto (anche se disabilitato).
 - [ ] Utente eliminato con sessione attiva → al prossimo request logout e redirect `/account-disabled`.
 
-## Cashflow (movimenti privati)
+## Cashflow (movimenti)
 
 - [ ] Link **Cashflow** visibile in nav per user e admin.
 - [ ] Apri `/cashflow` senza query → griglia mese corrente (`from`/`to`), riepilogo anno corrente.
@@ -64,7 +64,6 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 - [ ] ‹ › accanto ai date picker → salta al mese intero precedente/successivo.
 - [ ] **Aggiungi movimento** entrata/uscita → totali periodo e riepilogo anno coerenti dopo refresh.
 - [ ] **Modifica** / **Elimina** movimento → totali aggiornati.
-- [ ] Secondo utente non vede movimenti del primo (RLS).
 - [ ] Empty state periodo vuoto → CTA «Aggiungi movimento».
 - [ ] Mobile: riepilogo mesi scroll orizzontale.
 - [ ] Movimento con/senza categoria → colonna Categoria corretta.
@@ -75,43 +74,29 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 - [ ] Filtro: cerca «casa» con voci già selezionate + Seleziona tutto → tutte le selezioni restano visibili in tabella.
 - [ ] Con filtro attivo → totali periodo invariati; nei box compare «Filtrato: €…» (text-xs); tabella non si sposta.
 - [ ] Filtro che esclude tutto → «Nessun movimento corrisponde ai filtri» + «Cancella filtri».
-- [ ] Cambio periodo (‹ › o click mese) → filtri e ordinamento resettati.
+- [ ] Cambio periodo (‹ › o click mese) → filtri colonna e ordinamento resettati; filtri assegnatario invariati (localStorage).
 
-## Famiglie e movimenti condivisi
+## Famiglie e assegnatario movimenti
 
 - [ ] Admin: Impostazioni → Famiglie → crea famiglia e assegna 2 utenti registrati.
-- [ ] Utente A: movimento default condiviso → visibile a B in Tutti e Famiglia.
-- [ ] Utente A: movimento privato (checkbox «Privato» attiva) → visibile ad A in Tutti e Privati; B non lo vede.
-- [ ] B modifica importo/descrizione movimento family di A → OK; visibilità invariata.
-- [ ] B apre modifica movimento family di A → checkbox «Privato» disabilitato + messaggio aiuto.
-- [ ] B elimina movimento family di A → OK.
-- [ ] A modifica il proprio movimento family → può attivare «Privato»; movimento sparisce a B.
-- [ ] Vista Famiglia / Tutti: colonna «Inserito da» valorizzata anche per movimenti di altri membri (nome da Account).
-- [ ] Vista Privati: solo movimenti privati propri; nessun family.
-- [ ] Totali periodo cambiano tra Tutti / Privati / Famiglia.
-- [ ] Segment control: ordine Tutti · Privati · Famiglia.
-- [ ] Switch a 3 vie (segmented) sopra il riepilogo annuale; segmento attivo evidenziato.
-- [ ] Riepilogo annuale (totali anno + griglia mesi) cambia con la vista; evidenziazione mese resta legata al range Da/A.
-- [ ] Utente senza famiglia: nessun tab vista; solo privati.
-- [ ] Admin rimuove membro: ex-membro non vede più family; movimenti family restano per la famiglia.
-- [ ] URL `?view=mine` → vista Tutti (default).
-- [ ] URL `?view=private` → vista Privati.
-
-## Vista personale (share)
-
-- [ ] Toggle «Vista personale» visibile in Tutti e Famiglia; nascosto in Privati
-- [ ] Default off: importi e righe invariati rispetto a prima del toggle
-- [ ] Toggle on + uscita famiglia 300 €, N=3 → 100 € in tabella e totali
-- [ ] Toggle on + entrata famiglia propria → importo intero (non diviso)
-- [ ] Toggle on + entrata famiglia altrui → riga assente; totali senza quella entrata
-- [ ] Toggle on + privato → importo intero
-- [ ] Testo aiuto: uscite divise, entrate solo tue, privati interi
-- [ ] Cambio periodo (‹ › date picker), anno (‹ › riepilogo), click mese: `share=1` preservato in URL
-- [ ] Cambio vista Tutti ↔ Famiglia: stato share preservato
-- [ ] Vista Privati: nessun effetto share anche con `share=1` in URL
-- [ ] Modifica movimento family: form mostra importo pieno del DB
-- [ ] Riepilogo annuale coerente con tabella periodo (share on)
-- [ ] Admin aggiunge terzo membro: uscite ricalcolate con N=3
+- [ ] Tabella: colonne **Inserito da** e **Assegnatario** valorizzate (nome da Account).
+- [ ] Utente A: **uscita** default «Di famiglia» ON → assegnatario Famiglia; visibile a B con filtri default.
+- [ ] Utente A: **uscita** «Di famiglia» OFF → selettore assegnatario (default self); importo reale (no quota ÷ N).
+- [ ] Utente A: **entrata** default personale self; toggle «Di famiglia» OFF.
+- [ ] Utente A: **entrata** «Di famiglia» ON → assegnatario Famiglia; visibile a B.
+- [ ] Movimento personale non privato assegnato a B → visibile a tutta la famiglia se filtro include B.
+- [ ] Movimento personale **privato** (checkbox «Privato», solo se assegnatario = self) → visibile solo ad A; B non lo vede.
+- [ ] Filtri popover **Entrate** / **Uscite** indipendenti: Famiglia + checkbox per membro; default tutti ON.
+- [ ] Deseleziona tutte le checkbox Entrate → nessuna entrata in tabella/totali/Sankey.
+- [ ] Filtro membro = self attivo → sotto-checkbox **Mostra privati** (default ON); OFF → privati nascosti.
+- [ ] B modifica importo/descrizione movimento di famiglia di A → OK.
+- [ ] B elimina movimento di famiglia di A → OK.
+- [ ] B apre modifica movimento privato di A → non visibile in lista (RLS).
+- [ ] A modifica il proprio movimento di famiglia → può attivare «Privato» solo se assegnatario = self; movimento sparisce a B.
+- [ ] Totali periodo e riepilogo annuale cambiano con i filtri assegnatario.
+- [ ] Utente senza famiglia: nessun toggle «Di famiglia»; solo personale self; popover **Filtri** nascosto.
+- [ ] Admin rimuove membro: ex-membro non vede più movimenti di famiglia; movimenti family restano per la famiglia.
+- [ ] Ricarica pagina → filtri assegnatario ripristinati da localStorage; periodo da URL.
 
 ## Grafico Sankey
 

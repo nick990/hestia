@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/select";
 import type { MovementCategoryOption } from "@/lib/categories/types";
 import type { Movement, MovementType } from "@/lib/cashflow/types";
+import type { FamilyMemberOption } from "@/lib/families/types";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useTransition } from "react";
@@ -38,8 +39,40 @@ type MovementFormDialogProps = {
   defaultOccurredOn: string;
   hasFamily: boolean;
   currentUserId: string;
+  familyMembers: FamilyMemberOption[];
   categories: MovementCategoryOption[];
 };
+
+function createDefaults(
+  editingMovement: Movement | null,
+  defaultOccurredOn: string,
+  hasFamily: boolean,
+  currentUserId: string,
+) {
+  if (editingMovement) {
+    return {
+      type: editingMovement.type,
+      amount: String(editingMovement.amount),
+      occurredOn: editingMovement.occurred_on,
+      description: editingMovement.description,
+      categoryId: editingMovement.category_id ?? "none",
+      isFamily: editingMovement.assignee_kind === "family",
+      assigneeUserId: editingMovement.assignee_user_id ?? currentUserId,
+      isPrivate: editingMovement.is_private,
+    };
+  }
+
+  return {
+    type: "expense" as MovementType,
+    amount: "",
+    occurredOn: defaultOccurredOn,
+    description: "",
+    categoryId: "none",
+    isFamily: hasFamily,
+    assigneeUserId: currentUserId,
+    isPrivate: false,
+  };
+}
 
 export function MovementFormDialog({
   open,
@@ -48,6 +81,7 @@ export function MovementFormDialog({
   defaultOccurredOn,
   hasFamily,
   currentUserId,
+  familyMembers,
   categories,
 }: MovementFormDialogProps) {
   const router = useRouter();
@@ -57,6 +91,8 @@ export function MovementFormDialog({
   const [occurredOn, setOccurredOn] = useState(defaultOccurredOn);
   const [description, setDescription] = useState("");
   const [categoryId, setCategoryId] = useState("none");
+  const [isFamily, setIsFamily] = useState(true);
+  const [assigneeUserId, setAssigneeUserId] = useState(currentUserId);
   const [isPrivate, setIsPrivate] = useState(false);
 
   const categorySelectItems = useMemo(
@@ -70,28 +106,73 @@ export function MovementFormDialog({
     [categories],
   );
 
+  const assigneeSelectItems = useMemo(
+    () =>
+      familyMembers.map((member) => ({
+        value: member.user_id,
+        label: member.display_name,
+      })),
+    [familyMembers],
+  );
+
   useEffect(() => {
     if (!open) {
       return;
     }
 
+    const defaults = createDefaults(
+      editingMovement,
+      defaultOccurredOn,
+      hasFamily,
+      currentUserId,
+    );
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reset form when dialog opens
+    setType(defaults.type);
+    setAmount(defaults.amount);
+    setOccurredOn(defaults.occurredOn);
+    setDescription(defaults.description);
+    setCategoryId(defaults.categoryId);
+    setIsFamily(defaults.isFamily);
+    setAssigneeUserId(defaults.assigneeUserId);
+    setIsPrivate(defaults.isPrivate);
+  }, [open, editingMovement, defaultOccurredOn, hasFamily, currentUserId]);
+
+  function handleTypeChange(nextType: MovementType) {
+    setType(nextType);
+
     if (editingMovement) {
-      setType(editingMovement.type);
-      setAmount(String(editingMovement.amount));
-      setOccurredOn(editingMovement.occurred_on);
-      setDescription(editingMovement.description);
-      setCategoryId(editingMovement.category_id ?? "none");
-      setIsPrivate(editingMovement.scope === "private");
       return;
     }
 
-    setType("expense");
-    setAmount("");
-    setOccurredOn(defaultOccurredOn);
-    setDescription("");
-    setCategoryId("none");
-    setIsPrivate(false);
-  }, [open, editingMovement, defaultOccurredOn]);
+    if (nextType === "expense" && hasFamily) {
+      setIsFamily(true);
+      setIsPrivate(false);
+      return;
+    }
+
+    if (nextType === "income") {
+      setIsFamily(false);
+      setAssigneeUserId(currentUserId);
+      setIsPrivate(false);
+    }
+  }
+
+  function handleFamilyChange(checked: boolean) {
+    setIsFamily(checked);
+
+    if (checked) {
+      setIsPrivate(false);
+    }
+  }
+
+  function handleAssigneeChange(userId: string) {
+    setAssigneeUserId(userId);
+
+    if (userId !== currentUserId) {
+      setIsPrivate(false);
+    }
+  }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -103,7 +184,9 @@ export function MovementFormDialog({
         occurredOn,
         description,
         categoryId: categoryId === "none" ? null : categoryId,
-        isPrivate: hasFamily ? isPrivate : true,
+        isFamily: hasFamily ? isFamily : false,
+        assigneeUserId: hasFamily && !isFamily ? assigneeUserId : currentUserId,
+        isPrivate: !isFamily && assigneeUserId === currentUserId && isPrivate,
       };
 
       const result = editingMovement
@@ -123,8 +206,7 @@ export function MovementFormDialog({
     });
   }
 
-  const canChangeVisibility =
-    !editingMovement || editingMovement.user_id === currentUserId;
+  const canSetPrivate = !isFamily && assigneeUserId === currentUserId;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -147,7 +229,7 @@ export function MovementFormDialog({
                 type === "income" &&
                   "border-income/30 bg-income-muted text-income hover:bg-income-muted/80 hover:text-income",
               )}
-              onClick={() => setType("income")}
+              onClick={() => handleTypeChange("income")}
             >
               Entrata
             </Button>
@@ -159,7 +241,7 @@ export function MovementFormDialog({
                 type === "expense" &&
                   "border-destructive/30 bg-expense-muted text-destructive hover:bg-expense-muted/80 hover:text-destructive",
               )}
-              onClick={() => setType("expense")}
+              onClick={() => handleTypeChange("expense")}
             >
               Uscita
             </Button>
@@ -215,25 +297,67 @@ export function MovementFormDialog({
             />
           </div>
           {hasFamily ? (
-            <div className="space-y-1">
+            <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <Checkbox
-                  id="movement-private"
-                  checked={isPrivate}
-                  disabled={!canChangeVisibility}
-                  onCheckedChange={(checked) => setIsPrivate(checked === true)}
+                  id="movement-family"
+                  checked={isFamily}
+                  onCheckedChange={(checked) =>
+                    handleFamilyChange(checked === true)
+                  }
                 />
-                <Label htmlFor="movement-private" className="font-normal">
-                  Privato
+                <Label htmlFor="movement-family" className="font-normal">
+                  Di famiglia
                 </Label>
               </div>
-              {!canChangeVisibility ? (
-                <p className="text-xs text-muted-foreground">
-                  Solo l&apos;autore può cambiare la visibilità
-                </p>
+              {!isFamily ? (
+                <div className="space-y-2">
+                  <Label htmlFor="assignee">Assegnatario</Label>
+                  <Select
+                    value={assigneeUserId}
+                    items={assigneeSelectItems}
+                    onValueChange={(value) =>
+                      handleAssigneeChange(value ?? currentUserId)
+                    }
+                  >
+                    <SelectTrigger id="assignee" className="w-full">
+                      <SelectValue placeholder="Seleziona membro" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {familyMembers.map((member) => (
+                        <SelectItem key={member.user_id} value={member.user_id}>
+                          {member.display_name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              ) : null}
+              {canSetPrivate ? (
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="movement-private"
+                    checked={isPrivate}
+                    onCheckedChange={(checked) => setIsPrivate(checked === true)}
+                  />
+                  <Label htmlFor="movement-private" className="font-normal">
+                    Privato
+                  </Label>
+                </div>
               ) : null}
             </div>
-          ) : null}
+          ) : (
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="movement-private-solo"
+                checked={isPrivate}
+                onCheckedChange={(checked) => setIsPrivate(checked === true)}
+              />
+              <Label htmlFor="movement-private-solo" className="font-normal">
+                Privato
+              </Label>
+            </div>
+          )}
           <DialogFooter>
             <DialogClose render={<Button type="button" variant="outline" />}>
               Annulla

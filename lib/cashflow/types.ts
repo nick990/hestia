@@ -1,6 +1,6 @@
 export type MovementType = "income" | "expense";
 
-export type MovementScope = "private" | "family";
+export type AssigneeKind = "family" | "member";
 
 export type Movement = {
   id: string;
@@ -11,10 +11,12 @@ export type Movement = {
   created_at: string;
   category_id: string | null;
   category_name: string | null;
-  scope: MovementScope;
-  family_id: string | null;
-  user_id: string;
-  author_name: string | null;
+  created_by: string;
+  assignee_kind: AssigneeKind;
+  assignee_user_id: string | null;
+  is_private: boolean;
+  creator_name: string | null;
+  assignee_name: string | null;
 };
 
 export type MonthSummary = {

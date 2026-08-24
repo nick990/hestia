@@ -7,15 +7,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { getTodayIsoDate, parseDateRangeParams, parseYearParam } from "@/lib/cashflow/date-range";
+import { listAllMovementsForRange } from "@/lib/cashflow/queries";
 import { listCategoryOptions } from "@/lib/categories/queries";
 import {
-  getRangeSummary,
-  getYearMonthlySummaries,
-  listMovementsForRange,
-} from "@/lib/cashflow/queries";
-import { parseShareParam } from "@/lib/cashflow/share";
-import { parseCashflowViewParam } from "@/lib/cashflow/view";
-import { getCurrentUserFamily, getFamilyMemberCount } from "@/lib/families/queries";
+  getCurrentUserFamily,
+  listFamilyMembersForViewer,
+} from "@/lib/families/queries";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
@@ -24,8 +21,6 @@ type PageProps = {
     from?: string;
     to?: string;
     year?: string;
-    view?: string;
-    share?: string;
   }>;
 };
 
@@ -42,23 +37,15 @@ export default async function CashflowPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const { from, to } = parseDateRangeParams(params.from, params.to);
   const year = parseYearParam(params.year);
-  const view = parseCashflowViewParam(params.view);
-  const share = parseShareParam(params.share);
+  const yearFrom = `${year}-01-01`;
+  const yearTo = `${year}-12-31`;
   const family = await getCurrentUserFamily();
-  const memberCount = family ? await getFamilyMemberCount(family.family_id) : 0;
-  const shareOptions = {
-    shareEnabled: share,
-    memberCount,
-    view,
-    currentUserId: user.id,
-  };
 
-  const [movements, rawMovements, summary, yearSummary, categories] =
+  const [allMovements, yearMovements, familyMembers, categories] =
     await Promise.all([
-      listMovementsForRange(from, to, view, shareOptions),
-      listMovementsForRange(from, to, view, { ...shareOptions, shareEnabled: false }),
-      getRangeSummary(from, to, view, shareOptions),
-      getYearMonthlySummaries(year, view, shareOptions),
+      listAllMovementsForRange(from, to),
+      listAllMovementsForRange(yearFrom, yearTo),
+      listFamilyMembersForViewer(),
       listCategoryOptions(),
     ]);
 
@@ -76,16 +63,12 @@ export default async function CashflowPage({ searchParams }: PageProps) {
             from={from}
             to={to}
             year={year}
-            view={view}
-            share={share}
-            memberCount={memberCount}
             hasFamily={family !== null}
             currentUserId={user.id}
             defaultOccurredOn={getTodayIsoDate()}
-            movements={movements}
-            rawMovements={rawMovements}
-            summary={summary}
-            yearSummary={yearSummary}
+            allMovements={allMovements}
+            yearMovements={yearMovements}
+            familyMembers={familyMembers}
             categories={categories}
           />
         </CardContent>

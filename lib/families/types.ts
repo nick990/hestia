@@ -20,6 +20,11 @@ export type FamilyWithMembers = Family & {
   members: FamilyMemberRow[];
 };
 
+export type FamilyMemberOption = {
+  user_id: string;
+  display_name: string;
+};
+
 export type AssignableMember = {
   auth_user_id: string;
   email: string;

@@ -1,15 +1,15 @@
 "use client";
 
 import { deleteMovement } from "@/app/actions/movements";
-import { DateRangeFilter } from "@/components/cashflow/date-range-filter";
+import { AssigneeFilterPanel, useAssigneeFilters } from "@/components/cashflow/assignee-filter-panel";
 import { CashflowSankeyDialog } from "@/components/cashflow/cashflow-sankey-dialog";
+import { DateRangeFilter } from "@/components/cashflow/date-range-filter";
 import { MovementFormDialog } from "@/components/cashflow/movement-form-dialog";
 import { MovementsTable } from "@/components/cashflow/movements-table";
 import {
   PeriodSummaryCards,
   type FilterSummaryState,
 } from "@/components/cashflow/period-summary-cards";
-import { ViewFilter } from "@/components/cashflow/view-filter";
 import { YearSummaryBar } from "@/components/cashflow/year-summary-bar";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,11 +20,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  applyAssigneeFilters,
+  buildYearSummaryFromMovements,
+  summarizeFilteredMovements,
+} from "@/lib/cashflow/assignee-filters";
 import type { MovementCategoryOption } from "@/lib/categories/types";
-import type { MonthSummary, Movement, YearSummary } from "@/lib/cashflow/types";
-import type { CashflowView } from "@/lib/cashflow/view";
+import type { Movement } from "@/lib/cashflow/types";
+import type { FamilyMemberOption } from "@/lib/families/types";
 import { useRouter } from "next/navigation";
-import { useCallback, useState, useTransition } from "react";
+import { useCallback, useMemo, useState, useTransition } from "react";
 import { BarChart3, PlusIcon } from "lucide-react";
 import { toast } from "sonner";
 
@@ -32,16 +37,12 @@ type MovementsManagerProps = {
   from: string;
   to: string;
   year: number;
-  view: CashflowView;
-  share: boolean;
-  memberCount: number;
   hasFamily: boolean;
   currentUserId: string;
   defaultOccurredOn: string;
-  movements: Movement[];
-  rawMovements: Movement[];
-  summary: MonthSummary;
-  yearSummary: YearSummary;
+  allMovements: Movement[];
+  yearMovements: Movement[];
+  familyMembers: FamilyMemberOption[];
   categories: MovementCategoryOption[];
 };
 
@@ -49,16 +50,12 @@ export function MovementsManager({
   from,
   to,
   year,
-  view,
-  share,
-  memberCount,
   hasFamily,
   currentUserId,
   defaultOccurredOn,
-  movements,
-  rawMovements,
-  summary,
-  yearSummary,
+  allMovements,
+  yearMovements,
+  familyMembers,
   categories,
 }: MovementsManagerProps) {
   const router = useRouter();
@@ -70,8 +67,46 @@ export function MovementsManager({
     active: false,
     summary: { totalIncome: 0, totalExpense: 0, net: 0 },
   });
-  const [filteredMovements, setFilteredMovements] = useState<Movement[]>(movements);
+  const [filteredMovements, setFilteredMovements] = useState<Movement[]>([]);
   const [sankeyOpen, setSankeyOpen] = useState(false);
+
+  const { filters, updateFilters, hydrated } = useAssigneeFilters(
+    familyMembers,
+    currentUserId,
+    hasFamily,
+  );
+
+  const movements = useMemo(() => {
+    if (!hasFamily) {
+      return allMovements;
+    }
+
+    if (!hydrated) {
+      return allMovements;
+    }
+
+    return applyAssigneeFilters(allMovements, filters, currentUserId);
+  }, [allMovements, filters, currentUserId, hasFamily, hydrated]);
+
+  const summary = useMemo(
+    () => summarizeFilteredMovements(movements),
+    [movements],
+  );
+
+  const yearSummary = useMemo(() => {
+    const filteredYear = hasFamily && hydrated
+      ? applyAssigneeFilters(yearMovements, filters, currentUserId)
+      : yearMovements;
+
+    return buildYearSummaryFromMovements(year, filteredYear);
+  }, [
+    yearMovements,
+    filters,
+    currentUserId,
+    hasFamily,
+    hydrated,
+    year,
+  ]);
 
   const handleFilterSummaryChange = useCallback((state: FilterSummaryState) => {
     setFilterSummary(state);
@@ -87,8 +122,7 @@ export function MovementsManager({
   }
 
   function openEditDialog(movement: Movement) {
-    const raw = rawMovements.find((item) => item.id === movement.id) ?? movement;
-    setEditingMovement(raw);
+    setEditingMovement(movement);
     setDialogOpen(true);
   }
 
@@ -124,20 +158,19 @@ export function MovementsManager({
   return (
     <div className="space-y-8 pb-20 sm:pb-0">
       <section className="space-y-4">
-        <ViewFilter
-          view={view}
-          share={share}
-          memberCount={memberCount}
-          from={from}
-          to={to}
-          year={year}
-          hasFamily={hasFamily}
-        />
+        {hasFamily ? (
+          <AssigneeFilterPanel
+            filters={filters}
+            members={familyMembers}
+            currentUserId={currentUserId}
+            onChange={updateFilters}
+          />
+        ) : null}
 
         <PeriodSummaryCards summary={summary} filterSummary={filterSummary} />
 
         <div className="flex flex-wrap items-end justify-between gap-4">
-          <DateRangeFilter from={from} to={to} year={year} view={view} share={share} />
+          <DateRangeFilter from={from} to={to} year={year} />
           <Button
             type="button"
             className="hidden shrink-0 sm:inline-flex"
@@ -152,8 +185,6 @@ export function MovementsManager({
         yearSummary={yearSummary}
         rangeFrom={from}
         rangeTo={to}
-        view={view}
-        share={share}
       />
 
       <section className="space-y-3">
@@ -174,7 +205,7 @@ export function MovementsManager({
           movements={movements}
           from={from}
           to={to}
-          view={view}
+          hasFamily={hasFamily}
           pending={pending}
           onEdit={openEditDialog}
           onDelete={setMovementToDelete}
@@ -200,6 +231,7 @@ export function MovementsManager({
         defaultOccurredOn={defaultOccurredOn}
         hasFamily={hasFamily}
         currentUserId={currentUserId}
+        familyMembers={familyMembers}
         categories={categories}
       />
 

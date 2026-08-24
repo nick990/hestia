@@ -1,42 +1,72 @@
 import { describe, expect, it } from "vitest";
 import {
-  hasVisibilityChanged,
-  isVisibilityChangeAllowed,
-  VISIBILITY_CHANGE_DENIED_MESSAGE,
+  canSetPrivate,
+  hasAssigneeChanged,
+  isPrivateChangeAllowed,
 } from "@/lib/cashflow/movement-visibility";
 
-describe("hasVisibilityChanged", () => {
-  const existing = { scope: "family" as const, family_id: "f1" };
+describe("hasAssigneeChanged", () => {
+  const existing = {
+    assignee_kind: "family" as const,
+    assignee_user_id: null,
+    is_private: false,
+  };
 
-  it("returns false when scope and family_id unchanged", () => {
-    expect(hasVisibilityChanged(existing, { scope: "family", family_id: "f1" })).toBe(false);
+  it("returns false when assignee unchanged", () => {
+    expect(
+      hasAssigneeChanged(existing, {
+        assignee_kind: "family",
+        assignee_user_id: null,
+        is_private: false,
+      }),
+    ).toBe(false);
   });
 
-  it("returns true when scope changes", () => {
-    expect(hasVisibilityChanged(existing, { scope: "private", family_id: null })).toBe(true);
-  });
-
-  it("returns true when family_id changes", () => {
-    expect(hasVisibilityChanged(existing, { scope: "family", family_id: "f2" })).toBe(true);
-  });
-});
-
-describe("isVisibilityChangeAllowed", () => {
-  it("allows author to change visibility", () => {
-    expect(isVisibilityChangeAllowed("u1", "u1", true)).toBe(true);
-  });
-
-  it("allows non-author when visibility unchanged", () => {
-    expect(isVisibilityChangeAllowed("u1", "u2", false)).toBe(true);
-  });
-
-  it("denies non-author when visibility changed", () => {
-    expect(isVisibilityChangeAllowed("u1", "u2", true)).toBe(false);
+  it("returns true when assignee kind changes", () => {
+    expect(
+      hasAssigneeChanged(existing, {
+        assignee_kind: "member",
+        assignee_user_id: "u1",
+        is_private: false,
+      }),
+    ).toBe(true);
   });
 });
 
-describe("VISIBILITY_CHANGE_DENIED_MESSAGE", () => {
-  it("is a non-empty Italian message", () => {
-    expect(VISIBILITY_CHANGE_DENIED_MESSAGE).toContain("autore");
+describe("isPrivateChangeAllowed", () => {
+  const existing = {
+    assignee_kind: "member" as const,
+    assignee_user_id: "u1",
+    is_private: false,
+  };
+
+  it("allows unchanged private flag", () => {
+    expect(isPrivateChangeAllowed("u1", "u2", existing, existing)).toBe(true);
+  });
+
+  it("allows private change when next assignee is current user", () => {
+    expect(
+      isPrivateChangeAllowed("u2", "u2", existing, {
+        ...existing,
+        assignee_user_id: "u2",
+        is_private: true,
+      }),
+    ).toBe(true);
+  });
+
+  it("denies private change when next assignee is not current user", () => {
+    expect(
+      isPrivateChangeAllowed("u1", "u2", existing, {
+        ...existing,
+        is_private: true,
+      }),
+    ).toBe(false);
+  });
+});
+
+describe("canSetPrivate", () => {
+  it("returns true only for self assignee", () => {
+    expect(canSetPrivate("u1", "u1")).toBe(true);
+    expect(canSetPrivate("u1", "u2")).toBe(false);
   });
 });

@@ -111,7 +111,7 @@ export async function listAssignableMembers(): Promise<AssignableMember[]> {
     .map((member) => member.auth_user_id)
     .filter((id): id is string => Boolean(id));
 
-  let familyByUser = new Map<string, { family_id: string; family_name: string }>();
+  const familyByUser = new Map<string, { family_id: string; family_name: string }>();
 
   if (authUserIds.length > 0) {
     const { data: familyMembers, error: familyMembersError } = await admin

@@ -1,28 +1,41 @@
-import type { MovementScope } from "@/lib/cashflow/types";
+import type { AssigneeKind } from "@/lib/cashflow/types";
 
-export const VISIBILITY_CHANGE_DENIED_MESSAGE =
-  "Solo l'autore può cambiare la visibilità di questo movimento.";
+export const ASSIGNEE_CHANGE_DENIED_MESSAGE =
+  "Solo l'assegnatario può attivare o disattivare il flag privato.";
 
-type VisibilityFields = {
-  scope: MovementScope;
-  family_id: string | null;
+type AssigneeFields = {
+  assignee_kind: AssigneeKind;
+  assignee_user_id: string | null;
+  is_private: boolean;
 };
 
-export function hasVisibilityChanged(
-  existing: VisibilityFields,
-  next: VisibilityFields,
+export function hasAssigneeChanged(
+  existing: AssigneeFields,
+  next: AssigneeFields,
 ): boolean {
-  return existing.scope !== next.scope || existing.family_id !== next.family_id;
+  return (
+    existing.assignee_kind !== next.assignee_kind ||
+    existing.assignee_user_id !== next.assignee_user_id ||
+    existing.is_private !== next.is_private
+  );
 }
 
-export function isVisibilityChangeAllowed(
-  authorId: string,
+export function isPrivateChangeAllowed(
+  nextAssigneeUserId: string | null,
   currentUserId: string,
-  visibilityChanged: boolean,
+  existing: AssigneeFields,
+  next: AssigneeFields,
 ): boolean {
-  if (!visibilityChanged) {
+  if (existing.is_private === next.is_private) {
     return true;
   }
 
-  return authorId === currentUserId;
+  return nextAssigneeUserId === currentUserId;
+}
+
+export function canSetPrivate(
+  assigneeUserId: string | null,
+  currentUserId: string,
+): boolean {
+  return assigneeUserId === currentUserId;
 }

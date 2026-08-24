@@ -9,8 +9,6 @@ import {
 } from "@/lib/cashflow/date-range";
 import { formatEuro } from "@/lib/cashflow/format";
 import type { YearSummary } from "@/lib/cashflow/types";
-import { buildCashflowViewSearchParams, type CashflowView } from "@/lib/cashflow/view";
-import { buildShareSearchParams } from "@/lib/cashflow/share";
 import { cn } from "@/lib/utils";
 import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -20,29 +18,19 @@ type YearSummaryBarProps = {
   yearSummary: YearSummary;
   rangeFrom: string;
   rangeTo: string;
-  view?: CashflowView;
-  share?: boolean;
 };
 
 export function YearSummaryBar({
   yearSummary,
   rangeFrom,
   rangeTo,
-  view = "all",
-  share = false,
 }: YearSummaryBarProps) {
   const router = useRouter();
   const [monthsOpen, setMonthsOpen] = useState(false);
   const { year } = yearSummary;
 
   function navigate(params: { from: string; to: string; year: number }) {
-    const searchParams = buildShareSearchParams(
-      buildCashflowViewSearchParams(
-        new URLSearchParams(buildCashflowSearchParams(params)),
-        view,
-      ),
-      share,
-    );
+    const searchParams = new URLSearchParams(buildCashflowSearchParams(params));
     router.push(`/cashflow?${searchParams.toString()}`);
   }
 

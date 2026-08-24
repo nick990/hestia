@@ -1,10 +1,8 @@
 import {
-  applyPersonalViewToMovements,
-  getEffectiveAmount,
-  isIncludedInPersonalView,
-  type FamilyShareOptions,
-} from "@/lib/cashflow/share";
-import type { CashflowView } from "@/lib/cashflow/view";
+  applyAssigneeFilters,
+  summarizeFilteredMovements,
+  type AssigneeFiltersState,
+} from "@/lib/cashflow/assignee-filters";
 import type {
   MonthSummary,
   MonthSummaryEntry,
@@ -21,9 +19,10 @@ type MovementRow = {
   description: string;
   created_at: string;
   category_id: string | null;
-  scope: string;
-  family_id: string | null;
-  user_id: string;
+  created_by: string;
+  assignee_kind: string;
+  assignee_user_id: string | null;
+  is_private: boolean;
   movement_categories: { name: string } | { name: string }[] | null;
 };
 
@@ -33,14 +32,27 @@ type ProfileRow = {
   email: string;
 };
 
+function displayName(profile: ProfileRow | undefined): string | null {
+  if (!profile) {
+    return null;
+  }
+
+  return profile.full_name?.trim() || profile.email;
+}
+
 function mapMovement(
   row: MovementRow,
-  authorNames: Map<string, string | null>,
+  profiles: Map<string, ProfileRow>,
 ): Movement {
   const categoryRelation = row.movement_categories;
   const categoryName = Array.isArray(categoryRelation)
     ? (categoryRelation[0]?.name ?? null)
     : (categoryRelation?.name ?? null);
+
+  const assigneeProfile =
+    row.assignee_kind === "member" && row.assignee_user_id
+      ? profiles.get(row.assignee_user_id)
+      : undefined;
 
   return {
     id: row.id,
@@ -51,17 +63,22 @@ function mapMovement(
     created_at: row.created_at,
     category_id: row.category_id,
     category_name: categoryName,
-    scope: row.scope as Movement["scope"],
-    family_id: row.family_id,
-    user_id: row.user_id,
-    author_name: authorNames.get(row.user_id) ?? null,
+    created_by: row.created_by,
+    assignee_kind: row.assignee_kind as Movement["assignee_kind"],
+    assignee_user_id: row.assignee_user_id,
+    is_private: row.is_private,
+    creator_name: displayName(profiles.get(row.created_by)),
+    assignee_name:
+      row.assignee_kind === "family"
+        ? "Famiglia"
+        : displayName(assigneeProfile),
   };
 }
 
-async function loadAuthorNames(
+async function loadProfileNames(
   supabase: Awaited<ReturnType<typeof createClient>>,
   userIds: string[],
-): Promise<Map<string, string | null>> {
+): Promise<Map<string, ProfileRow>> {
   if (userIds.length === 0) {
     return new Map();
   }
@@ -75,46 +92,7 @@ async function loadAuthorNames(
     throw new Error(error.message);
   }
 
-  return new Map(
-    (data ?? []).map((profile: ProfileRow) => [
-      profile.id,
-      profile.full_name?.trim() || profile.email,
-    ]),
-  );
-}
-
-function applyViewFilter<
-  T extends {
-    eq(column: string, value: string): T;
-  },
->(query: T, view: CashflowView): T {
-  if (view === "family") {
-    return query.eq("scope", "family");
-  }
-
-  if (view === "private") {
-    return query.eq("scope", "private");
-  }
-
-  return query;
-}
-
-const DEFAULT_SHARE_OPTIONS: FamilyShareOptions = {
-  shareEnabled: false,
-  memberCount: 0,
-  view: "all",
-  currentUserId: "",
-};
-
-function resolveShareOptions(
-  view: CashflowView,
-  shareOptions?: Partial<FamilyShareOptions>,
-): FamilyShareOptions {
-  return {
-    ...DEFAULT_SHARE_OPTIONS,
-    view,
-    ...shareOptions,
-  };
+  return new Map((data ?? []).map((profile: ProfileRow) => [profile.id, profile]));
 }
 
 function emptyMonthSummary(month: number, year: number): MonthSummaryEntry {
@@ -128,120 +106,102 @@ function emptyMonthSummary(month: number, year: number): MonthSummaryEntry {
   };
 }
 
-export async function listMovementsForRange(
+async function listRawMovementsForRange(
   from: string,
   to: string,
-  view: CashflowView = "all",
-  shareOptions?: Partial<FamilyShareOptions>,
 ): Promise<Movement[]> {
-  const options = resolveShareOptions(view, shareOptions);
   const supabase = await createClient();
 
-  let query = supabase
+  const { data, error } = await supabase
     .from("movements")
     .select(
-      "id, type, amount, occurred_on, description, created_at, category_id, scope, family_id, user_id, movement_categories(name)",
+      "id, type, amount, occurred_on, description, created_at, category_id, created_by, assignee_kind, assignee_user_id, is_private, movement_categories(name)",
     )
     .gte("occurred_on", from)
     .lte("occurred_on", to)
     .order("occurred_on", { ascending: false })
     .order("created_at", { ascending: false });
 
-  query = applyViewFilter(query, view);
-
-  const { data, error } = await query;
-
   if (error) {
     throw new Error(error.message);
   }
 
   const rows = (data ?? []) as MovementRow[];
-  const authorNames = await loadAuthorNames(
-    supabase,
-    [...new Set(rows.map((row) => row.user_id))],
-  );
+  const userIds = [
+    ...new Set(
+      rows.flatMap((row) =>
+        [row.created_by, row.assignee_user_id].filter(
+          (id): id is string => Boolean(id),
+        ),
+      ),
+    ),
+  ];
+  const profiles = await loadProfileNames(supabase, userIds);
 
-  const movements = rows.map((row) => mapMovement(row, authorNames));
-  return applyPersonalViewToMovements(movements, options);
+  return rows.map((row) => mapMovement(row, profiles));
+}
+
+export async function listMovementsForRange(
+  from: string,
+  to: string,
+  filters: AssigneeFiltersState,
+  currentUserId: string,
+): Promise<Movement[]> {
+  const movements = await listRawMovementsForRange(from, to);
+  return applyAssigneeFilters(movements, filters, currentUserId);
 }
 
 export async function getRangeSummary(
   from: string,
   to: string,
-  view: CashflowView = "all",
-  shareOptions?: Partial<FamilyShareOptions>,
+  filters: AssigneeFiltersState,
+  currentUserId: string,
 ): Promise<MonthSummary> {
-  const movements = await listMovementsForRange(from, to, view, shareOptions);
-
-  const totalIncome = movements
-    .filter((m) => m.type === "income")
-    .reduce((sum, m) => sum + m.amount, 0);
-
-  const totalExpense = movements
-    .filter((m) => m.type === "expense")
-    .reduce((sum, m) => sum + m.amount, 0);
-
-  return {
-    totalIncome,
-    totalExpense,
-    net: totalIncome - totalExpense,
-  };
+  const movements = await listMovementsForRange(
+    from,
+    to,
+    filters,
+    currentUserId,
+  );
+  return summarizeFilteredMovements(movements);
 }
 
 export async function getYearMonthlySummaries(
   year: number,
-  view: CashflowView = "all",
-  shareOptions?: Partial<FamilyShareOptions>,
+  filters: AssigneeFiltersState,
+  currentUserId: string,
 ): Promise<YearSummary> {
-  const options = resolveShareOptions(view, shareOptions);
-  const supabase = await createClient();
   const from = `${year}-01-01`;
   const to = `${year}-12-31`;
-
-  let query = supabase
-    .from("movements")
-    .select("type, amount, occurred_on, scope, user_id")
-    .gte("occurred_on", from)
-    .lte("occurred_on", to);
-
-  query = applyViewFilter(query, view);
-
-  const { data, error } = await query;
-
-  if (error) {
-    throw new Error(error.message);
-  }
+  const movements = await listMovementsForRange(
+    from,
+    to,
+    filters,
+    currentUserId,
+  );
 
   const months: MonthSummaryEntry[] = Array.from({ length: 12 }, (_, index) =>
     emptyMonthSummary(index + 1, year),
   );
 
-  for (const row of data ?? []) {
-    const month = Number(String(row.occurred_on).slice(5, 7));
+  for (const movement of movements) {
+    const month = Number(movement.occurred_on.slice(5, 7));
     const entry = months[month - 1];
-    const movement = {
-      amount: Number(row.amount),
-      scope: row.scope as Movement["scope"],
-      type: row.type as Movement["type"],
-      user_id: row.user_id as string,
-    };
 
-    if (!isIncludedInPersonalView(movement, options)) {
-      continue;
-    }
-
-    const amount = getEffectiveAmount(movement, options);
-
-    if (row.type === "income") {
-      entry.totalIncome += amount;
+    if (movement.type === "income") {
+      entry.totalIncome += movement.amount;
     } else {
-      entry.totalExpense += amount;
+      entry.totalExpense += movement.amount;
     }
+
     entry.net = entry.totalIncome - entry.totalExpense;
   }
 
-  const totalIncome = months.reduce((sum, m) => sum + m.totalIncome, 0);
-  const totalExpense = months.reduce((sum, m) => sum + m.totalExpense, 0);
+  const totalIncome = months.reduce((sum, month) => sum + month.totalIncome, 0);
+  const totalExpense = months.reduce(
+    (sum, month) => sum + month.totalExpense,
+    0,
+  );
 
   return {
     year,
@@ -250,4 +210,11 @@ export async function getYearMonthlySummaries(
     totalExpense,
     net: totalIncome - totalExpense,
   };
+}
+
+export async function listAllMovementsForRange(
+  from: string,
+  to: string,
+): Promise<Movement[]> {
+  return listRawMovementsForRange(from, to);
 }

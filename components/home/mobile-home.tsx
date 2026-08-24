@@ -2,32 +2,36 @@
 
 import { MovementFormDialog } from "@/components/cashflow/movement-form-dialog";
 import {
+  AssigneeFilterPanel,
+  useAssigneeFilters,
+} from "@/components/cashflow/assignee-filter-panel";
+import {
   PeriodSummaryCards,
   type FilterSummaryState,
 } from "@/components/cashflow/period-summary-cards";
-import { ViewFilter } from "@/components/cashflow/view-filter";
 import { RecentMovements } from "@/components/home/recent-movements";
 import { Button } from "@/components/ui/button";
+import {
+  applyAssigneeFilters,
+  summarizeFilteredMovements,
+} from "@/lib/cashflow/assignee-filters";
 import type { MovementCategoryOption } from "@/lib/categories/types";
-import type { MonthSummary, Movement } from "@/lib/cashflow/types";
-import type { CashflowView } from "@/lib/cashflow/view";
+import type { Movement } from "@/lib/cashflow/types";
+import type { FamilyMemberOption } from "@/lib/families/types";
 import { formatMonthYearLabel } from "@/lib/cashflow/month";
 import { PlusIcon } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 type MobileHomeProps = {
   monthKey: string;
   from: string;
   to: string;
   year: number;
-  view: CashflowView;
-  share: boolean;
-  memberCount: number;
-  summary: MonthSummary;
-  movements: Movement[];
+  allMovements: Movement[];
   hasFamily: boolean;
   currentUserId: string;
   defaultOccurredOn: string;
+  familyMembers: FamilyMemberOption[];
   categories: MovementCategoryOption[];
   cashflowHref: string;
 };
@@ -39,21 +43,33 @@ const EMPTY_FILTER_SUMMARY: FilterSummaryState = {
 
 export function MobileHome({
   monthKey,
-  from,
-  to,
-  year,
-  view,
-  share,
-  memberCount,
-  summary,
-  movements,
+  allMovements,
   hasFamily,
   currentUserId,
   defaultOccurredOn,
+  familyMembers,
   categories,
   cashflowHref,
 }: MobileHomeProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const { filters, updateFilters, hydrated } = useAssigneeFilters(
+    familyMembers,
+    currentUserId,
+    hasFamily,
+  );
+
+  const movements = useMemo(() => {
+    if (!hasFamily || !hydrated) {
+      return allMovements;
+    }
+
+    return applyAssigneeFilters(allMovements, filters, currentUserId);
+  }, [allMovements, filters, currentUserId, hasFamily, hydrated]);
+
+  const summary = useMemo(
+    () => summarizeFilteredMovements(movements),
+    [movements],
+  );
 
   return (
     <div className="space-y-5 pb-20">
@@ -69,17 +85,15 @@ export function MobileHome({
           filterSummary={EMPTY_FILTER_SUMMARY}
           compact
         />
-        <ViewFilter
-          view={view}
-          share={share}
-          memberCount={memberCount}
-          from={from}
-          to={to}
-          year={year}
-          hasFamily={hasFamily}
-          basePath="/"
-          compact
-        />
+        {hasFamily ? (
+          <AssigneeFilterPanel
+            filters={filters}
+            members={familyMembers}
+            currentUserId={currentUserId}
+            compact
+            onChange={updateFilters}
+          />
+        ) : null}
       </div>
 
       <RecentMovements
@@ -104,6 +118,7 @@ export function MobileHome({
         defaultOccurredOn={defaultOccurredOn}
         hasFamily={hasFamily}
         currentUserId={currentUserId}
+        familyMembers={familyMembers}
         categories={categories}
       />
     </div>
