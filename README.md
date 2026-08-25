@@ -38,3 +38,7 @@ Apri [http://localhost:3000](http://localhost:3000): verrai reindirizzato a `/lo
 ## Test manuali
 
 Checklist in [docs/MANUAL_TEST.md](docs/MANUAL_TEST.md).
+
+## Manuale d’uso
+
+Guida utente (movimenti e prossime sezioni): [docs/MANUAL.md](docs/MANUAL.md).
