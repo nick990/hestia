@@ -86,7 +86,7 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 - [ ] Utente A: **entrata** «Di famiglia» ON → assegnatario Famiglia; visibile a B.
 - [ ] Movimento personale non privato assegnato a B → visibile a tutta la famiglia se filtro include B.
 - [ ] Movimento personale **privato** (checkbox «Privato», solo se assegnatario = self) → visibile solo ad A; B non lo vede.
-- [ ] Filtri **Entrate** / **Uscite** sempre visibili (inline) su Cashflow e home mobile: Famiglia + checkbox per membro; default tutti ON.
+- [ ] Filtri **Entrate** / **Uscite** sempre visibili su due righe, sotto il periodo e sopra i totali: chip Famiglia + membri; default tutti ON.
 - [ ] Deseleziona tutte le checkbox Entrate → nessuna entrata in tabella/totali/Sankey.
 - [ ] Filtro membro = self attivo → sotto-checkbox **Mostra privati** (default ON); OFF → privati nascosti.
 - [ ] B modifica importo/descrizione movimento di famiglia di A → OK.
@@ -94,7 +94,7 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 - [ ] B apre modifica movimento privato di A → non visibile in lista (RLS).
 - [ ] A modifica il proprio movimento di famiglia → può attivare «Privato» solo se assegnatario = self; movimento sparisce a B.
 - [ ] Totali periodo e riepilogo annuale cambiano con i filtri assegnatario.
-- [ ] Utente senza famiglia: nessun toggle «Di famiglia»; solo personale self; popover **Filtri** nascosto.
+- [ ] Utente senza famiglia: nessun toggle «Di famiglia»; solo personale self; righe filtri assegnatario nascoste.
 - [ ] Admin rimuove membro: ex-membro non vede più movimenti di famiglia; movimenti family restano per la famiglia.
 - [ ] Ricarica pagina → filtri assegnatario ripristinati da localStorage; periodo da URL.
 

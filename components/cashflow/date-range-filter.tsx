@@ -56,7 +56,7 @@ export function DateRangeFilter({
   }
 
   return (
-    <div className="flex flex-wrap items-end gap-3">
+    <div className="flex min-w-0 flex-wrap items-center gap-2">
       <Button
         type="button"
         variant="ghost"
@@ -68,7 +68,7 @@ export function DateRangeFilter({
         <ChevronLeftIcon />
       </Button>
 
-      <div className="space-y-1">
+      <div className="flex items-center gap-1.5">
         <Label htmlFor="range-from">Da</Label>
         <Input
           key={`range-from-${from}`}
@@ -77,10 +77,11 @@ export function DateRangeFilter({
           defaultValue={from}
           disabled={pending}
           onChange={handleFromChange}
+          className="w-36"
         />
       </div>
 
-      <div className="space-y-1">
+      <div className="flex items-center gap-1.5">
         <Label htmlFor="range-to">A</Label>
         <Input
           key={`range-to-${to}`}
@@ -89,6 +90,7 @@ export function DateRangeFilter({
           defaultValue={to}
           disabled={pending}
           onChange={handleToChange}
+          className="w-36"
         />
       </div>
 
@@ -108,7 +110,7 @@ export function DateRangeFilter({
         aria-live="polite"
         className={cn(
           "text-xs text-muted-foreground",
-          pending ? "pb-2" : "sr-only",
+          !pending && "sr-only",
         )}
       >
         {pending ? "Aggiornamento…" : ""}

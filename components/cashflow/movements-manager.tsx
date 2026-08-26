@@ -173,22 +173,8 @@ export function MovementsManager({
 
   return (
     <div className="space-y-8 pb-20 sm:pb-0" aria-busy={navigating}>
-      <section className="space-y-4">
-        {hasFamily ? (
-          <AssigneeFilterPanel
-            variant="inline"
-            filters={filters}
-            members={familyMembers}
-            currentUserId={currentUserId}
-            onChange={updateFilters}
-          />
-        ) : null}
-
-        <div className={contentClassName}>
-          <PeriodSummaryCards summary={summary} filterSummary={filterSummary} />
-        </div>
-
-        <div className="flex flex-wrap items-end justify-between gap-4">
+      <section className="space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <DateRangeFilter
             from={from}
             to={to}
@@ -204,6 +190,19 @@ export function MovementsManager({
           >
             Aggiungi movimento
           </Button>
+        </div>
+
+        {hasFamily ? (
+          <AssigneeFilterPanel
+            filters={filters}
+            members={familyMembers}
+            currentUserId={currentUserId}
+            onChange={updateFilters}
+          />
+        ) : null}
+
+        <div className={contentClassName}>
+          <PeriodSummaryCards summary={summary} filterSummary={filterSummary} />
         </div>
       </section>
 

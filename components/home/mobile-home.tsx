@@ -79,23 +79,20 @@ export function MobileHome({
         </h1>
       </header>
 
-      <div className="space-y-2">
-        <PeriodSummaryCards
-          summary={summary}
-          filterSummary={EMPTY_FILTER_SUMMARY}
-          compact
+      {hasFamily ? (
+        <AssigneeFilterPanel
+          filters={filters}
+          members={familyMembers}
+          currentUserId={currentUserId}
+          onChange={updateFilters}
         />
-        {hasFamily ? (
-          <AssigneeFilterPanel
-            variant="inline"
-            compact
-            filters={filters}
-            members={familyMembers}
-            currentUserId={currentUserId}
-            onChange={updateFilters}
-          />
-        ) : null}
-      </div>
+      ) : null}
+
+      <PeriodSummaryCards
+        summary={summary}
+        filterSummary={EMPTY_FILTER_SUMMARY}
+        compact
+      />
 
       <RecentMovements
         movements={movements}
