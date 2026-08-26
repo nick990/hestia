@@ -35,7 +35,7 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 ## Account
 
 - [ ] Impostazioni → Account: email in sola lettura.
-- [ ] Modifica nome → Salva → toast di conferma; nome aggiornato in colonna «Inserito da» del cashflow (se in famiglia).
+- [ ] Modifica nome → Salva → toast di conferma; nome aggiornato in colonna «Assegnatario» del cashflow (se in famiglia).
 
 ## Ruoli admin / user
 
@@ -79,7 +79,7 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 ## Famiglie e assegnatario movimenti
 
 - [ ] Admin: Impostazioni → Famiglie → crea famiglia e assegna 2 utenti registrati.
-- [ ] Tabella: colonne **Inserito da** e **Assegnatario** valorizzate (nome da Account).
+- [ ] Tabella: colonna **Assegnatario** valorizzata (Famiglia o nome da Account).
 - [ ] Utente A: **uscita** default «Di famiglia» ON → assegnatario Famiglia; visibile a B con filtri default.
 - [ ] Utente A: **uscita** «Di famiglia» OFF → selettore assegnatario (default self); importo reale (no quota ÷ N).
 - [ ] Utente A: **entrata** default personale self; toggle «Di famiglia» OFF.

@@ -169,17 +169,6 @@ export function createMovementColumns({
           </span>
         ),
       },
-      {
-        accessorKey: "creator_name",
-        header: "Inserito da",
-        enableSorting: false,
-        enableColumnFilter: false,
-        cell: ({ row }) => (
-          <span className="text-muted-foreground whitespace-nowrap">
-            {row.original.creator_name ?? "—"}
-          </span>
-        ),
-      },
     );
   }
 

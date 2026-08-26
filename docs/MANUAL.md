@@ -24,14 +24,9 @@ L’importo che scrivi è quello vero. Hestia non lo spezza automaticamente tra 
 
 ### Chi lo ha messo e a chi “appartiene”
 
-Due cose diverse:
-
-- **Inserito da** — chi ha digitato e salvato il movimento.
-- **Assegnatario** — a conto di chi (o della famiglia) conta quel soldo.
+L’**assegnatario** dice a conto di chi (o della famiglia) conta quel soldo. Chi lo ha digitato non compare in lista.
 
 Esempio: tu puoi registrare il mutuo e assegnarlo alla **famiglia**. Oppure registrare una spesa e assegnarla al partner.
-
-Nella lista vedi entrambe le informazioni.
 
 ### Di famiglia oppure di una persona
 
@@ -68,7 +63,7 @@ Puoi usare «Privato» solo quando l’assegnatario sei tu. Se lo assegni alla f
 - Movimenti di famiglia o personali **non** privati: chiunque in famiglia può modificarli o eliminarli.
 - Movimenti **privati**: solo la persona a cui sono assegnati.
 
-Chi li ha inseriti la prima volta resta indicato in «Inserito da», anche se qualcun altro li aggiorna dopo.
+Chi li ha inseriti la prima volta non cambia, anche se un altro membro li aggiorna dopo. Quell’informazione non compare in lista.
 
 ### Esempi di tutti i giorni
 
