@@ -47,18 +47,18 @@ export function HomeMovements({
                     type="button"
                     onClick={() => onSelect(movement)}
                     aria-label="Modifica movimento"
-                    className="flex w-full items-baseline justify-between gap-3 px-3 py-2 text-left active:bg-muted/50"
+                    className="flex w-full items-start justify-between gap-3 px-3 py-2 text-left active:bg-muted/50"
                   >
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium">
                         {normalizeCategoryDisplay(movement.category_name)}
                       </p>
                       {hasDescription ? (
-                        <p className="truncate text-xs text-muted-foreground">
+                        <p className="truncate text-[10px] leading-4 text-muted-foreground">
                           {description}
                         </p>
                       ) : null}
-                      <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <p className="flex min-w-0 items-center gap-1 text-[10px] leading-4 text-muted-foreground">
                         <span>{formatOccurredOn(movement.occurred_on)}</span>
                         {hasFamily ? (
                           <>
@@ -68,26 +68,28 @@ export function HomeMovements({
                             </span>
                           </>
                         ) : null}
-                        {hasFamily && movement.is_private ? (
-                          <Badge
-                            variant="outline"
-                            className="h-4 px-1 text-[10px]"
-                          >
-                            Privato
-                          </Badge>
-                        ) : null}
                       </p>
                     </div>
-                    <p
-                      className={cn(
-                        "shrink-0 text-sm font-medium tabular-nums",
-                        movement.type === "income"
-                          ? "text-income"
-                          : "text-destructive",
-                      )}
-                    >
-                      {formatSignedAmount(movement.type, movement.amount)}
-                    </p>
+                    <div className="flex shrink-0 flex-col items-end gap-0.5">
+                      <p
+                        className={cn(
+                          "text-sm font-medium tabular-nums",
+                          movement.type === "income"
+                            ? "text-income"
+                            : "text-destructive",
+                        )}
+                      >
+                        {formatSignedAmount(movement.type, movement.amount)}
+                      </p>
+                      {hasFamily && movement.is_private ? (
+                        <Badge
+                          variant="outline"
+                          className="h-3.5 px-1 text-[9px] leading-none"
+                        >
+                          Privato
+                        </Badge>
+                      ) : null}
+                    </div>
                   </button>
                 </li>
               );
