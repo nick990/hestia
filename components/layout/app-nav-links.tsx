@@ -4,29 +4,35 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
-const navItems = [
+export const navItems = [
   { href: "/cashflow", label: "Cashflow", adminOnly: false },
   { href: "/settings", label: "Impostazioni", adminOnly: false },
 ] as const;
 
+export function isNavItemActive(href: string, pathname: string): boolean {
+  if (href === "/cashflow") {
+    return pathname === "/cashflow" || pathname.startsWith("/cashflow/");
+  }
+
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
 type AppNavLinksProps = {
   isAdmin: boolean;
+  className?: string;
 };
 
-export function AppNavLinks({ isAdmin }: AppNavLinksProps) {
+export function AppNavLinks({ isAdmin, className }: AppNavLinksProps) {
   const pathname = usePathname();
 
   return (
-    <nav className="flex items-center gap-1">
+    <nav className={cn("flex items-center gap-1", className)}>
       {navItems.map((item) => {
         if (item.adminOnly && !isAdmin) {
           return null;
         }
 
-        const active =
-          item.href === "/cashflow"
-            ? pathname === "/cashflow" || pathname.startsWith("/cashflow/")
-            : pathname === item.href || pathname.startsWith(`${item.href}/`);
+        const active = isNavItemActive(item.href, pathname);
 
         return (
           <Link
