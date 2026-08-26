@@ -24,7 +24,7 @@ import { formatMonthYearLabel } from "@/lib/cashflow/month";
 import { cn } from "@/lib/utils";
 import { ChevronLeftIcon, ChevronRightIcon, PlusIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useMemo, useState, useTransition } from "react";
+import { useMemo, useOptimistic, useState, useTransition } from "react";
 
 type MobileHomeProps = {
   monthKey: string;
@@ -54,6 +54,7 @@ export function MobileHome({
 }: MobileHomeProps) {
   const router = useRouter();
   const [navigating, startNavigation] = useTransition();
+  const [visibleMonthKey, setVisibleMonthKey] = useOptimistic(monthKey);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingMovement, setEditingMovement] = useState<Movement | null>(null);
   const { filters, updateFilters, hydrated } = useAssigneeFilters(
@@ -99,6 +100,7 @@ export function MobileHome({
     const params = new URLSearchParams({ from: next.from, to: next.to });
 
     startNavigation(() => {
+      setVisibleMonthKey(next.from.slice(0, 7));
       router.push(`/?${params.toString()}`);
     });
   }
@@ -119,9 +121,18 @@ export function MobileHome({
         >
           <ChevronLeftIcon />
         </Button>
-        <h1 className="text-xl font-semibold tracking-tight text-balance">
-          {formatMonthYearLabel(monthKey)}
-        </h1>
+        <div className="min-w-0 text-center">
+          <h1 className="truncate text-xl font-semibold tracking-tight">
+            {formatMonthYearLabel(visibleMonthKey)}
+          </h1>
+          <p
+            role="status"
+            aria-live="polite"
+            className={cn("text-xs text-muted-foreground", !navigating && "sr-only")}
+          >
+            {navigating ? "Aggiornamento…" : ""}
+          </p>
+        </div>
         <Button
           type="button"
           variant="ghost"

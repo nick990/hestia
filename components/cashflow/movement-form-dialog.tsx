@@ -120,7 +120,7 @@ export function MovementFormDialog({
 
   useEffect(() => {
     if (!open) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- reset confirm when dialog closes
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reset form and confirm state when the dialog opens or closes
       setConfirmingDelete(false);
       return;
     }
@@ -132,7 +132,6 @@ export function MovementFormDialog({
       currentUserId,
     );
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- reset form when dialog opens
     setType(defaults.type);
     setAmount(defaults.amount);
     setOccurredOn(defaults.occurredOn);
