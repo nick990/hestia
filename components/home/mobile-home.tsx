@@ -9,31 +9,32 @@ import {
   PeriodSummaryCards,
   type FilterSummaryState,
 } from "@/components/cashflow/period-summary-cards";
-import { RecentMovements } from "@/components/home/recent-movements";
+import { HomeMovements } from "@/components/home/home-movements";
 import { Button } from "@/components/ui/button";
 import {
   applyAssigneeFilters,
   summarizeFilteredMovements,
 } from "@/lib/cashflow/assignee-filters";
+import { shiftMonthRange } from "@/lib/cashflow/date-range";
+import { sortMovementsNewestFirst } from "@/lib/cashflow/sort-movements";
 import type { MovementCategoryOption } from "@/lib/categories/types";
 import type { Movement } from "@/lib/cashflow/types";
 import type { FamilyMemberOption } from "@/lib/families/types";
 import { formatMonthYearLabel } from "@/lib/cashflow/month";
-import { PlusIcon } from "lucide-react";
-import { useMemo, useState } from "react";
+import { cn } from "@/lib/utils";
+import { ChevronLeftIcon, ChevronRightIcon, PlusIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useMemo, useState, useTransition } from "react";
 
 type MobileHomeProps = {
   monthKey: string;
   from: string;
-  to: string;
-  year: number;
   allMovements: Movement[];
   hasFamily: boolean;
   currentUserId: string;
   defaultOccurredOn: string;
   familyMembers: FamilyMemberOption[];
   categories: MovementCategoryOption[];
-  cashflowHref: string;
 };
 
 const EMPTY_FILTER_SUMMARY: FilterSummaryState = {
@@ -43,15 +44,18 @@ const EMPTY_FILTER_SUMMARY: FilterSummaryState = {
 
 export function MobileHome({
   monthKey,
+  from,
   allMovements,
   hasFamily,
   currentUserId,
   defaultOccurredOn,
   familyMembers,
   categories,
-  cashflowHref,
 }: MobileHomeProps) {
+  const router = useRouter();
+  const [navigating, startNavigation] = useTransition();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingMovement, setEditingMovement] = useState<Movement | null>(null);
   const { filters, updateFilters, hydrated } = useAssigneeFilters(
     familyMembers,
     currentUserId,
@@ -59,11 +63,12 @@ export function MobileHome({
   );
 
   const movements = useMemo(() => {
-    if (!hasFamily || !hydrated) {
-      return allMovements;
-    }
+    const filtered =
+      !hasFamily || !hydrated
+        ? allMovements
+        : applyAssigneeFilters(allMovements, filters, currentUserId);
 
-    return applyAssigneeFilters(allMovements, filters, currentUserId);
+    return sortMovementsNewestFirst(filtered);
   }, [allMovements, filters, currentUserId, hasFamily, hydrated]);
 
   const summary = useMemo(
@@ -71,12 +76,62 @@ export function MobileHome({
     [movements],
   );
 
+  function openCreateDialog() {
+    setEditingMovement(null);
+    setDialogOpen(true);
+  }
+
+  function openEditDialog(movement: Movement) {
+    setEditingMovement(movement);
+    setDialogOpen(true);
+  }
+
+  function handleDialogOpenChange(open: boolean) {
+    setDialogOpen(open);
+
+    if (!open) {
+      setEditingMovement(null);
+    }
+  }
+
+  function shiftMonth(delta: number) {
+    const next = shiftMonthRange(from, delta);
+    const params = new URLSearchParams({ from: next.from, to: next.to });
+
+    startNavigation(() => {
+      router.push(`/?${params.toString()}`);
+    });
+  }
+
   return (
-    <div className="space-y-5 pb-20">
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight text-balance">
+    <div
+      className="flex h-[calc(100dvh-3.5rem-1px)] flex-col gap-4 p-6 pb-24"
+      aria-busy={navigating}
+    >
+      <header className="flex items-center justify-between gap-2">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          aria-label="Mese precedente"
+          disabled={navigating}
+          onClick={() => shiftMonth(-1)}
+        >
+          <ChevronLeftIcon />
+        </Button>
+        <h1 className="text-xl font-semibold tracking-tight text-balance">
           {formatMonthYearLabel(monthKey)}
         </h1>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          aria-label="Mese successivo"
+          disabled={navigating}
+          onClick={() => shiftMonth(1)}
+        >
+          <ChevronRightIcon />
+        </Button>
       </header>
 
       {hasFamily ? (
@@ -88,31 +143,38 @@ export function MobileHome({
         />
       ) : null}
 
-      <PeriodSummaryCards
-        summary={summary}
-        filterSummary={EMPTY_FILTER_SUMMARY}
-        compact
-      />
+      <div
+        className={cn(
+          "flex min-h-0 flex-col gap-4 transition-opacity duration-200 motion-reduce:transition-none",
+          navigating && "pointer-events-none opacity-60",
+        )}
+      >
+        <PeriodSummaryCards
+          summary={summary}
+          filterSummary={EMPTY_FILTER_SUMMARY}
+          compact
+        />
 
-      <RecentMovements
-        movements={movements}
-        hasFamily={hasFamily}
-        cashflowHref={cashflowHref}
-      />
+        <HomeMovements
+          movements={movements}
+          hasFamily={hasFamily}
+          onSelect={openEditDialog}
+        />
+      </div>
 
       <Button
         type="button"
         className="fixed right-4 bottom-4 z-40 size-14 rounded-full shadow-md"
         aria-label="Aggiungi movimento"
-        onClick={() => setDialogOpen(true)}
+        onClick={openCreateDialog}
       >
         <PlusIcon className="size-6" />
       </Button>
 
       <MovementFormDialog
         open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        editingMovement={null}
+        onOpenChange={handleDialogOpenChange}
+        editingMovement={editingMovement}
         defaultOccurredOn={defaultOccurredOn}
         hasFamily={hasFamily}
         currentUserId={currentUserId}

@@ -4,6 +4,7 @@ import { deleteMovement } from "@/app/actions/movements";
 import { AssigneeFilterPanel, useAssigneeFilters } from "@/components/cashflow/assignee-filter-panel";
 import { CashflowSankeyDialog } from "@/components/cashflow/cashflow-sankey-dialog";
 import { DateRangeFilter } from "@/components/cashflow/date-range-filter";
+import { DeleteMovementDialog } from "@/components/cashflow/delete-movement-dialog";
 import { MovementFormDialog } from "@/components/cashflow/movement-form-dialog";
 import { MovementsTable } from "@/components/cashflow/movements-table";
 import {
@@ -12,14 +13,6 @@ import {
 } from "@/components/cashflow/period-summary-cards";
 import { YearSummaryBar } from "@/components/cashflow/year-summary-bar";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   applyAssigneeFilters,
   buildYearSummaryFromMovements,
@@ -264,47 +257,16 @@ export function MovementsManager({
         categories={categories}
       />
 
-      <Dialog
-        open={movementToDelete !== null}
+      <DeleteMovementDialog
+        movement={movementToDelete}
+        pending={pending}
         onOpenChange={(open) => {
           if (!open) {
             setMovementToDelete(null);
           }
         }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Elimina movimento</DialogTitle>
-            <DialogDescription>
-              Stai per eliminare{" "}
-              <span className="font-medium text-foreground">
-                {movementToDelete?.description?.trim()
-                  ? movementToDelete.description
-                  : "questo movimento"}
-              </span>
-              . Questa azione è irreversibile.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              disabled={pending}
-              onClick={() => setMovementToDelete(null)}
-            >
-              Annulla
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              disabled={pending}
-              onClick={handleConfirmDelete}
-            >
-              {pending ? "Eliminazione…" : "Elimina"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        onConfirm={handleConfirmDelete}
+      />
 
       <CashflowSankeyDialog
         open={sankeyOpen}

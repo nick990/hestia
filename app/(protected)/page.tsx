@@ -1,10 +1,8 @@
 import { MobileHome } from "@/components/home/mobile-home";
 import {
-  getCurrentYear,
   getTodayIsoDate,
-  getCurrentMonthBounds,
+  parseDateRangeParams,
 } from "@/lib/cashflow/date-range";
-import { getCurrentMonthKey } from "@/lib/cashflow/month";
 import { listAllMovementsForRange } from "@/lib/cashflow/queries";
 import { listCategoryOptions } from "@/lib/categories/queries";
 import {
@@ -14,7 +12,11 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
-export default async function HomePage() {
+type HomePageProps = {
+  searchParams: Promise<{ from?: string; to?: string }>;
+};
+
+export default async function HomePage({ searchParams }: HomePageProps) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -24,9 +26,9 @@ export default async function HomePage() {
     redirect("/login");
   }
 
-  const { from, to } = getCurrentMonthBounds();
-  const monthKey = getCurrentMonthKey();
-  const year = getCurrentYear();
+  const params = await searchParams;
+  const { from, to } = parseDateRangeParams(params.from, params.to);
+  const monthKey = from.slice(0, 7);
   const family = await getCurrentUserFamily();
 
   const [allMovements, familyMembers, categories] = await Promise.all([
@@ -35,23 +37,17 @@ export default async function HomePage() {
     listCategoryOptions(),
   ]);
 
-  const cashflowParams = new URLSearchParams({ from, to });
-  const cashflowHref = `/cashflow?${cashflowParams.toString()}`;
-
   return (
-    <div className="mx-auto w-full max-w-5xl flex-1 p-6">
+    <div className="mx-auto w-full max-w-5xl flex-1">
       <MobileHome
         monthKey={monthKey}
         from={from}
-        to={to}
-        year={year}
         allMovements={allMovements}
         hasFamily={family !== null}
         currentUserId={user.id}
         defaultOccurredOn={getTodayIsoDate()}
         familyMembers={familyMembers}
         categories={categories}
-        cashflowHref={cashflowHref}
       />
     </div>
   );

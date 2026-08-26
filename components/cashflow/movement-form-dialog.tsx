@@ -2,8 +2,10 @@
 
 import {
   createMovement,
+  deleteMovement,
   updateMovement,
 } from "@/app/actions/movements";
+import { DeleteMovementDialog } from "@/components/cashflow/delete-movement-dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -86,6 +88,7 @@ export function MovementFormDialog({
 }: MovementFormDialogProps) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [type, setType] = useState<MovementType>("expense");
   const [amount, setAmount] = useState("");
   const [occurredOn, setOccurredOn] = useState(defaultOccurredOn);
@@ -117,6 +120,8 @@ export function MovementFormDialog({
 
   useEffect(() => {
     if (!open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reset confirm when dialog closes
+      setConfirmingDelete(false);
       return;
     }
 
@@ -206,9 +211,32 @@ export function MovementFormDialog({
     });
   }
 
+  function handleConfirmDelete() {
+    if (!editingMovement) {
+      return;
+    }
+
+    const id = editingMovement.id;
+
+    startTransition(async () => {
+      const result = await deleteMovement(id);
+
+      if (!result.ok) {
+        toast.error(result.error);
+        return;
+      }
+
+      toast.success("Movimento eliminato.");
+      setConfirmingDelete(false);
+      onOpenChange(false);
+      router.refresh();
+    });
+  }
+
   const canSetPrivate = !isFamily && assigneeUserId === currentUserId;
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
@@ -359,6 +387,23 @@ export function MovementFormDialog({
             </div>
           )}
           <DialogFooter>
+            {editingMovement ? (
+              <>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  className="w-full sm:hidden"
+                  disabled={pending}
+                  onClick={() => setConfirmingDelete(true)}
+                >
+                  Elimina
+                </Button>
+                <div
+                  role="separator"
+                  className="-mx-4 h-px bg-border sm:hidden"
+                />
+              </>
+            ) : null}
             <DialogClose render={<Button type="button" variant="outline" />}>
               Annulla
             </DialogClose>
@@ -369,5 +414,16 @@ export function MovementFormDialog({
         </form>
       </DialogContent>
     </Dialog>
+    <DeleteMovementDialog
+      movement={confirmingDelete ? editingMovement : null}
+      pending={pending}
+      onOpenChange={(open) => {
+        if (!open) {
+          setConfirmingDelete(false);
+        }
+      }}
+      onConfirm={handleConfirmDelete}
+    />
+    </>
   );
 }
