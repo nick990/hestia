@@ -4,23 +4,29 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { buildCashflowSearchParams, shiftMonthRange } from "@/lib/cashflow/date-range";
+import { cn } from "@/lib/utils";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
-import { useRouter } from "next/navigation";
 
 type DateRangeFilterProps = {
   from: string;
   to: string;
   year: number;
+  pending: boolean;
+  onNavigate: (href: string) => void;
 };
 
-export function DateRangeFilter({ from, to, year }: DateRangeFilterProps) {
-  const router = useRouter();
-
+export function DateRangeFilter({
+  from,
+  to,
+  year,
+  pending,
+  onNavigate,
+}: DateRangeFilterProps) {
   function navigate(nextFrom: string, nextTo: string) {
     const params = new URLSearchParams(
       buildCashflowSearchParams({ from: nextFrom, to: nextTo, year }),
     );
-    router.push(`/cashflow?${params.toString()}`);
+    onNavigate(`/cashflow?${params.toString()}`);
   }
 
   function commitRange(nextFrom: string, nextTo: string) {
@@ -56,6 +62,7 @@ export function DateRangeFilter({ from, to, year }: DateRangeFilterProps) {
         variant="ghost"
         size="icon-sm"
         aria-label="Periodo mese precedente"
+        disabled={pending}
         onClick={() => shiftMonth(-1)}
       >
         <ChevronLeftIcon />
@@ -68,6 +75,7 @@ export function DateRangeFilter({ from, to, year }: DateRangeFilterProps) {
           id="range-from"
           type="date"
           defaultValue={from}
+          disabled={pending}
           onChange={handleFromChange}
         />
       </div>
@@ -79,6 +87,7 @@ export function DateRangeFilter({ from, to, year }: DateRangeFilterProps) {
           id="range-to"
           type="date"
           defaultValue={to}
+          disabled={pending}
           onChange={handleToChange}
         />
       </div>
@@ -88,10 +97,22 @@ export function DateRangeFilter({ from, to, year }: DateRangeFilterProps) {
         variant="ghost"
         size="icon-sm"
         aria-label="Periodo mese successivo"
+        disabled={pending}
         onClick={() => shiftMonth(1)}
       >
         <ChevronRightIcon />
       </Button>
+
+      <p
+        role="status"
+        aria-live="polite"
+        className={cn(
+          "text-xs text-muted-foreground",
+          pending ? "pb-2" : "sr-only",
+        )}
+      >
+        {pending ? "Aggiornamento…" : ""}
+      </p>
     </div>
   );
 }

@@ -28,6 +28,7 @@ import {
 import type { MovementCategoryOption } from "@/lib/categories/types";
 import type { Movement } from "@/lib/cashflow/types";
 import type { FamilyMemberOption } from "@/lib/families/types";
+import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState, useTransition } from "react";
 import { BarChart3, PlusIcon } from "lucide-react";
@@ -60,6 +61,7 @@ export function MovementsManager({
 }: MovementsManagerProps) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const [navigating, startNavigation] = useTransition();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingMovement, setEditingMovement] = useState<Movement | null>(null);
   const [movementToDelete, setMovementToDelete] = useState<Movement | null>(null);
@@ -116,6 +118,15 @@ export function MovementsManager({
     setFilteredMovements(next);
   }, []);
 
+  const handleNavigate = useCallback(
+    (href: string) => {
+      startNavigation(() => {
+        router.push(href);
+      });
+    },
+    [router],
+  );
+
   function openCreateDialog() {
     setEditingMovement(null);
     setDialogOpen(true);
@@ -155,8 +166,13 @@ export function MovementsManager({
     });
   }
 
+  const contentClassName = cn(
+    "transition-opacity duration-200 motion-reduce:transition-none",
+    navigating && "pointer-events-none opacity-60",
+  );
+
   return (
-    <div className="space-y-8 pb-20 sm:pb-0">
+    <div className="space-y-8 pb-20 sm:pb-0" aria-busy={navigating}>
       <section className="space-y-4">
         {hasFamily ? (
           <AssigneeFilterPanel
@@ -168,13 +184,22 @@ export function MovementsManager({
           />
         ) : null}
 
-        <PeriodSummaryCards summary={summary} filterSummary={filterSummary} />
+        <div className={contentClassName}>
+          <PeriodSummaryCards summary={summary} filterSummary={filterSummary} />
+        </div>
 
         <div className="flex flex-wrap items-end justify-between gap-4">
-          <DateRangeFilter from={from} to={to} year={year} />
+          <DateRangeFilter
+            from={from}
+            to={to}
+            year={year}
+            pending={navigating}
+            onNavigate={handleNavigate}
+          />
           <Button
             type="button"
             className="hidden shrink-0 sm:inline-flex"
+            disabled={navigating}
             onClick={openCreateDialog}
           >
             Aggiungi movimento
@@ -186,6 +211,8 @@ export function MovementsManager({
         yearSummary={yearSummary}
         rangeFrom={from}
         rangeTo={to}
+        pending={navigating}
+        onNavigate={handleNavigate}
       />
 
       <section className="space-y-3">
@@ -194,7 +221,7 @@ export function MovementsManager({
           <Button
             type="button"
             variant="outline"
-            disabled={filteredMovements.length === 0}
+            disabled={navigating || filteredMovements.length === 0}
             onClick={() => setSankeyOpen(true)}
           >
             <BarChart3 className="size-4" />
@@ -202,18 +229,20 @@ export function MovementsManager({
           </Button>
         </div>
 
-        <MovementsTable
-          movements={movements}
-          from={from}
-          to={to}
-          hasFamily={hasFamily}
-          pending={pending}
-          onEdit={openEditDialog}
-          onDelete={setMovementToDelete}
-          onCreate={openCreateDialog}
-          onFilterSummaryChange={handleFilterSummaryChange}
-          onFilteredMovementsChange={handleFilteredMovementsChange}
-        />
+        <div className={contentClassName}>
+          <MovementsTable
+            movements={movements}
+            from={from}
+            to={to}
+            hasFamily={hasFamily}
+            pending={pending || navigating}
+            onEdit={openEditDialog}
+            onDelete={setMovementToDelete}
+            onCreate={openCreateDialog}
+            onFilterSummaryChange={handleFilterSummaryChange}
+            onFilteredMovementsChange={handleFilteredMovementsChange}
+          />
+        </div>
       </section>
 
       <Button

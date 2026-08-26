@@ -11,27 +11,29 @@ import { formatEuro } from "@/lib/cashflow/format";
 import type { YearSummary } from "@/lib/cashflow/types";
 import { cn } from "@/lib/utils";
 import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 type YearSummaryBarProps = {
   yearSummary: YearSummary;
   rangeFrom: string;
   rangeTo: string;
+  pending: boolean;
+  onNavigate: (href: string) => void;
 };
 
 export function YearSummaryBar({
   yearSummary,
   rangeFrom,
   rangeTo,
+  pending,
+  onNavigate,
 }: YearSummaryBarProps) {
-  const router = useRouter();
   const [monthsOpen, setMonthsOpen] = useState(false);
   const { year } = yearSummary;
 
   function navigate(params: { from: string; to: string; year: number }) {
     const searchParams = new URLSearchParams(buildCashflowSearchParams(params));
-    router.push(`/cashflow?${searchParams.toString()}`);
+    onNavigate(`/cashflow?${searchParams.toString()}`);
   }
 
   function shiftYear(delta: number) {
@@ -52,6 +54,7 @@ export function YearSummaryBar({
             variant="ghost"
             size="icon-sm"
             aria-label="Anno precedente"
+            disabled={pending}
             onClick={() => shiftYear(-1)}
           >
             <ChevronLeftIcon />
@@ -62,6 +65,7 @@ export function YearSummaryBar({
             variant="ghost"
             size="icon-sm"
             aria-label="Anno successivo"
+            disabled={pending}
             onClick={() => shiftYear(1)}
           >
             <ChevronRightIcon />
@@ -129,9 +133,10 @@ export function YearSummaryBar({
                   key={entry.monthKey}
                   type="button"
                   aria-current={highlighted ? "true" : undefined}
+                  disabled={pending}
                   onClick={() => selectMonth(entry.month)}
                   className={cn(
-                    "rounded-md border bg-background p-2 text-left text-xs transition-colors hover:bg-muted/50",
+                    "rounded-md border bg-background p-2 text-left text-xs transition-colors hover:bg-muted/50 disabled:pointer-events-none disabled:opacity-50",
                     highlighted &&
                       "border-primary bg-primary/5 ring-1 ring-primary/25",
                   )}
