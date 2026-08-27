@@ -6,12 +6,17 @@ import { cn } from "@/lib/utils";
 
 export const navItems = [
   { href: "/cashflow", label: "Cashflow", adminOnly: false },
+  { href: "/notes", label: "Notes", adminOnly: false },
   { href: "/settings", label: "Impostazioni", adminOnly: false },
 ] as const;
 
 export function isNavItemActive(href: string, pathname: string): boolean {
   if (href === "/cashflow") {
     return pathname === "/cashflow" || pathname.startsWith("/cashflow/");
+  }
+
+  if (href === "/notes") {
+    return pathname === "/notes" || pathname.startsWith("/notes/");
   }
 
   return pathname === href || pathname.startsWith(`${href}/`);
