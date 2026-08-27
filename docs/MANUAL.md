@@ -1,6 +1,6 @@
 # Manuale Hestia
 
-Hestia serve a tenere traccia delle entrate e delle uscite di casa: le tue, quelle del partner o dei coinquilini, e quelle che condividete.
+Hestia serve a tenere traccia delle entrate e delle uscite di casa: le tue, quelle del partner o dei coinquilini, e quelle che condividete. Tiene anche **appunti** personali e di famiglia.
 
 Questo manuale spiega come usarla, senza dettagli da sviluppatori.
 
@@ -9,10 +9,11 @@ Questo manuale spiega come usarla, senza dettagli da sviluppatori.
 ## Indice
 
 1. [Movimenti](#1-movimenti)
-2. Filtri e totali *(prossimamente)*
-3. Famiglie *(prossimamente)*
-4. Categorie *(prossimamente)*
-5. Account e Impostazioni *(prossimamente)*
+2. [Notes](#2-notes)
+3. Filtri e totali *(prossimamente)*
+4. Famiglie *(prossimamente)*
+5. Categorie *(prossimamente)*
+6. Account e Impostazioni *(prossimamente)*
 
 ---
 
@@ -88,3 +89,44 @@ Per capire *dove vanno i soldi* usi i filtri e i totali: ne parliamo nella pross
 
 - Sul **computer**, di solito apri la pagina Cashflow: lista completa, totali, mesi e grafico.
 - Sul **telefono**, la schermata iniziale mostra il mese in corso, i totali, i filtri e gli ultimi movimenti, con il + per aggiungerne uno in fretta.
+
+---
+
+## 2. Notes
+
+Una nota è un appunto di casa: un **titolo** e un **corpo**, come testo libero oppure come **checklist** da spuntare.
+
+### Personali o di famiglia
+
+- **Personali** — le vedi e le modifichi solo tu.
+- **Di famiglia** — tutti i membri della famiglia le vedono e possono modificarle o cancellarle.
+
+Se non fai parte di una famiglia nell’app, hai solo le note personali: non compare **Condividi**.
+
+### Come crearne una
+
+Dal pulsante **Nuova nota**. Parte sempre personale, di tipo testo, anche senza titolo (in elenco compare «Senza titolo»). Se serve a tutta casa, la **condividi** dopo.
+
+Puoi cambiare tipo in qualsiasi momento: da testo a checklist (una voce per riga) e viceversa. Le spunte si perdono se torni al testo.
+
+### Condividere
+
+**Condividi** e **Togli condivisione** li usa solo chi ha creato la nota. Togliendo la condivisione, la nota torna personale e sparisce dalla sezione Famiglia degli altri.
+
+Non si condivide con una sola persona: o è tua, o è di tutta la famiglia.
+
+### Aprire e chiudere
+
+Le sezioni Personali e Famiglia, e ogni nota, si possono comprimere. Chiusa, di una nota vedi solo il titolo. All’inizio è tutto aperto. Hestia ricorda le tue chiusure su telefono e computer.
+
+### Chi può correggere o cancellare
+
+- Note personali: solo tu.
+- Note di famiglia: chiunque in famiglia.
+
+### Cosa Hestia non fa (ancora)
+
+Non colora le note come Keep, non ha etichette né pin.  
+Non condivide con un singolo coinquilino.  
+Non formatta il testo (grassetto, elenchi puntati).
+

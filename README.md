@@ -1,6 +1,6 @@
 # Hestia
 
-Web app con accesso riservato via **Google OAuth** e **Supabase**. Solo gli utenti censiti in `members` possono registrarsi. **Cashflow** (`/cashflow`) è la home: ogni utente registra entrate e uscite personali con categorie globali opzionali. **Impostazioni** (`/settings`) espone le categorie (tutti; CRUD solo admin) e la gestione utenti (solo admin).
+Web app con accesso riservato via **Google OAuth** e **Supabase**. Solo gli utenti censiti in `members` possono registrarsi. **Cashflow** (`/cashflow`) è la home: ogni utente registra entrate e uscite personali con categorie globali opzionali. **Notes** (`/notes`) tiene appunti personali e di famiglia. **Impostazioni** (`/settings`) espone le categorie (tutti; CRUD solo admin) e la gestione utenti (solo admin).
 
 ## Stack
 
@@ -41,4 +41,4 @@ Checklist in [docs/MANUAL_TEST.md](docs/MANUAL_TEST.md).
 
 ## Manuale d’uso
 
-Guida utente (movimenti e prossime sezioni): [docs/MANUAL.md](docs/MANUAL.md).
+Guida utente (movimenti, Notes e prossime sezioni): [docs/MANUAL.md](docs/MANUAL.md).

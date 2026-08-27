@@ -28,7 +28,7 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 
 ## Nav e Impostazioni
 
-- [ ] Nav: **Cashflow** e **Impostazioni** (nessuna Dashboard).
+- [ ] Nav: **Cashflow**, **Notes** e **Impostazioni** (nessuna Dashboard).
 - [ ] User: Impostazioni → sidebar **Account** + **Categorie**; `/settings/users` → redirect `/settings/categories`.
 - [ ] Admin: sidebar **Account** + **Categorie** + **Utenti** + **Famiglie**; `/users` → redirect `/settings/users`.
 
@@ -157,6 +157,19 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 - [ ] User vede lista categorie senza pulsanti modifica.
 - [ ] Elimina categoria senza movimenti → OK.
 - [ ] Elimina categoria con movimenti → select destinazione obbligatoria → movimenti riassegnati.
+
+## Notes
+
+- [ ] Nav: **Notes** tra Cashflow e Impostazioni (desktop e menu mobile).
+- [ ] `/notes` senza famiglia: solo Personali; niente Condividi.
+- [ ] Nuova nota → «Senza titolo», tipo testo, personale.
+- [ ] Modifica titolo/corpo, reload mantiene.
+- [ ] Checklist: voci, spunte, conversione da/verso testo.
+- [ ] Collassa nota e sezione → reload mantiene (stesso utente, altro browser se possibile).
+- [ ] Condividi: sparisce da Personali, compare in Famiglia per il partner; il partner modifica e elimina.
+- [ ] Partner non vede Togli condivisione su nota altrui; creatore toglie → torna solo al creatore.
+- [ ] Elimina: Annulla non cancella; conferma sì.
+- [ ] Home `/` invariata (niente Notes).
 
 ## Callback
 
