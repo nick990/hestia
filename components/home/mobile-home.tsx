@@ -9,6 +9,7 @@ import {
   PeriodSummaryCards,
   type FilterSummaryState,
 } from "@/components/cashflow/period-summary-cards";
+import { useHomeNav } from "@/components/home/home-nav-context";
 import { HomeMovements } from "@/components/home/home-movements";
 import { Button } from "@/components/ui/button";
 import {
@@ -54,6 +55,7 @@ export function MobileHome({
   categories,
 }: MobileHomeProps) {
   const router = useRouter();
+  const { setRange, beginNav, isCurrentNav } = useHomeNav();
   const [navigating, startNavigation] = useTransition();
   const [visibleMonthKey, setVisibleMonthKey] = useOptimistic(monthKey);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -98,8 +100,14 @@ export function MobileHome({
 
   function shiftMonth(delta: number) {
     const next = shiftMonthRange(from, delta);
+    const generation = beginNav();
+    setRange({ from: next.from, to: next.to });
 
     startNavigation(() => {
+      if (!isCurrentNav(generation)) {
+        return;
+      }
+
       setVisibleMonthKey(next.from.slice(0, 7));
       router.push(
         buildHomeHref({
