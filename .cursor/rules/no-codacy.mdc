@@ -1,0 +1,13 @@
+---
+description: Non usare Codacy in Hestia
+alwaysApply: true
+---
+
+# Niente Codacy
+
+In questo progetto Codacy è disattivato.
+
+- Non chiamare tool MCP `user-codacy` / `codacy_*` (analyze, setup, issues, CLI).
+- Non installare né eseguire Codacy CLI.
+- Non creare né aggiornare `.codacy/`.
+- Per qualità usa ESLint, Vitest e il linter dell’editor.
