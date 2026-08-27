@@ -38,7 +38,7 @@ export async function listNotesForCurrentUser(): Promise<Note[]> {
     .select(
       "id, user_id, scope, family_id, title, kind, content, created_at, updated_at",
     )
-    .order("updated_at", { ascending: false });
+    .order("created_at", { ascending: false });
 
   if (error) {
     throw new Error(error.message);

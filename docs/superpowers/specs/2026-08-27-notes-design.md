@@ -27,7 +27,7 @@ Aggiungere la sezione **Notes** accanto a Cashflow: note con titolo e corpo, tes
 | R12 | Nuova nota sempre **personale**, testo vuoto; si condivide dopo se serve |
 | R13 | Edit **inline** quando la nota è aperta; autosave con debounce; dialog solo per conferma elimina |
 | R14 | Conversione tipo in qualsiasi momento: testo → checklist (una voce per riga); checklist → testo (voci come righe) |
-| R15 | Ordine in ciascuna sezione: `updated_at` desc (ultima modifica in cima) |
+| R15 | Ordine in ciascuna sezione: `created_at` desc (più recenti in cima); modificare una nota **non** la sposta |
 | R16 | Titolo vuoto ammesso; in UI si mostra «Senza titolo» |
 | R17 | Home mobile invariata (Cashflow/riepilogo); Notes non entra in home in v1 |
 
@@ -54,7 +54,7 @@ Aggiungere la sezione **Notes** accanto a Cashflow: note con titolo e corpo, tes
 | Default collasso | Tutto **aperto** |
 | Formato Keep | Solo testo semplice + checklist |
 | Cambio tipo | Sempre, testo ↔ checklist |
-| Ordinamento | Ultima modifica in cima |
+| Ordinamento | Data di creazione, più recenti in cima |
 | Superficie edit | Inline sulla nota aperta |
 | Architettura dati | Tabella `notes` + `content` JSON + `note_ui_prefs` |
 
@@ -87,7 +87,7 @@ kind = 'checklist' → content ha chiave `items` (array)
 
 Consistenza `kind`/`content` enforced in check JSON **o** in application + test; preferire un CHECK su `kind` e validazione in server action, per non irrigidire il JSON in SQL.
 
-**Indici:** `(user_id, updated_at desc)` dove `scope = 'personal'`; `(family_id, updated_at desc)` dove `scope = 'family'`.
+**Indici:** `(user_id, created_at desc)` dove `scope = 'personal'`; `(family_id, created_at desc)` dove `scope = 'family'`.
 
 ### Forma di `content`
 
@@ -193,7 +193,7 @@ Empty state nella sezione aperta: «Nessuna nota personale» / «Nessuna nota di
 
 - Riga titolo: chevron + titolo (o «Senza titolo»). Click chevron/titolo = toggle collasso, **non** focus editor.
 - Aperta: input titolo + corpo (textarea o checklist) + azioni.
-- Checklist: checkbox, testo riga, Invio crea voce sotto, Backspace su voce vuota la rimuove; ogni spunta è un autosave e aggiorna `updated_at` (la nota sale in cima).
+- Checklist: checkbox, testo riga, Invio crea voce sotto, Backspace su voce vuota la rimuove; ogni spunta è un autosave. La posizione in elenco non cambia.
 - Azioni visibili sulla nota aperta (e in overflow menu se serve su mobile): tipo testo/checklist, Condividi o Togli condivisione (solo creatore + famiglia esistente per condividere), Elimina.
 - Condividi su nota famiglia di cui non sei creatore: non mostrare Togli condivisione.
 
