@@ -20,7 +20,7 @@ import {
   LoaderCircleIcon,
   TriangleAlertIcon,
 } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 
 type SaveStatus = "idle" | "saving" | "saved" | "error";
 
@@ -65,19 +65,7 @@ export function NoteEditorDialog({
   onUnshare,
   onDelete,
 }: NoteEditorDialogProps) {
-  const titleRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-
-    const timeout = window.setTimeout(() => {
-      titleRef.current?.focus();
-    }, 0);
-
-    return () => window.clearTimeout(timeout);
-  }, [open]);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   return (
     <Dialog
@@ -91,6 +79,8 @@ export function NoteEditorDialog({
       }}
     >
       <DialogContent
+        ref={panelRef}
+        initialFocus={panelRef}
         showCloseButton={false}
         className="flex inset-0 top-0 left-0 h-dvh max-h-none w-full max-w-none translate-x-0 translate-y-0 flex-col gap-0 overflow-hidden rounded-none p-0 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] sm:inset-auto sm:top-1/2 sm:left-1/2 sm:h-[min(88vh,56rem)] sm:w-full sm:max-w-xl sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-xl sm:pt-0 sm:pb-0"
       >
@@ -121,7 +111,6 @@ export function NoteEditorDialog({
                 Titolo
               </label>
               <Input
-                ref={titleRef}
                 id="note-editor-title"
                 value={title}
                 maxLength={200}
