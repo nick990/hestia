@@ -3,12 +3,29 @@
 import * as React from "react"
 import { Dialog as SheetPrimitive } from "@base-ui/react/dialog"
 
+import { useOverlayOpenChange } from "@/hooks/use-overlay-history"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { XIcon } from "lucide-react"
 
-function Sheet({ ...props }: SheetPrimitive.Root.Props) {
-  return <SheetPrimitive.Root data-slot="sheet" {...props} />
+function Sheet({
+  open,
+  defaultOpen,
+  onOpenChange,
+  ...props
+}: SheetPrimitive.Root.Props) {
+  const overlay = useOverlayOpenChange(open, defaultOpen, (next) => {
+    onOpenChange?.(next, undefined as never)
+  })
+
+  return (
+    <SheetPrimitive.Root
+      data-slot="sheet"
+      {...props}
+      open={overlay.open}
+      onOpenChange={overlay.onOpenChange}
+    />
+  )
 }
 
 function SheetTrigger({ ...props }: SheetPrimitive.Trigger.Props) {

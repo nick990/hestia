@@ -3,12 +3,29 @@
 import * as React from "react"
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
 
+import { useOverlayOpenChange } from "@/hooks/use-overlay-history"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { XIcon } from "lucide-react"
 
-function Dialog({ ...props }: DialogPrimitive.Root.Props) {
-  return <DialogPrimitive.Root data-slot="dialog" {...props} />
+function Dialog({
+  open,
+  defaultOpen,
+  onOpenChange,
+  ...props
+}: DialogPrimitive.Root.Props) {
+  const overlay = useOverlayOpenChange(open, defaultOpen, (next) => {
+    onOpenChange?.(next, undefined as never)
+  })
+
+  return (
+    <DialogPrimitive.Root
+      data-slot="dialog"
+      {...props}
+      open={overlay.open}
+      onOpenChange={overlay.onOpenChange}
+    />
+  )
 }
 
 function DialogTrigger({ ...props }: DialogPrimitive.Trigger.Props) {

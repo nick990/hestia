@@ -21,7 +21,7 @@ Se non fai parte di una famiglia nell’app, tutto ciò che registri è solo tuo
 
 ## Come aggiungerne uno
 
-Dal pulsante **Aggiungi movimento** (sul telefono anche il pulsante + in basso).
+Dal pulsante **Aggiungi movimento** (sul telefono anche il pulsante + in basso). Indietro del browser chiude la finestra del movimento senza lasciare Cashflow.
 
 **Se stai registrando un’uscita**
 

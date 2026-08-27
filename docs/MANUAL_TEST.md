@@ -175,6 +175,13 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 - [ ] Partner non vede Togli condivisione su nota altrui; creatore toglie con conferma → torna solo al creatore.
 - [ ] Elimina: Annulla non cancella; conferma sì.
 
+## Overlay (Indietro del browser)
+
+- [ ] Telefono: apri una nota, Indietro la chiude e resti sulla bacheca. Apri Elimina sopra la nota: il primo Indietro chiude la conferma, il secondo la nota.
+- [ ] Menu hamburger: Indietro chiude il menu, resti sulla pagina.
+- [ ] Aggiungi movimento (home o Cashflow): Indietro chiude il form. Sankey uguale.
+- [ ] Chiudi / Esc / tap fuori toglie il gradino di history: un altro Indietro esce dalla pagina, non riapre la finestra.
+
 ## Home mobile (tab)
 
 - [ ] Telefono: `/` mostra riga tab Cashflow (terracotta) e Notes (umber) sotto l’header; Cashflow è selezionato.
