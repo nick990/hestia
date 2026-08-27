@@ -4,6 +4,7 @@ import {
   overlayIdFromState,
   shouldCloseOverlayOnPop,
   shouldPopHistoryOnUiClose,
+  shouldSkipHistoryPopForHref,
 } from "@/lib/overlay-history";
 
 describe("overlayIdFromState", () => {
@@ -58,6 +59,20 @@ describe("shouldPopHistoryOnUiClose", () => {
       false,
     );
     expect(shouldPopHistoryOnUiClose(false, "a", { __hestiaOverlay: "a" })).toBe(
+      false,
+    );
+  });
+});
+
+describe("shouldSkipHistoryPopForHref", () => {
+  it("salta il back se il link va a un altro path", () => {
+    expect(shouldSkipHistoryPopForHref("/cashflow", "/notes", "")).toBe(true);
+    expect(shouldSkipHistoryPopForHref("/notes", "/notes", "")).toBe(false);
+  });
+
+  it("salta il back se cambiano i query", () => {
+    expect(shouldSkipHistoryPopForHref("/?tab=notes", "/", "")).toBe(true);
+    expect(shouldSkipHistoryPopForHref("/?tab=notes", "/", "?tab=notes")).toBe(
       false,
     );
   });

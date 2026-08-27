@@ -1,10 +1,12 @@
 "use client";
 
 import {
+  hrefFromClickTarget,
   overlayIdFromState,
   pushOverlayHistory,
   shouldCloseOverlayOnPop,
   shouldPopHistoryOnUiClose,
+  shouldSkipHistoryPopForHref,
 } from "@/lib/overlay-history";
 import { useEffect, useId, useRef, useState } from "react";
 
@@ -14,6 +16,7 @@ export function useOverlayHistory(
 ): (open: boolean) => void {
   const overlayId = useId();
   const pushedRef = useRef(false);
+  const skipPopRef = useRef(false);
   const onOpenChangeRef = useRef(onOpenChange);
 
   useEffect(() => {
@@ -35,6 +38,12 @@ export function useOverlayHistory(
       return;
     }
 
+    if (skipPopRef.current) {
+      skipPopRef.current = false;
+      pushedRef.current = false;
+      return;
+    }
+
     if (
       shouldPopHistoryOnUiClose(
         pushedRef.current,
@@ -49,6 +58,30 @@ export function useOverlayHistory(
 
     pushedRef.current = false;
   }, [open, overlayId]);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    function onClickCapture(event: MouseEvent) {
+      const href = hrefFromClickTarget(event.target);
+
+      if (
+        href &&
+        shouldSkipHistoryPopForHref(
+          href,
+          window.location.pathname,
+          window.location.search,
+        )
+      ) {
+        skipPopRef.current = true;
+      }
+    }
+
+    document.addEventListener("click", onClickCapture, true);
+    return () => document.removeEventListener("click", onClickCapture, true);
+  }, [open]);
 
   useEffect(() => {
     function onPopState(event: PopStateEvent) {
@@ -67,6 +100,13 @@ export function useOverlayHistory(
   return function handleOpenChange(nextOpen: boolean) {
     if (nextOpen) {
       onOpenChangeRef.current?.(true);
+      return;
+    }
+
+    if (skipPopRef.current) {
+      skipPopRef.current = false;
+      pushedRef.current = false;
+      onOpenChangeRef.current?.(false);
       return;
     }
 

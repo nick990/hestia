@@ -178,7 +178,7 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 ## Overlay (Indietro del browser)
 
 - [ ] Telefono: apri una nota, Indietro la chiude e resti sulla bacheca. Apri Elimina sopra la nota: il primo Indietro chiude la conferma, il secondo la nota.
-- [ ] Menu hamburger: Indietro chiude il menu, resti sulla pagina.
+- [ ] Menu hamburger: Indietro chiude il menu, resti sulla pagina. Tap su Cashflow / Notes / Impostazioni apre la pagina e chiude il menu.
 - [ ] Aggiungi movimento (home o Cashflow): Indietro chiude il form. Sankey uguale.
 - [ ] Chiudi / Esc / tap fuori toglie il gradino di history: un altro Indietro esce dalla pagina, non riapre la finestra.
 

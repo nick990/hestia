@@ -37,6 +37,29 @@ export function shouldPopHistoryOnUiClose(
   return pushed && overlayIdFromState(currentState) === overlayId;
 }
 
+export function shouldSkipHistoryPopForHref(
+  href: string,
+  currentPathname: string,
+  currentSearch = "",
+): boolean {
+  const next = new URL(href, "http://hestia.local");
+  const current = new URL(
+    `${currentPathname}${currentSearch}`,
+    "http://hestia.local",
+  );
+
+  return next.pathname !== current.pathname || next.search !== current.search;
+}
+
+export function hrefFromClickTarget(target: EventTarget | null): string | null {
+  if (!(target instanceof Element)) {
+    return null;
+  }
+
+  const link = target.closest("a[href]");
+  return link?.getAttribute("href") ?? null;
+}
+
 export function pushOverlayHistory(overlayId: string): void {
   window.history.pushState(
     nextOverlayHistoryState(window.history.state, overlayId),
