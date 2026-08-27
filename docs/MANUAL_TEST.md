@@ -178,6 +178,7 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 ## Home mobile (tab)
 
 - [ ] Telefono: `/` mostra riga tab Cashflow (terracotta) e Notes (umber) sotto l’header; Cashflow è selezionato.
+- [ ] Tap su un tab: il tab diventa subito selezionato, icona a spinner, vista in attesa; a caricamento finito compare il contenuto.
 - [ ] Tab Notes → bacheca note, senza h1 «Notes»; Indietro torna a Cashflow; refresh su `/?tab=notes` resta su Notes.
 - [ ] Su Notes, `from`/`to` restano in URL; tornare a Cashflow mostra lo stesso mese.
 - [ ] Cambio mese sul tab Cashflow non perde la lista; FAB + solo su Cashflow.

@@ -1,12 +1,14 @@
 import { buildHomeHref, type HomeTab } from "@/lib/home/tab";
 import { cn } from "@/lib/utils";
-import { StickyNoteIcon, WalletIcon } from "lucide-react";
+import { LoaderCircleIcon, StickyNoteIcon, WalletIcon } from "lucide-react";
 import Link from "next/link";
 
 type HomeTabsProps = {
   tab: HomeTab;
   from: string;
   to: string;
+  pending: boolean;
+  onSelect: (tab: HomeTab) => void;
 };
 
 const items = [
@@ -28,30 +30,57 @@ const items = [
   },
 ];
 
-export function HomeTabs({ tab, from, to }: HomeTabsProps) {
+export function HomeTabs({
+  tab,
+  from,
+  to,
+  pending,
+  onSelect,
+}: HomeTabsProps) {
   return (
     <nav
       aria-label="Sezioni home"
-      className="sticky top-0 z-20 flex justify-center gap-8 border-b bg-background px-4 py-2"
+      className="sticky top-0 z-20 flex justify-center gap-1 border-b bg-background px-3 py-1"
     >
       {items.map((item) => {
         const selected = tab === item.id;
+        const loading = pending && selected;
         const Icon = item.icon;
+        const href = buildHomeHref({ tab: item.hrefTab, from, to });
 
         return (
           <Link
             key={item.id}
-            href={buildHomeHref({ tab: item.hrefTab, from, to })}
+            href={href}
             aria-current={selected ? "page" : undefined}
-            className="flex min-h-11 min-w-11 flex-col items-center gap-1 rounded-lg px-3 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+            aria-busy={loading || undefined}
+            className="flex min-h-9 items-center gap-1.5 rounded-lg px-2.5 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+            onClick={(event) => {
+              if (
+                event.metaKey ||
+                event.ctrlKey ||
+                event.shiftKey ||
+                event.altKey ||
+                event.button !== 0
+              ) {
+                return;
+              }
+
+              event.preventDefault();
+              onSelect(item.id);
+            }}
           >
             <span
               className={cn(
-                "flex size-10 items-center justify-center rounded-full transition-colors duration-150 motion-reduce:transition-none",
+                "flex size-7 items-center justify-center rounded-full transition-colors duration-150 motion-reduce:transition-none",
                 selected ? item.selectedClass : item.colorClass,
               )}
             >
-              <Icon className="size-5" />
+              {loading ? (
+                <LoaderCircleIcon className="size-3.5 animate-spin motion-reduce:animate-none" />
+              ) : (
+                <Icon className="size-3.5" />
+              )}
             </span>
             <span
               className={cn(
@@ -64,6 +93,9 @@ export function HomeTabs({ tab, from, to }: HomeTabsProps) {
           </Link>
         );
       })}
+      <span className="sr-only" aria-live="polite">
+        {pending ? "Caricamento…" : ""}
+      </span>
     </nav>
   );
 }
