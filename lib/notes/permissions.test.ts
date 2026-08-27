@@ -4,6 +4,7 @@ import {
   canShowShare,
   canShowUnshare,
   noteDisplayTitle,
+  noteShareDialogCopy,
 } from "@/lib/notes/permissions";
 
 const note = { user_id: "creator", scope: "personal" as const };
@@ -43,5 +44,27 @@ describe("noteDisplayTitle", () => {
     expect(noteDisplayTitle("")).toBe("Senza titolo");
     expect(noteDisplayTitle("  ")).toBe("Senza titolo");
     expect(noteDisplayTitle("Spesa")).toBe("Spesa");
+  });
+});
+
+describe("noteShareDialogCopy", () => {
+  it("explains sharing a personal note with the family", () => {
+    expect(noteShareDialogCopy("share", "Spesa")).toEqual({
+      title: "Condividi con la famiglia",
+      description:
+        "Spesa sarà visibile e modificabile da tutti i membri della famiglia.",
+      confirm: "Condividi",
+      pending: "Condivisione…",
+    });
+  });
+
+  it("explains unsharing with the untitled placeholder", () => {
+    expect(noteShareDialogCopy("unshare", "")).toEqual({
+      title: "Togli condivisione",
+      description:
+        "Senza titolo tornerà solo tua e sparirà dalla sezione Famiglia degli altri.",
+      confirm: "Togli condivisione",
+      pending: "Aggiornamento…",
+    });
   });
 });

@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ChevronDownIcon } from "lucide-react";
-import type { ReactNode } from "react";
+import { useId, type ReactNode } from "react";
 
 type NotesSectionProps = {
   title: string;
@@ -22,13 +22,16 @@ export function NotesSection({
   emptyLabel,
   children,
 }: NotesSectionProps) {
+  const contentId = useId();
+
   return (
-    <section className="space-y-2">
+    <section className="space-y-3">
       <Button
         type="button"
         variant="ghost"
-        className="h-auto w-full justify-start gap-2 px-2 py-1.5"
+        className="-ml-2 h-10 justify-start gap-2 px-2"
         aria-expanded={!collapsed}
+        aria-controls={contentId}
         onClick={onToggle}
       >
         <ChevronDownIcon
@@ -37,14 +40,24 @@ export function NotesSection({
             collapsed && "-rotate-90",
           )}
         />
-        <span className="font-medium">{title}</span>
-        <span className="text-muted-foreground">({count})</span>
+        <span className="text-base font-semibold">{title}</span>
+        <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+          {count}
+        </span>
       </Button>
-      {collapsed ? null : count === 0 ? (
-        <p className="px-2 text-sm text-muted-foreground">{emptyLabel}</p>
-      ) : (
-        <div className="space-y-2">{children}</div>
-      )}
+      <div id={contentId}>
+        {collapsed ? null : count === 0 ? (
+          <div className="rounded-xl border border-dashed border-border px-4 py-8 text-center">
+            <p className="mx-auto max-w-md text-sm leading-6 text-muted-foreground">
+              {emptyLabel}
+            </p>
+          </div>
+        ) : (
+          <div className="columns-1 gap-3 sm:columns-2 lg:columns-3">
+            {children}
+          </div>
+        )}
+      </div>
     </section>
   );
 }

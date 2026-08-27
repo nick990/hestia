@@ -162,12 +162,16 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 
 - [ ] Nav: **Notes** tra Cashflow e Impostazioni (desktop e menu mobile).
 - [ ] `/notes` senza famiglia: solo Personali; niente Condividi.
-- [ ] Nuova nota → «Senza titolo», tipo testo, personale.
+- [ ] **Scrivi una nota…** → composer espanso; **Chiudi** salva la nota come personale.
+- [ ] Composer: passa da testo a checklist; Esc chiude e salva solo se contiene testo.
+- [ ] Desktop: card in griglia masonry; mobile: una sola colonna; contenuti lunghi troncati in anteprima.
+- [ ] Click su titolo o corpo apre la nota in dialog; Chiudi o Esc torna alla bacheca; overlay chiude.
 - [ ] Modifica titolo/corpo, reload mantiene.
-- [ ] Checklist: voci, spunte, conversione da/verso testo.
+- [ ] Checklist: voci, spunte, X per eliminare la riga (hover/focus desktop, sempre visibile su touch), completate barrate e in fondo, conversione da/verso testo.
+- [ ] Azioni card visibili al hover/focus e sempre raggiungibili su touch.
 - [ ] Collassa nota e sezione → reload mantiene (stesso utente, altro browser se possibile).
-- [ ] Condividi: sparisce da Personali, compare in Famiglia per il partner; il partner modifica e elimina.
-- [ ] Partner non vede Togli condivisione su nota altrui; creatore toglie → torna solo al creatore.
+- [ ] Condividi: Annulla non cambia scope; conferma sposta in Famiglia per il partner; il partner modifica e elimina.
+- [ ] Partner non vede Togli condivisione su nota altrui; creatore toglie con conferma → torna solo al creatore.
 - [ ] Elimina: Annulla non cancella; conferma sì.
 - [ ] Home `/` invariata (niente Notes).
 

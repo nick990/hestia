@@ -9,25 +9,31 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { noteDisplayTitle } from "@/lib/notes/permissions";
-import type { Note } from "@/lib/notes/types";
+import {
+  noteShareDialogCopy,
+  type NoteShareAction,
+} from "@/lib/notes/permissions";
 
-type DeleteNoteDialogProps = {
-  note: Note | null;
+type ShareNoteDialogProps = {
+  action: NoteShareAction | null;
+  noteTitle: string;
   pending: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
 };
 
-export function DeleteNoteDialog({
-  note,
+export function ShareNoteDialog({
+  action,
+  noteTitle,
   pending,
   onOpenChange,
   onConfirm,
-}: DeleteNoteDialogProps) {
+}: ShareNoteDialogProps) {
+  const copy = action ? noteShareDialogCopy(action, noteTitle) : null;
+
   return (
     <Dialog
-      open={note !== null}
+      open={action !== null}
       onOpenChange={(open) => {
         if (!open) {
           onOpenChange(false);
@@ -36,14 +42,8 @@ export function DeleteNoteDialog({
     >
       <DialogContent className="z-60">
         <DialogHeader>
-          <DialogTitle>Elimina nota</DialogTitle>
-          <DialogDescription>
-            Stai per eliminare{" "}
-            <span className="font-medium text-foreground">
-              {note ? noteDisplayTitle(note.title) : "questa nota"}
-            </span>
-            . Questa azione è irreversibile.
-          </DialogDescription>
+          <DialogTitle>{copy?.title ?? "Conferma"}</DialogTitle>
+          <DialogDescription>{copy?.description}</DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Button
@@ -54,13 +54,8 @@ export function DeleteNoteDialog({
           >
             Annulla
           </Button>
-          <Button
-            type="button"
-            variant="destructive"
-            disabled={pending}
-            onClick={onConfirm}
-          >
-            {pending ? "Eliminazione…" : "Elimina"}
+          <Button type="button" disabled={pending} onClick={onConfirm}>
+            {pending ? copy?.pending : copy?.confirm}
           </Button>
         </DialogFooter>
       </DialogContent>

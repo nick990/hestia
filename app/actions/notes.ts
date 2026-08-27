@@ -8,6 +8,11 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
 export type NotesActionResult = { ok: true } | { ok: false; error: string };
+export type CreateNoteInput = {
+  title: string;
+  kind: NoteKind;
+  content: NoteContent;
+};
 
 function revalidateNotes() {
   revalidatePath("/notes");
@@ -28,10 +33,20 @@ async function requireUser() {
   return { supabase, user, error: null };
 }
 
-export async function createNote(): Promise<NotesActionResult & { id?: string }> {
+export async function createNote(
+  input?: CreateNoteInput,
+): Promise<NotesActionResult & { id?: string }> {
   const { supabase, user, error } = await requireUser();
   if (error || !user) {
     return error ?? { ok: false, error: "Sessione assente." };
+  }
+
+  const title = input?.title ?? "";
+  const kind = input?.kind ?? "text";
+  const content = input?.content ?? { body: "" };
+
+  if (title.length > 200) {
+    return { ok: false, error: "Il titolo è troppo lungo." };
   }
 
   const { data, error: insertError } = await supabase
@@ -40,9 +55,9 @@ export async function createNote(): Promise<NotesActionResult & { id?: string }>
       user_id: user.id,
       scope: "personal",
       family_id: null,
-      title: "",
-      kind: "text",
-      content: { body: "" },
+      title,
+      kind,
+      content: payloadForKind(kind, content),
     })
     .select("id")
     .single();

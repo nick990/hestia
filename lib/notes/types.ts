@@ -29,6 +29,8 @@ export type Note = {
   updated_at: string;
 };
 
+export type NoteSaveStatus = "idle" | "saving" | "saved" | "error";
+
 export type NoteUiPrefs = {
   personal_section_collapsed: boolean;
   family_section_collapsed: boolean;

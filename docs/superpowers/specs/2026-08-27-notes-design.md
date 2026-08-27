@@ -177,11 +177,11 @@ Nessuna sotto-route in v1 (niente `/notes/[id]`): tutto sulla lista.
 ### Pagina
 
 - Titolo pagina «Notes».
-- Azione primaria **Nuova nota** (desktop in header pagina; mobile coerente con «azione prima del report»: bottone visibile, non nascosto in menu).
+- Composer **Scrivi una nota…** centrato in cima. Al click si espande inline con titolo, corpo, scelta testo/checklist e azione Chiudi.
 - Sezione **Personali** (sempre).
 - Sezione **Famiglia** solo se `current_user_family_id()` è valorizzato.
 
-Layout: una colonna, Personali sopra Famiglia (anche desktop). Tono PRODUCT: casa, non banca; italiano; niente card identiche da landing.
+Layout: Personali sopra Famiglia. Dentro ogni sezione, bacheca masonry a una colonna su mobile, due su tablet e tre su desktop. Le card hanno altezza determinata dal contenuto e rispettano l’ordine di creazione. Tono PRODUCT: casa, non banca; italiano.
 
 ### Sezione
 
@@ -191,10 +191,11 @@ Empty state nella sezione aperta: «Nessuna nota personale» / «Nessuna nota di
 
 ### Nota
 
-- Riga titolo: chevron + titolo (o «Senza titolo»). Click chevron/titolo = toggle collasso, **non** focus editor.
-- Aperta: input titolo + corpo (textarea o checklist) + azioni.
-- Checklist: checkbox, testo riga, Invio crea voce sotto, Backspace su voce vuota la rimuove; ogni spunta è un autosave. La posizione in elenco non cambia.
-- Azioni visibili sulla nota aperta (e in overflow menu se serve su mobile): tipo testo/checklist, Condividi o Togli condivisione (solo creatore + famiglia esistente per condividere), Elimina.
+- Riga titolo: chevron + titolo (o «Senza titolo»). Il chevron controlla il collasso della card; titolo o corpo aprono la nota in un dialog.
+- Card in lettura: titolo e anteprima troncata a 8 righe di testo o 6 voci di checklist.
+- Dialog di modifica: overlay al centro, titolo + corpo completo (textarea o checklist) + azione Chiudi. Esc e click sull’overlay chiudono.
+- Checklist: checkbox, testo riga, Invio crea voce sotto, Backspace su voce vuota la rimuove; la X a destra elimina la voce (hover/focus su desktop, sempre visibile su touch); le voci completate sono barrate e raccolte in fondo. Ogni spunta è un autosave. La posizione della nota non cambia.
+- Azioni a icona nel footer della nota: tipo testo/checklist, Condividi o Togli condivisione (solo creatore + famiglia esistente per condividere), Elimina. Sono visibili al hover/focus con puntatore e sempre visibili su touch. Condividi e Togli condivisione aprono un dialog di conferma; Annulla non cambia lo scope.
 - Condividi su nota famiglia di cui non sei creatore: non mostrare Togli condivisione.
 
 Editor Keep-povero: niente toolbar. Focus visibile, contrasto ok, `prefers-reduced-motion` su chevron.
@@ -218,13 +219,13 @@ Pattern come Cashflow: Server Actions + query `lib/notes/`, componenti `componen
 | Action | Comportamento |
 |--------|----------------|
 | `listNotes` | Personali dell’utente + family della famiglia; join prefs |
-| `createNote` | `scope=personal`, `kind=text`, title/body vuoti; poi UI la apre e focus titolo |
+| `createNote` | Crea la bozza compilata dal composer come `scope=personal`; default testo |
 | `updateNoteContent` | title, kind, content; bump `updated_at` |
 | `shareNote` / `unshareNote` | solo creatore; share richiede famiglia |
 | `deleteNote` | come RLS |
 | `updateNoteUiPrefs` | upsert riga utente |
 
-Creare nota: insert immediato (anche vuota) così ha `id` per prefs e autosave. Se l’utente naviga via con nota ancora vuota (titolo e corpo/voci vuoti), **v1 tiene la riga** (Keep tiene le vuote). Non auto-delete in v1.
+Creare nota: il composer mantiene la bozza in locale e inserisce alla chiusura solo se titolo o contenuto non sono vuoti. Una bozza completamente vuota viene chiusa senza creare righe.
 
 ## Errori
 
@@ -248,6 +249,7 @@ Creare nota: insert immediato (anche vuota) così ha `id` per prefs e autosave. 
 |-------|----------------|------------|
 | `app/(protected)/notes/page.tsx` | Load note + prefs, render pagina | queries, member/family |
 | `components/notes/notes-page.tsx` | Sezioni, nuova nota, wiring actions | figli |
+| `components/notes/note-composer.tsx` | Creazione inline testo/checklist | actions, editor |
 | `components/notes/notes-section.tsx` | Collasso sezione + lista | `note-card` |
 | `components/notes/note-card.tsx` | Collasso, titolo, editor, azioni | editor, dialog |
 | `components/notes/note-text-editor.tsx` | Textarea body | — |

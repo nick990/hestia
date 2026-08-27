@@ -32,3 +32,33 @@ export function noteDisplayTitle(title: string): string {
   const trimmed = title.trim();
   return trimmed === "" ? "Senza titolo" : title;
 }
+
+export type NoteShareAction = "share" | "unshare";
+
+export function noteShareDialogCopy(
+  action: NoteShareAction,
+  title: string,
+): {
+  title: string;
+  description: string;
+  confirm: string;
+  pending: string;
+} {
+  const display = noteDisplayTitle(title);
+
+  if (action === "share") {
+    return {
+      title: "Condividi con la famiglia",
+      description: `${display} sarà visibile e modificabile da tutti i membri della famiglia.`,
+      confirm: "Condividi",
+      pending: "Condivisione…",
+    };
+  }
+
+  return {
+    title: "Togli condivisione",
+    description: `${display} tornerà solo tua e sparirà dalla sezione Famiglia degli altri.`,
+    confirm: "Togli condivisione",
+    pending: "Aggiornamento…",
+  };
+}

@@ -105,19 +105,19 @@ Se non fai parte di una famiglia nell’app, hai solo le note personali: non com
 
 ### Come crearne una
 
-Dal pulsante **Nuova nota**. Parte sempre personale, di tipo testo, anche senza titolo (in elenco compare «Senza titolo»). Se serve a tutta casa, la **condividi** dopo.
+Dal riquadro **Scrivi una nota…** in cima alla pagina. Si apre direttamente: puoi aggiungere titolo e corpo oppure passare alla checklist. Quando premi **Chiudi**, la nota viene salvata come personale. Se serve a tutta casa, la **condividi** dopo.
 
-Puoi cambiare tipo in qualsiasi momento: da testo a checklist (una voce per riga) e viceversa. Le spunte si perdono se torni al testo.
+Puoi cambiare tipo in qualsiasi momento: da testo a checklist (una voce per riga) e viceversa. Le spunte si perdono se torni al testo. In checklist, la **X** a destra della riga elimina quella voce.
 
 ### Condividere
 
-**Condividi** e **Togli condivisione** li usa solo chi ha creato la nota. Togliendo la condivisione, la nota torna personale e sparisce dalla sezione Famiglia degli altri.
+**Condividi** e **Togli condivisione** li usa solo chi ha creato la nota. Entrambe le azioni chiedono conferma prima di applicarsi. Togliendo la condivisione, la nota torna personale e sparisce dalla sezione Famiglia degli altri.
 
 Non si condivide con una sola persona: o è tua, o è di tutta la famiglia.
 
 ### Aprire e chiudere
 
-Le sezioni Personali e Famiglia, e ogni nota, si possono comprimere. Chiusa, di una nota vedi solo il titolo. All’inizio è tutto aperto. Hestia ricorda le tue chiusure su telefono e computer.
+Le note sono disposte come una bacheca, con un’anteprima del contenuto. Seleziona titolo o corpo per aprirle in un dialog e modificarle. Chiudi o Esc torna alla bacheca. Le sezioni Personali e Famiglia, e ogni nota, si possono comprimere. Chiusa, di una nota vedi solo il titolo. All’inizio è tutto aperto. Hestia ricorda le tue chiusure su telefono e computer.
 
 ### Chi può correggere o cancellare
 
