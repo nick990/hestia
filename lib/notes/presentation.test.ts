@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  formatNoteUpdatedAt,
   hasNoteContent,
   partitionChecklistItems,
   removeChecklistItem,
@@ -58,5 +59,29 @@ describe("hasNoteContent", () => {
   it("considera compilata una bozza con titolo o contenuto", () => {
     expect(hasNoteContent("Spesa", { body: "" })).toBe(true);
     expect(hasNoteContent("", { body: "Pane" })).toBe(true);
+  });
+});
+
+describe("formatNoteUpdatedAt", () => {
+  it("mostra giorno e mese se è quest'anno", () => {
+    expect(
+      formatNoteUpdatedAt(
+        "2026-08-27T10:00:00.000Z",
+        new Date("2026-12-01T12:00:00.000Z"),
+      ),
+    ).toBe("27 ago");
+  });
+
+  it("aggiunge l'anno se è un altro anno", () => {
+    expect(
+      formatNoteUpdatedAt(
+        "2025-01-03T12:00:00.000Z",
+        new Date("2026-08-27T12:00:00.000Z"),
+      ),
+    ).toBe("3 gen 2025");
+  });
+
+  it("ignora timestamp non validi", () => {
+    expect(formatNoteUpdatedAt("nope")).toBe("");
   });
 });

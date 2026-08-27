@@ -205,7 +205,7 @@ export function NoteCard({
 
   return (
     <article className="group/note mb-3 inline-block w-full break-inside-avoid rounded-xl bg-card align-top shadow-[0_1px_3px_oklch(0_0_0/0.08)] ring-1 ring-foreground/10 transition-[box-shadow,transform] duration-200 ease-out hover:shadow-md focus-within:shadow-md motion-reduce:transition-none">
-      <div className="flex min-h-11 items-start gap-1 px-3 pt-2">
+      <div className="flex min-h-11 items-center gap-1 px-3 py-2">
         <Button
           type="button"
           variant="ghost"
@@ -224,12 +224,16 @@ export function NoteCard({
         </Button>
         <button
           type="button"
-          className="min-w-0 flex-1 break-words px-1 py-2 text-left text-lg font-medium leading-6 outline-none focus-visible:rounded-md focus-visible:ring-3 focus-visible:ring-ring/50"
+          className="min-w-0 flex-1 break-words px-1 py-1 text-left text-lg font-medium leading-6 outline-none focus-visible:rounded-md focus-visible:ring-3 focus-visible:ring-ring/50"
           onClick={() => setEditing(true)}
         >
           {noteDisplayTitle(title)}
         </button>
-        <NoteScopeLabel scope={note.scope} className="pt-2.5 pr-0.5" />
+        <NoteScopeLabel
+          scope={note.scope}
+          updatedAt={note.updated_at}
+          className="pr-0.5"
+        />
       </div>
       {collapsed ? null : (
         <div className="px-4 pb-2">
@@ -259,6 +263,7 @@ export function NoteCard({
         open={editing}
         title={title}
         scope={note.scope}
+        updatedAt={note.updated_at}
         kind={kind}
         content={content}
         saveStatus={saveStatus}

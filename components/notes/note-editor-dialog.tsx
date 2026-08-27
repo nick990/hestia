@@ -28,6 +28,7 @@ type NoteEditorDialogProps = {
   open: boolean;
   title: string;
   scope: NoteScope;
+  updatedAt: string;
   kind: NoteKind;
   content: NoteContent;
   saveStatus: SaveStatus;
@@ -49,6 +50,7 @@ export function NoteEditorDialog({
   open,
   title,
   scope,
+  updatedAt,
   kind,
   content,
   saveStatus,
@@ -118,7 +120,11 @@ export function NoteEditorDialog({
                 className="h-11 min-w-0 flex-1 border-transparent px-1 text-lg font-medium shadow-none focus-visible:border-transparent focus-visible:ring-0"
                 onChange={(event) => onTitleChange(event.target.value)}
               />
-              <NoteScopeLabel scope={scope} className="pt-3.5" />
+              <NoteScopeLabel
+                scope={scope}
+                updatedAt={updatedAt}
+                className="pt-2"
+              />
             </div>
             <div
               className={

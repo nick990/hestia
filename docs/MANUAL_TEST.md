@@ -165,7 +165,7 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 - [ ] **Scrivi una nota…** → composer espanso; **Chiudi** salva la nota (personale di default).
 - [ ] Composer: passa da testo a checklist; con famiglia scegli Personale o Famiglia; Esc chiude e salva solo se contiene testo.
 - [ ] Desktop: card in griglia masonry; mobile: una sola colonna; contenuti lunghi troncati in anteprima.
-- [ ] Ogni card e il dialog mostrano **Personale** o **Famiglia** in piccolo in alto a destra del titolo; dopo Condividi / Togli condivisione l’etichetta cambia.
+- [ ] Ogni card e il dialog mostrano **Personale** o **Famiglia** in piccolo in alto a destra del titolo, e sotto la data di ultima modifica (giorno e mese; anche l’anno se non è quest’anno); dopo Condividi / Togli condivisione l’etichetta cambia.
 - [ ] Click su titolo o corpo apre la nota: dialog alto su desktop (Chiudi o Esc); schermo intero su mobile (freccia indietro, niente Chiudi). All’apertura nessun focus sul titolo (tastiera chiusa); tap sul campo per scrivere. **Scrivi una nota…** continua a mettere il focus sul titolo.
 - [ ] Modifica titolo/corpo, reload mantiene.
 - [ ] Checklist: voci, spunte, X per eliminare la riga (hover/focus desktop, sempre visibile su touch), completate barrate e in fondo, conversione da/verso testo.
