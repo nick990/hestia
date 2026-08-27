@@ -10,6 +10,7 @@ import {
   withNoteCollapsed,
   withSectionCollapsed,
 } from "@/lib/notes/ui-prefs";
+import { cn } from "@/lib/utils";
 import { Share2Icon, UserRoundIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -19,6 +20,7 @@ type NotesPageProps = {
   notes: Note[];
   prefs: NoteUiPrefs;
   hasFamily: boolean;
+  hideTitle?: boolean;
 };
 
 export function NotesPage({
@@ -26,6 +28,7 @@ export function NotesPage({
   notes,
   prefs: initialPrefs,
   hasFamily,
+  hideTitle = false,
 }: NotesPageProps) {
   const [prefs, setPrefs] = useState(initialPrefs);
 
@@ -41,9 +44,16 @@ export function NotesPage({
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-4 py-6 sm:px-6 sm:py-8">
-      <h1 className="text-2xl font-semibold tracking-tight">Notes</h1>
-      <div className="mt-6">
+    <main
+      className={cn(
+        "mx-auto flex w-full max-w-6xl flex-1 flex-col px-4 py-6 sm:px-6 sm:py-8",
+        hideTitle && "py-4",
+      )}
+    >
+      {hideTitle ? null : (
+        <h1 className="text-2xl font-semibold tracking-tight">Notes</h1>
+      )}
+      <div className={hideTitle ? undefined : "mt-6"}>
         <NoteComposer hasFamily={hasFamily} />
       </div>
       <div className="mt-10 space-y-10">

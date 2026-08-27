@@ -21,6 +21,7 @@ import type { MovementCategoryOption } from "@/lib/categories/types";
 import type { Movement } from "@/lib/cashflow/types";
 import type { FamilyMemberOption } from "@/lib/families/types";
 import { formatMonthYearLabel } from "@/lib/cashflow/month";
+import { buildHomeHref } from "@/lib/home/tab";
 import { cn } from "@/lib/utils";
 import { ChevronLeftIcon, ChevronRightIcon, PlusIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -97,17 +98,22 @@ export function MobileHome({
 
   function shiftMonth(delta: number) {
     const next = shiftMonthRange(from, delta);
-    const params = new URLSearchParams({ from: next.from, to: next.to });
 
     startNavigation(() => {
       setVisibleMonthKey(next.from.slice(0, 7));
-      router.push(`/?${params.toString()}`);
+      router.push(
+        buildHomeHref({
+          tab: "cashflow",
+          from: next.from,
+          to: next.to,
+        }),
+      );
     });
   }
 
   return (
     <div
-      className="flex h-[calc(100dvh-3.5rem-1px)] flex-col gap-4 p-6 pb-24"
+      className="flex h-full min-h-0 flex-col gap-4 p-6 pb-24"
       aria-busy={navigating}
     >
       <header className="flex items-center justify-between gap-2">
