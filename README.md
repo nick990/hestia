@@ -41,4 +41,4 @@ Checklist in [docs/MANUAL_TEST.md](docs/MANUAL_TEST.md).
 
 ## Manuale d’uso
 
-Guida utente (movimenti, Notes e prossime sezioni): [docs/MANUAL.md](docs/MANUAL.md).
+Guida utente: [docs/manuale/index.md](docs/manuale/index.md).

@@ -1,0 +1,17 @@
+# Manuale Hestia
+
+Hestia serve a tenere traccia delle entrate e delle uscite di casa: le tue, quelle del partner o dei coinquilini, e quelle che condividete. Tiene anche **appunti** personali e di famiglia.
+
+Questo manuale spiega come usarla, senza dettagli da sviluppatori.
+
+## Sezioni
+
+- [Cashflow](cashflow.md) — entrate e uscite, personali o di famiglia
+- [Notes](notes.md) — appunti e checklist, personali o di famiglia
+
+## In arrivo
+
+- Filtri e totali
+- Famiglie
+- Categorie
+- Account e Impostazioni
