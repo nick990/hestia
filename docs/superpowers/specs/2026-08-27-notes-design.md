@@ -193,7 +193,7 @@ Empty state nella sezione aperta: «Nessuna nota personale» / «Nessuna nota di
 
 - Riga titolo: chevron + titolo (o «Senza titolo»). Il chevron controlla il collasso della card; titolo o corpo aprono la nota in un dialog.
 - Card in lettura: titolo e anteprima troncata a 8 righe di testo o 6 voci di checklist.
-- Dialog di modifica: overlay al centro, titolo + corpo completo (textarea o checklist) + azione Chiudi. Esc e click sull’overlay chiudono.
+- Dialog di modifica: su desktop overlay alto al centro con azione Chiudi; su mobile schermo intero con freccia indietro in alto a sinistra, senza Chiudi. Esc chiude. Click sull’overlay chiude solo su desktop.
 - Checklist: checkbox, testo riga, Invio crea voce sotto, Backspace su voce vuota la rimuove; la X a destra elimina la voce (hover/focus su desktop, sempre visibile su touch); le voci completate sono barrate e raccolte in fondo. Ogni spunta è un autosave. La posizione della nota non cambia.
 - Azioni a icona nel footer della nota: tipo testo/checklist, Condividi o Togli condivisione (solo creatore + famiglia esistente per condividere), Elimina. Sono visibili al hover/focus con puntatore e sempre visibili su touch. Condividi e Togli condivisione aprono un dialog di conferma; Annulla non cambia lo scope.
 - Condividi su nota famiglia di cui non sei creatore: non mostrare Togli condivisione.

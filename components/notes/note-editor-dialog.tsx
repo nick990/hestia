@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { noteDisplayTitle } from "@/lib/notes/permissions";
 import type { NoteContent, NoteKind } from "@/lib/notes/types";
 import {
+  ArrowLeftIcon,
   CheckIcon,
   LoaderCircleIcon,
   TriangleAlertIcon,
@@ -88,17 +89,30 @@ export function NoteEditorDialog({
     >
       <DialogContent
         showCloseButton={false}
-        className="max-h-[min(92vh,44rem)] w-full max-w-[calc(100%-2rem)] gap-0 overflow-hidden p-0 sm:max-w-xl"
+        className="flex inset-0 top-0 left-0 h-dvh max-h-none w-full max-w-none translate-x-0 translate-y-0 flex-col gap-0 overflow-hidden rounded-none p-0 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] sm:inset-auto sm:top-1/2 sm:left-1/2 sm:h-[min(88vh,56rem)] sm:w-full sm:max-w-xl sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-xl sm:pt-0 sm:pb-0"
       >
         <DialogTitle className="sr-only">
           Modifica {noteDisplayTitle(title)}
         </DialogTitle>
         <DialogDescription className="sr-only">
-          Modifica titolo e contenuto. Le modifiche si salvano da sole. Chiudi
-          o premi Esc per tornare alla bacheca.
+          Modifica titolo e contenuto. Le modifiche si salvano da sole. Su
+          telefono usa la freccia indietro. Su computer Chiudi o Esc tornano
+          alla bacheca.
         </DialogDescription>
-        <div className="flex max-h-[min(92vh,44rem)] flex-col">
-          <div className="min-h-0 flex-1 overflow-y-auto px-4 pt-3">
+        <div className="flex h-full min-h-0 flex-col">
+          <div className="flex items-center gap-1 px-2 pt-2 sm:hidden">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label="Torna alla bacheca"
+              onClick={() => onOpenChange(false)}
+            >
+              <ArrowLeftIcon />
+            </Button>
+            <SaveStatusLabel status={saveStatus} error={saveError} />
+          </div>
+          <div className="flex min-h-0 flex-1 flex-col px-4 pt-1 sm:pt-3">
             <label className="sr-only" htmlFor="note-editor-title">
               Titolo
             </label>
@@ -108,19 +122,27 @@ export function NoteEditorDialog({
               value={title}
               maxLength={200}
               placeholder="Titolo"
-              className="h-10 border-transparent px-1 text-base font-medium shadow-none focus-visible:border-transparent focus-visible:ring-0"
+              className="h-10 shrink-0 border-transparent px-1 text-base font-medium shadow-none focus-visible:border-transparent focus-visible:ring-0"
               onChange={(event) => onTitleChange(event.target.value)}
             />
-            <div className="mt-1 pb-3">
+            <div
+              className={
+                kind === "text"
+                  ? "mt-1 flex min-h-0 flex-1 flex-col pb-3"
+                  : "mt-1 min-h-0 flex-1 overflow-y-auto pb-3"
+              }
+            >
               {kind === "text" ? (
                 <NoteTextEditor
                   value={"body" in content ? content.body : ""}
-                  className="min-h-40 resize-none border-transparent px-1 shadow-none focus-visible:border-transparent focus-visible:ring-0"
+                  rows={1}
+                  className="h-full min-h-0 resize-none border-transparent px-1 shadow-none focus-visible:border-transparent focus-visible:ring-0"
                   onChange={(body) => onContentChange({ body })}
                 />
               ) : (
                 <NoteChecklistEditor
                   items={"items" in content ? content.items : []}
+                  className="h-full"
                   onChange={(items) => onContentChange({ items })}
                 />
               )}
@@ -137,7 +159,7 @@ export function NoteEditorDialog({
             onDelete={onDelete}
             className="border-t border-border/70 px-3 py-2"
           >
-            <div className="flex items-center gap-2">
+            <div className="hidden items-center gap-2 sm:flex">
               <SaveStatusLabel status={saveStatus} error={saveError} />
               <Button
                 type="button"

@@ -117,7 +117,7 @@ Non si condivide con una sola persona: o è tua, o è di tutta la famiglia.
 
 ### Aprire e chiudere
 
-Le note sono disposte come una bacheca, con un’anteprima del contenuto. Seleziona titolo o corpo per aprirle in un dialog e modificarle. Chiudi o Esc torna alla bacheca. Le sezioni Personali e Famiglia, e ogni nota, si possono comprimere. Chiusa, di una nota vedi solo il titolo. All’inizio è tutto aperto. Hestia ricorda le tue chiusure su telefono e computer.
+Le note sono disposte come una bacheca, con un’anteprima del contenuto. Seleziona titolo o corpo per aprirle e modificarle. Sul computer si apre un dialog alto; Chiudi o Esc torna alla bacheca. Sul telefono la nota occupa tutto lo schermo: la freccia in alto a sinistra chiude. Le sezioni Personali e Famiglia, e ogni nota, si possono comprimere. Chiusa, di una nota vedi solo il titolo. All’inizio è tutto aperto. Hestia ricorda le tue chiusure su telefono e computer.
 
 ### Chi può correggere o cancellare
 

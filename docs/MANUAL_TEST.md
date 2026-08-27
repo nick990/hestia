@@ -165,7 +165,7 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 - [ ] **Scrivi una nota…** → composer espanso; **Chiudi** salva la nota come personale.
 - [ ] Composer: passa da testo a checklist; Esc chiude e salva solo se contiene testo.
 - [ ] Desktop: card in griglia masonry; mobile: una sola colonna; contenuti lunghi troncati in anteprima.
-- [ ] Click su titolo o corpo apre la nota in dialog; Chiudi o Esc torna alla bacheca; overlay chiude.
+- [ ] Click su titolo o corpo apre la nota: dialog alto su desktop (Chiudi o Esc); schermo intero su mobile (freccia indietro, niente Chiudi).
 - [ ] Modifica titolo/corpo, reload mantiene.
 - [ ] Checklist: voci, spunte, X per eliminare la riga (hover/focus desktop, sempre visibile su touch), completate barrate e in fondo, conversione da/verso testo.
 - [ ] Azioni card visibili al hover/focus e sempre raggiungibili su touch.
