@@ -223,7 +223,7 @@ export function NoteCard({
         </Button>
         <button
           type="button"
-          className="min-w-0 flex-1 break-words px-1 py-2 text-left text-base font-medium leading-5 outline-none focus-visible:rounded-md focus-visible:ring-3 focus-visible:ring-ring/50"
+          className="min-w-0 flex-1 break-words px-1 py-2 text-left text-lg font-medium leading-6 outline-none focus-visible:rounded-md focus-visible:ring-3 focus-visible:ring-ring/50"
           onClick={() => setEditing(true)}
         >
           {noteDisplayTitle(title)}

@@ -122,7 +122,7 @@ export function NoteEditorDialog({
               value={title}
               maxLength={200}
               placeholder="Titolo"
-              className="h-10 shrink-0 border-transparent px-1 text-base font-medium shadow-none focus-visible:border-transparent focus-visible:ring-0"
+              className="h-11 shrink-0 border-transparent px-1 text-lg font-medium shadow-none focus-visible:border-transparent focus-visible:ring-0"
               onChange={(event) => onTitleChange(event.target.value)}
             />
             <div

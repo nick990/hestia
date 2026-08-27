@@ -92,7 +92,7 @@ export function NoteComposer() {
         value={title}
         maxLength={200}
         placeholder="Titolo"
-        className="h-10 border-transparent px-1 text-base font-medium shadow-none focus-visible:border-transparent focus-visible:ring-0"
+        className="h-11 border-transparent px-1 text-lg font-medium shadow-none focus-visible:border-transparent focus-visible:ring-0"
         onChange={(event) => setTitle(event.target.value)}
       />
       <div className="mt-1">
