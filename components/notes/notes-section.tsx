@@ -2,11 +2,12 @@
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { ChevronDownIcon } from "lucide-react";
+import { ChevronDownIcon, type LucideIcon } from "lucide-react";
 import { useId, type ReactNode } from "react";
 
 type NotesSectionProps = {
   title: string;
+  icon: LucideIcon;
   count: number;
   collapsed: boolean;
   onToggle: () => void;
@@ -16,6 +17,7 @@ type NotesSectionProps = {
 
 export function NotesSection({
   title,
+  icon: Icon,
   count,
   collapsed,
   onToggle,
@@ -40,6 +42,7 @@ export function NotesSection({
             collapsed && "-rotate-90",
           )}
         />
+        <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
         <span className="text-base font-semibold">{title}</span>
         <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
           {count}

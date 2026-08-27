@@ -7,25 +7,31 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { contentForKind } from "@/lib/notes/content";
 import { hasNoteContent } from "@/lib/notes/presentation";
-import type { NoteContent, NoteKind } from "@/lib/notes/types";
+import type { NoteContent, NoteKind, NoteScope } from "@/lib/notes/types";
 import { cn } from "@/lib/utils";
-import { ListChecksIcon, TextIcon } from "lucide-react";
+import { ListChecksIcon, Share2Icon, TextIcon, UserRoundIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 
-export function NoteComposer() {
+type NoteComposerProps = {
+  hasFamily: boolean;
+};
+
+export function NoteComposer({ hasFamily }: NoteComposerProps) {
   const router = useRouter();
   const titleRef = useRef<HTMLInputElement>(null);
   const [expanded, setExpanded] = useState(false);
   const [title, setTitle] = useState("");
   const [kind, setKind] = useState<NoteKind>("text");
+  const [scope, setScope] = useState<NoteScope>("personal");
   const [content, setContent] = useState<NoteContent>({ body: "" });
   const [pending, setPending] = useState(false);
 
   function reset() {
     setTitle("");
     setKind("text");
+    setScope("personal");
     setContent({ body: "" });
     setExpanded(false);
   }
@@ -42,7 +48,7 @@ export function NoteComposer() {
     }
 
     setPending(true);
-    const result = await createNote({ title, kind, content });
+    const result = await createNote({ title, kind, content, scope });
     setPending(false);
 
     if (!result.ok) {
@@ -134,6 +140,32 @@ export function NoteComposer() {
           >
             <ListChecksIcon />
           </Button>
+          {hasFamily ? (
+            <>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className={cn(scope === "personal" && "bg-muted text-foreground")}
+                aria-label="Nota personale"
+                title="Personale"
+                onClick={() => setScope("personal")}
+              >
+                <UserRoundIcon />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className={cn(scope === "family" && "bg-muted text-foreground")}
+                aria-label="Nota di famiglia"
+                title="Famiglia"
+                onClick={() => setScope("family")}
+              >
+                <Share2Icon />
+              </Button>
+            </>
+          ) : null}
         </div>
         <Button type="submit" variant="ghost" disabled={pending}>
           {pending ? "Salvataggio…" : "Chiudi"}

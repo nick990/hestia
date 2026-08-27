@@ -28,9 +28,30 @@ export function canShowUnshare(
   return canChangeNoteScope(currentUserId, note) && note.scope === "family";
 }
 
+export function resolveCreateScope(
+  requested: NoteScope | undefined,
+  hasFamily: boolean,
+): { scope: NoteScope } | { error: string } {
+  const scope = requested ?? "personal";
+
+  if (scope !== "personal" && scope !== "family") {
+    return { error: "Ambito nota non valido." };
+  }
+
+  if (scope === "family" && !hasFamily) {
+    return { error: "Serve una famiglia per creare una nota condivisa." };
+  }
+
+  return { scope };
+}
+
 export function noteDisplayTitle(title: string): string {
   const trimmed = title.trim();
   return trimmed === "" ? "Senza titolo" : title;
+}
+
+export function noteScopeLabel(scope: NoteScope): string {
+  return scope === "family" ? "Famiglia" : "Personale";
 }
 
 export type NoteShareAction = "share" | "unshare";

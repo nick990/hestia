@@ -22,14 +22,15 @@ Aggiungere la sezione **Notes** accanto a Cashflow: note con titolo e corpo, tes
 | R7 | Contenuto (titolo, corpo, tipo, spunte) ed elimina: personali → solo il creatore; famiglia → **qualsiasi membro** (come i movimenti di famiglia) |
 | R8 | Cambio `scope` (condividi / togli): **solo il creatore**. Senza famiglia: azione Condividi assente |
 | R9 | Lista in due sezioni: **Personali**, poi **Famiglia**. Senza famiglia: solo Personali |
-| R10 | Sezioni collassabili (intestazione: chevron, nome, conteggio). Note collassabili: chiuse = solo titolo |
+| R10 | Sezioni collassabili (intestazione: chevron, icona visibilità, nome, conteggio). Note collassabili: chiuse = titolo + etichetta Personale/Famiglia in alto a destra |
 | R11 | Default sezioni e note **aperte**. Persistenza per utente sul server (stesso stato telefono/desktop) |
-| R12 | Nuova nota sempre **personale**, testo vuoto; si condivide dopo se serve |
+| R12 | Nuova nota: default **personale**; con famiglia si può creare già **family**. Testo o checklist |
 | R13 | Edit **inline** quando la nota è aperta; autosave con debounce; dialog solo per conferma elimina |
 | R14 | Conversione tipo in qualsiasi momento: testo → checklist (una voce per riga); checklist → testo (voci come righe) |
 | R15 | Ordine in ciascuna sezione: `created_at` desc (più recenti in cima); modificare una nota **non** la sposta |
 | R16 | Titolo vuoto ammesso; in UI si mostra «Senza titolo» |
 | R17 | Home mobile invariata (Cashflow/riepilogo); Notes non entra in home in v1 |
+| R18 | Ogni nota mostra testo piccolo **Personale** o **Famiglia** in alto a destra del titolo (card e dialog) |
 
 ## Fuori scope (v1)
 
@@ -177,7 +178,7 @@ Nessuna sotto-route in v1 (niente `/notes/[id]`): tutto sulla lista.
 ### Pagina
 
 - Titolo pagina «Notes».
-- Composer **Scrivi una nota…** centrato in cima. Al click si espande inline con titolo, corpo, scelta testo/checklist e azione Chiudi.
+- Composer **Scrivi una nota…** centrato in cima. Al click si espande inline con titolo, corpo, scelta testo/checklist, Personale/Famiglia se c’è una famiglia, e azione Chiudi.
 - Sezione **Personali** (sempre).
 - Sezione **Famiglia** solo se `current_user_family_id()` è valorizzato.
 
@@ -219,7 +220,7 @@ Pattern come Cashflow: Server Actions + query `lib/notes/`, componenti `componen
 | Action | Comportamento |
 |--------|----------------|
 | `listNotes` | Personali dell’utente + family della famiglia; join prefs |
-| `createNote` | Crea la bozza compilata dal composer come `scope=personal`; default testo |
+| `createNote` | Crea la bozza compilata dal composer; `scope` personale o famiglia se richiesto e consentito; default testo |
 | `updateNoteContent` | title, kind, content; bump `updated_at` |
 | `shareNote` / `unshareNote` | solo creatore; share richiede famiglia |
 | `deleteNote` | come RLS |

@@ -2,6 +2,7 @@
 
 import { NoteActionBar } from "@/components/notes/note-action-bar";
 import { NoteChecklistEditor } from "@/components/notes/note-checklist-editor";
+import { NoteScopeLabel } from "@/components/notes/note-scope-label";
 import { NoteTextEditor } from "@/components/notes/note-text-editor";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,7 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { noteDisplayTitle } from "@/lib/notes/permissions";
-import type { NoteContent, NoteKind } from "@/lib/notes/types";
+import type { NoteContent, NoteKind, NoteScope } from "@/lib/notes/types";
 import {
   ArrowLeftIcon,
   CheckIcon,
@@ -26,6 +27,7 @@ type SaveStatus = "idle" | "saving" | "saved" | "error";
 type NoteEditorDialogProps = {
   open: boolean;
   title: string;
+  scope: NoteScope;
   kind: NoteKind;
   content: NoteContent;
   saveStatus: SaveStatus;
@@ -46,6 +48,7 @@ type NoteEditorDialogProps = {
 export function NoteEditorDialog({
   open,
   title,
+  scope,
   kind,
   content,
   saveStatus,
@@ -113,18 +116,21 @@ export function NoteEditorDialog({
             <SaveStatusLabel status={saveStatus} error={saveError} />
           </div>
           <div className="flex min-h-0 flex-1 flex-col px-4 pt-1 sm:pt-3">
-            <label className="sr-only" htmlFor="note-editor-title">
-              Titolo
-            </label>
-            <Input
-              ref={titleRef}
-              id="note-editor-title"
-              value={title}
-              maxLength={200}
-              placeholder="Titolo"
-              className="h-11 shrink-0 border-transparent px-1 text-lg font-medium shadow-none focus-visible:border-transparent focus-visible:ring-0"
-              onChange={(event) => onTitleChange(event.target.value)}
-            />
+            <div className="flex items-start gap-2">
+              <label className="sr-only" htmlFor="note-editor-title">
+                Titolo
+              </label>
+              <Input
+                ref={titleRef}
+                id="note-editor-title"
+                value={title}
+                maxLength={200}
+                placeholder="Titolo"
+                className="h-11 min-w-0 flex-1 border-transparent px-1 text-lg font-medium shadow-none focus-visible:border-transparent focus-visible:ring-0"
+                onChange={(event) => onTitleChange(event.target.value)}
+              />
+              <NoteScopeLabel scope={scope} className="pt-3.5" />
+            </div>
             <div
               className={
                 kind === "text"

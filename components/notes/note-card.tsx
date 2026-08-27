@@ -9,6 +9,7 @@ import {
 import { DeleteNoteDialog } from "@/components/notes/delete-note-dialog";
 import { NoteActionBar } from "@/components/notes/note-action-bar";
 import { NoteEditorDialog } from "@/components/notes/note-editor-dialog";
+import { NoteScopeLabel } from "@/components/notes/note-scope-label";
 import { ShareNoteDialog } from "@/components/notes/share-note-dialog";
 import { Button } from "@/components/ui/button";
 import { contentForKind } from "@/lib/notes/content";
@@ -228,6 +229,7 @@ export function NoteCard({
         >
           {noteDisplayTitle(title)}
         </button>
+        <NoteScopeLabel scope={note.scope} className="pt-2.5 pr-0.5" />
       </div>
       {collapsed ? null : (
         <div className="px-4 pb-2">
@@ -256,6 +258,7 @@ export function NoteCard({
       <NoteEditorDialog
         open={editing}
         title={title}
+        scope={note.scope}
         kind={kind}
         content={content}
         saveStatus={saveStatus}

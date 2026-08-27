@@ -2,8 +2,13 @@
 
 import { getCurrentUserFamily } from "@/lib/families/queries";
 import { contentForKind, normalizeChecklistItems } from "@/lib/notes/content";
-import { canChangeNoteScope } from "@/lib/notes/permissions";
-import type { NoteContent, NoteKind, NoteUiPrefs } from "@/lib/notes/types";
+import { canChangeNoteScope, resolveCreateScope } from "@/lib/notes/permissions";
+import type {
+  NoteContent,
+  NoteKind,
+  NoteScope,
+  NoteUiPrefs,
+} from "@/lib/notes/types";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
@@ -12,6 +17,7 @@ export type CreateNoteInput = {
   title: string;
   kind: NoteKind;
   content: NoteContent;
+  scope?: NoteScope;
 };
 
 function revalidateNotes() {
@@ -49,12 +55,19 @@ export async function createNote(
     return { ok: false, error: "Il titolo è troppo lungo." };
   }
 
+  const family = await getCurrentUserFamily();
+  const resolved = resolveCreateScope(input?.scope, family !== null);
+
+  if ("error" in resolved) {
+    return { ok: false, error: resolved.error };
+  }
+
   const { data, error: insertError } = await supabase
     .from("notes")
     .insert({
       user_id: user.id,
-      scope: "personal",
-      family_id: null,
+      scope: resolved.scope,
+      family_id: resolved.scope === "family" ? family?.family_id ?? null : null,
       title,
       kind,
       content: payloadForKind(kind, content),

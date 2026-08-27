@@ -10,6 +10,7 @@ import {
   withNoteCollapsed,
   withSectionCollapsed,
 } from "@/lib/notes/ui-prefs";
+import { Share2Icon, UserRoundIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -43,11 +44,12 @@ export function NotesPage({
     <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-4 py-6 sm:px-6 sm:py-8">
       <h1 className="text-2xl font-semibold tracking-tight">Notes</h1>
       <div className="mt-6">
-        <NoteComposer />
+        <NoteComposer hasFamily={hasFamily} />
       </div>
       <div className="mt-10 space-y-10">
         <NotesSection
           title="Personali"
+          icon={UserRoundIcon}
           count={personal.length}
           collapsed={prefs.personal_section_collapsed}
           onToggle={() =>
@@ -77,6 +79,7 @@ export function NotesPage({
         {hasFamily ? (
           <NotesSection
             title="Famiglia"
+            icon={Share2Icon}
             count={family.length}
             collapsed={prefs.family_section_collapsed}
             onToggle={() =>
@@ -88,7 +91,7 @@ export function NotesPage({
                 ),
               )
             }
-            emptyLabel="Le note condivise con casa compariranno qui. Crea una nota personale e condividila dalla sua barra delle azioni."
+            emptyLabel="Le note condivise con casa compariranno qui. Dal composer scegli Famiglia, oppure condividi una nota già creata."
           >
             {family.map((note) => (
               <NoteCard

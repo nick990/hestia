@@ -105,7 +105,7 @@ Se non fai parte di una famiglia nell’app, hai solo le note personali: non com
 
 ### Come crearne una
 
-Dal riquadro **Scrivi una nota…** in cima alla pagina. Si apre direttamente: puoi aggiungere titolo e corpo oppure passare alla checklist. Quando premi **Chiudi**, la nota viene salvata come personale. Se serve a tutta casa, la **condividi** dopo.
+Dal riquadro **Scrivi una nota…** in cima alla pagina. Si apre direttamente: puoi aggiungere titolo e corpo oppure passare alla checklist. Se fai parte di una famiglia, scegli **Personale** o **Famiglia** prima di chiudere. Quando premi **Chiudi**, la nota viene salvata. Puoi anche cambiarne l’ambito dopo, con **Condividi** o **Togli condivisione**.
 
 Puoi cambiare tipo in qualsiasi momento: da testo a checklist (una voce per riga) e viceversa. Le spunte si perdono se torni al testo. In checklist, la **X** a destra della riga elimina quella voce.
 
@@ -117,7 +117,7 @@ Non si condivide con una sola persona: o è tua, o è di tutta la famiglia.
 
 ### Aprire e chiudere
 
-Le note sono disposte come una bacheca, con un’anteprima del contenuto. Seleziona titolo o corpo per aprirle e modificarle. Sul computer si apre un dialog alto; Chiudi o Esc torna alla bacheca. Sul telefono la nota occupa tutto lo schermo: la freccia in alto a sinistra chiude. Le sezioni Personali e Famiglia, e ogni nota, si possono comprimere. Chiusa, di una nota vedi solo il titolo. All’inizio è tutto aperto. Hestia ricorda le tue chiusure su telefono e computer.
+Le note sono disposte come una bacheca, con un’anteprima del contenuto. In alto a destra del titolo c’è **Personale** o **Famiglia**. Seleziona titolo o corpo per aprirle e modificarle. Sul computer si apre un dialog alto; Chiudi o Esc torna alla bacheca. Sul telefono la nota occupa tutto lo schermo: la freccia in alto a sinistra chiude. Le sezioni Personali e Famiglia, e ogni nota, si possono comprimere. Chiusa, di una nota vedi il titolo e l’ambito. All’inizio è tutto aperto. Hestia ricorda le tue chiusure su telefono e computer.
 
 ### Chi può correggere o cancellare
 

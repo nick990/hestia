@@ -4,7 +4,9 @@ import {
   canShowShare,
   canShowUnshare,
   noteDisplayTitle,
+  noteScopeLabel,
   noteShareDialogCopy,
+  resolveCreateScope,
 } from "@/lib/notes/permissions";
 
 const note = { user_id: "creator", scope: "personal" as const };
@@ -44,6 +46,27 @@ describe("noteDisplayTitle", () => {
     expect(noteDisplayTitle("")).toBe("Senza titolo");
     expect(noteDisplayTitle("  ")).toBe("Senza titolo");
     expect(noteDisplayTitle("Spesa")).toBe("Spesa");
+  });
+});
+
+describe("noteScopeLabel", () => {
+  it("etichetta Personale o Famiglia", () => {
+    expect(noteScopeLabel("personal")).toBe("Personale");
+    expect(noteScopeLabel("family")).toBe("Famiglia");
+  });
+});
+
+describe("resolveCreateScope", () => {
+  it("defaults to personal", () => {
+    expect(resolveCreateScope(undefined, true)).toEqual({ scope: "personal" });
+    expect(resolveCreateScope(undefined, false)).toEqual({ scope: "personal" });
+  });
+
+  it("allows family only when the user has a family", () => {
+    expect(resolveCreateScope("family", true)).toEqual({ scope: "family" });
+    expect(resolveCreateScope("family", false)).toEqual({
+      error: "Serve una famiglia per creare una nota condivisa.",
+    });
   });
 });
 
