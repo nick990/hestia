@@ -69,4 +69,4 @@ Non gestisce ancora movimenti che si ripetono ogni mese, allegati o altre valute
 ## Dove li trovi
 
 - Sul **computer**, di solito apri la pagina Cashflow: lista completa, totali, mesi e grafico.
-- Sul **telefono**, la schermata iniziale mostra il mese in corso, i totali, i filtri e gli ultimi movimenti, con il + per aggiungerne uno in fretta.
+- Sul **telefono**, la schermata iniziale apre il tab Cashflow: mese in corso, totali, filtri e ultimi movimenti, con il + per aggiungerne uno. Il tab Notes è accanto. Dal menu, **Cashflow** apre la lista completa.

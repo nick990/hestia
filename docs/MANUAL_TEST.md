@@ -174,7 +174,15 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 - [ ] Condividi: Annulla non cambia scope; conferma sposta in Famiglia per il partner; il partner modifica e elimina.
 - [ ] Partner non vede Togli condivisione su nota altrui; creatore toglie con conferma → torna solo al creatore.
 - [ ] Elimina: Annulla non cancella; conferma sì.
-- [ ] Home `/` invariata (niente Notes).
+
+## Home mobile (tab)
+
+- [ ] Telefono: `/` mostra riga tab Cashflow (terracotta) e Notes (umber) sotto l’header; Cashflow è selezionato.
+- [ ] Tab Notes → bacheca note, senza h1 «Notes»; Indietro torna a Cashflow; refresh su `/?tab=notes` resta su Notes.
+- [ ] Su Notes, `from`/`to` restano in URL; tornare a Cashflow mostra lo stesso mese.
+- [ ] Cambio mese sul tab Cashflow non perde la lista; FAB + solo su Cashflow.
+- [ ] Menu → Notes apre `/notes` **senza** riga tab; menu → Cashflow apre `/cashflow` completa.
+- [ ] Desktop: `/` reindirizza a `/cashflow`; nessuna riga tab.
 
 ## Callback
 

@@ -4,6 +4,8 @@
 
 Una nota è un appunto di casa: un **titolo** e un **corpo**, come testo libero oppure come **checklist** da spuntare.
 
+Sul telefono le trovi anche dal tab **Notes** della schermata iniziale. Dal menu, **Notes** apre la stessa bacheca a pagina intera, senza i tab.
+
 ## Personali o di famiglia
 
 - **Personali** — le vedi e le modifichi solo tu.
