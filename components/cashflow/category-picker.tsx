@@ -20,6 +20,7 @@ import {
   filterCategoryGroups,
   selectedGroupRoot,
   showNoneOption,
+  type CategoryChildRow,
   type CategoryGroup,
 } from "@/lib/categories/tree";
 import type { MovementCategoryOption } from "@/lib/categories/types";
@@ -30,12 +31,30 @@ import { useMemo, useState } from "react";
 const triggerClassName =
   "flex h-8 w-full items-center justify-between gap-1.5 rounded-lg border border-input bg-transparent py-2 pr-2 pl-2.5 text-sm whitespace-nowrap transition-colors outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30 dark:hover:bg-input/50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4";
 
+const panelCollisionAvoidance = {
+  side: "none",
+  align: "none",
+  fallbackAxisSide: "none",
+} as const;
+
 type CategoryPickerProps = {
   id?: string;
   categories: MovementCategoryOption[];
   value: string;
   onChange: (value: string) => void;
 };
+
+type VisibleRow =
+  | { key: string; kind: "none" }
+  | {
+      key: string;
+      kind: "group";
+      group: CategoryGroup;
+      expandable: boolean;
+      open: boolean;
+    }
+  | { key: string; kind: "child"; child: CategoryChildRow }
+  | { key: string; kind: "empty" };
 
 export function CategoryPicker({
   id,
@@ -146,7 +165,8 @@ export function CategoryPicker({
         <PopoverTrigger render={trigger}>{triggerLabel}</PopoverTrigger>
         <PopoverContent
           align="start"
-          className="w-80 max-w-[calc(100vw-2rem)] p-2"
+          collisionAvoidance={panelCollisionAvoidance}
+          className="h-72 w-80 max-w-[calc(100vw-2rem)] gap-0 p-1.5"
         >
           {panel}
         </PopoverContent>
@@ -160,15 +180,57 @@ export function CategoryPicker({
       <SheetContent
         side="bottom"
         initialFocus={false}
-        className="z-60 max-h-[70dvh] gap-0"
+        className="z-60 h-[min(28rem,70dvh)] gap-0 data-[side=bottom]:h-[min(28rem,70dvh)]"
       >
-        <SheetHeader className="pb-2">
+        <SheetHeader className="px-3 py-2">
           <SheetTitle>Categoria</SheetTitle>
         </SheetHeader>
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">{panel}</div>
+        <div className="min-h-0 flex-1 px-3 pb-3">{panel}</div>
       </SheetContent>
     </Sheet>
   );
+}
+
+function buildVisibleRows(
+  noneVisible: boolean,
+  visibleGroups: CategoryGroup[],
+  isSearching: boolean,
+  expanded: Set<string>,
+  empty: boolean,
+): VisibleRow[] {
+  const rows: VisibleRow[] = [];
+
+  if (noneVisible) {
+    rows.push({ key: "none", kind: "none" });
+  }
+
+  for (const group of visibleGroups) {
+    const expandable = group.children.length > 0;
+    const open = expandable && (isSearching || expanded.has(group.root));
+    rows.push({
+      key: `group-${group.root}`,
+      kind: "group",
+      group,
+      expandable,
+      open,
+    });
+
+    if (open) {
+      for (const child of group.children) {
+        rows.push({
+          key: `child-${child.id}`,
+          kind: "child",
+          child,
+        });
+      }
+    }
+  }
+
+  if (empty) {
+    rows.push({ key: "empty", kind: "empty" });
+  }
+
+  return rows;
 }
 
 function CategoryPickerPanel({
@@ -196,44 +258,84 @@ function CategoryPickerPanel({
   onSelect: (value: string) => void;
   onToggleGroup: (root: string) => void;
 }) {
+  const rows = buildVisibleRows(
+    noneVisible,
+    visibleGroups,
+    isSearching,
+    expanded,
+    empty,
+  );
+
   return (
-    <div className="space-y-2">
+    <div className="flex h-full min-h-0 flex-col gap-1.5">
       <Input
         value={query}
         onChange={(event) => onQueryChange(event.target.value)}
         placeholder="Cerca categoria"
         autoFocus={autoFocusSearch}
         autoComplete="off"
+        className="h-7 shrink-0"
       />
-      <div className="flex flex-col gap-0.5">
-        {noneVisible ? (
-          <button
-            type="button"
-            onClick={() => onSelect("none")}
-            className={rowClass(value === "none")}
-          >
-            Nessuna
-          </button>
-        ) : null}
-        {visibleGroups.map((group) => {
-          const open = isSearching || expanded.has(group.root);
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        {rows.map((row, index) => {
+          if (row.kind === "empty") {
+            return (
+              <p
+                key={row.key}
+                className="px-2 py-1.5 text-sm text-muted-foreground"
+              >
+                Nessuna categoria trovata
+              </p>
+            );
+          }
+
+          if (row.kind === "none") {
+            return (
+              <button
+                key={row.key}
+                type="button"
+                onClick={() => onSelect("none")}
+                className={rowClass(value === "none", index)}
+              >
+                Nessuna
+              </button>
+            );
+          }
+
+          if (row.kind === "child") {
+            return (
+              <button
+                key={row.key}
+                type="button"
+                onClick={() => onSelect(row.child.id)}
+                className={cn(rowClass(value === row.child.id, index), "pl-5")}
+              >
+                {row.child.label}
+              </button>
+            );
+          }
+
+          const { group, expandable, open } = row;
           const rootCategory = group.rootCategory;
+          const selected = rootCategory ? value === rootCategory.id : false;
+
           return (
-            <div key={group.root}>
-              <div className="flex items-center">
-                {rootCategory ? (
-                  <button
-                    type="button"
-                    onClick={() => onSelect(rootCategory.id)}
-                    className={cn(rowClass(value === rootCategory.id), "flex-1")}
-                  >
-                    {group.root}
-                  </button>
-                ) : (
-                  <span className={cn(rowClass(false), "flex-1")}>
-                    {group.root}
-                  </span>
-                )}
+            <div
+              key={row.key}
+              className={cn(rowClass(selected, index), "flex items-center")}
+            >
+              {rootCategory ? (
+                <button
+                  type="button"
+                  onClick={() => onSelect(rootCategory.id)}
+                  className="min-w-0 flex-1 truncate py-0 text-left"
+                >
+                  {group.root}
+                </button>
+              ) : (
+                <span className="min-w-0 flex-1 truncate">{group.root}</span>
+              )}
+              {expandable ? (
                 <button
                   type="button"
                   aria-expanded={open}
@@ -241,43 +343,29 @@ function CategoryPickerPanel({
                     open ? `Chiudi ${group.root}` : `Apri ${group.root}`
                   }
                   onClick={() => onToggleGroup(group.root)}
-                  className="flex size-11 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted"
+                  className="flex size-7 shrink-0 items-center justify-center text-muted-foreground"
                 >
                   {open ? (
-                    <ChevronDownIcon className="size-4" />
+                    <ChevronDownIcon className="size-3.5" />
                   ) : (
-                    <ChevronRightIcon className="size-4" />
+                    <ChevronRightIcon className="size-3.5" />
                   )}
                 </button>
-              </div>
-              {open
-                ? group.children.map((child) => (
-                    <button
-                      key={child.id}
-                      type="button"
-                      onClick={() => onSelect(child.id)}
-                      className={cn(rowClass(value === child.id), "pl-6")}
-                    >
-                      {child.label}
-                    </button>
-                  ))
-                : null}
+              ) : null}
             </div>
           );
         })}
-        {empty ? (
-          <p className="px-1.5 py-2 text-sm text-muted-foreground">
-            Nessuna categoria trovata
-          </p>
-        ) : null}
       </div>
     </div>
   );
 }
 
-function rowClass(selected: boolean) {
+function rowClass(selected: boolean, index: number) {
   return cn(
-    "w-full rounded-md px-1.5 py-2 text-left text-sm",
-    selected ? "bg-accent text-accent-foreground" : "hover:bg-muted",
+    "w-full px-2 py-1 text-left text-sm",
+    index % 2 === 1 && !selected && "bg-muted/40",
+    selected
+      ? "bg-accent text-accent-foreground"
+      : "hover:bg-muted/70",
   );
 }

@@ -20,8 +20,8 @@ export default async function CategoriesSettingsPage() {
         <CardTitle>Categorie</CardTitle>
         <CardDescription>
           {canEdit
-            ? "Gestisci le categorie usate nei movimenti."
-            : "Elenco categorie disponibili per i movimenti."}
+            ? "Gestisci le categorie usate nei movimenti. I nomi col punto si raggruppano al primo livello."
+            : "Elenco categorie disponibili per i movimenti. I nomi col punto si raggruppano al primo livello."}
         </CardDescription>
       </CardHeader>
       <CardContent>

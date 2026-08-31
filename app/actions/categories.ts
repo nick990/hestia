@@ -1,6 +1,7 @@
 "use server";
 
 import { requireAdmin } from "@/lib/auth/member";
+import { planPrefixRename } from "@/lib/categories/rename";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
 
@@ -49,6 +50,40 @@ export async function createCategory(name: string): Promise<ActionResult> {
   return { ok: true };
 }
 
+async function applyPrefixRename(
+  fromPrefix: string,
+  toPrefix: string,
+): Promise<ActionResult> {
+  const admin = createAdminClient();
+  const { data, error: listError } = await admin
+    .from("movement_categories")
+    .select("id, name");
+
+  if (listError) {
+    return { ok: false, error: listError.message };
+  }
+
+  const plan = planPrefixRename(data ?? [], fromPrefix, toPrefix);
+
+  if (!plan.ok) {
+    return plan;
+  }
+
+  for (const update of plan.updates) {
+    const { error } = await admin
+      .from("movement_categories")
+      .update({ name: update.name })
+      .eq("id", update.id);
+
+    if (error) {
+      return { ok: false, error: mapDuplicateNameError(error) };
+    }
+  }
+
+  revalidateCategoryPaths();
+  return { ok: true };
+}
+
 export async function updateCategory(
   id: string,
   name: string,
@@ -62,17 +97,36 @@ export async function updateCategory(
   }
 
   const admin = createAdminClient();
-  const { error } = await admin
+  const { data: current, error: currentError } = await admin
     .from("movement_categories")
-    .update({ name: parsed })
-    .eq("id", id);
+    .select("name")
+    .eq("id", id)
+    .maybeSingle();
 
-  if (error) {
-    return { ok: false, error: mapDuplicateNameError(error) };
+  if (currentError) {
+    return { ok: false, error: currentError.message };
   }
 
-  revalidateCategoryPaths();
-  return { ok: true };
+  if (!current) {
+    return { ok: false, error: "Categoria non trovata." };
+  }
+
+  return applyPrefixRename(current.name, parsed);
+}
+
+export async function renameCategoryPrefix(
+  fromPrefix: string,
+  toPrefix: string,
+): Promise<ActionResult> {
+  await requireAdmin();
+
+  const parsed = parseName(toPrefix);
+
+  if (!parsed) {
+    return { ok: false, error: "Nome non valido." };
+  }
+
+  return applyPrefixRename(fromPrefix, parsed);
 }
 
 export async function deleteCategory(

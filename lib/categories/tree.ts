@@ -1,4 +1,7 @@
-import type { MovementCategoryOption } from "@/lib/categories/types";
+import type {
+  MovementCategory,
+  MovementCategoryOption,
+} from "@/lib/categories/types";
 
 export type CategoryChildRow = {
   id: string;
@@ -124,4 +127,69 @@ export function selectedGroupRoot(
 
   const found = categories.find((category) => category.id === categoryId);
   return found ? firstSegment(found.name) : null;
+}
+
+export type SettingsCategoryRow =
+  | {
+      kind: "group";
+      root: string;
+      label: string;
+      category: MovementCategory | null;
+      expandable: boolean;
+      open: boolean;
+    }
+  | {
+      kind: "child";
+      label: string;
+      category: MovementCategory;
+    };
+
+export function buildSettingsCategoryRows(
+  categories: MovementCategory[],
+  expanded: ReadonlySet<string>,
+  query: string,
+): SettingsCategoryRow[] {
+  const byId = new Map(
+    categories.map((category) => [category.id, category]),
+  );
+  const groups = filterCategoryGroups(
+    buildCategoryGroups(categories),
+    query,
+  );
+  const isSearching = query.trim().length > 0;
+  const rows: SettingsCategoryRow[] = [];
+
+  for (const group of groups) {
+    const expandable = group.children.length > 0;
+    const open = expandable && (isSearching || expanded.has(group.root));
+    rows.push({
+      kind: "group",
+      root: group.root,
+      label: group.root,
+      category: group.rootCategory
+        ? (byId.get(group.rootCategory.id) ?? null)
+        : null,
+      expandable,
+      open,
+    });
+
+    if (!open) {
+      continue;
+    }
+
+    for (const child of group.children) {
+      const category = byId.get(child.id);
+      if (!category) {
+        continue;
+      }
+
+      rows.push({
+        kind: "child",
+        label: child.label,
+        category,
+      });
+    }
+  }
+
+  return rows;
 }

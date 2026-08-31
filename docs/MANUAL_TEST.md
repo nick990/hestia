@@ -159,6 +159,10 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 
 ## Categorie (Impostazioni)
 
+- [ ] Lista a primi livelli collassati, alfabetica; freccia solo se ci sono figli; etichette relative sotto il gruppo.
+- [ ] Gruppo senza categoria-radice: si può modificare il prefisso (es. monade → lavoro.monade) e i figli si spostano sotto.
+- [ ] Rinomina di una radice esistente (casa → lavoro.casa) rinomina anche casa.mutuo e gli altri discendenti.
+- [ ] Cerca filtra i rami come nel form movimento.
 - [ ] Admin crea/modifica categoria.
 - [ ] User vede lista categorie senza pulsanti modifica.
 - [ ] Elimina categoria senza movimenti → OK.

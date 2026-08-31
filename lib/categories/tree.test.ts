@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
-import type { MovementCategoryOption } from "@/lib/categories/types";
+import type {
+  MovementCategory,
+  MovementCategoryOption,
+} from "@/lib/categories/types";
 import {
   buildCategoryGroups,
+  buildSettingsCategoryRows,
   categoryTriggerLabel,
   compareItalian,
   filterCategoryGroups,
@@ -138,5 +142,93 @@ describe("categoryTriggerLabel e selectedGroupRoot", () => {
     expect(selectedGroupRoot(sample, "missing")).toBeNull();
     expect(selectedGroupRoot(sample, "gas")).toBe("casa");
     expect(selectedGroupRoot(sample, "casa")).toBe("casa");
+  });
+});
+
+const full = (
+  id: string,
+  name: string,
+  movement_count = 0,
+): MovementCategory => ({
+  id,
+  name,
+  created_at: "2026-08-01T00:00:00Z",
+  movement_count,
+});
+
+const settingsSample: MovementCategory[] = [
+  full("casa", "casa", 2),
+  full("mutuo", "casa.mutuo", 4),
+  full("gas", "casa.bollette.gas", 1),
+  full("extra", "monade.stipendio.extra", 3),
+];
+
+describe("buildSettingsCategoryRows", () => {
+  it("a riposo mostra solo i primi livelli", () => {
+    const rows = buildSettingsCategoryRows(settingsSample, new Set(), "");
+    expect(rows).toEqual([
+      {
+        kind: "group",
+        root: "casa",
+        label: "casa",
+        category: settingsSample[0],
+        expandable: true,
+        open: false,
+      },
+      {
+        kind: "group",
+        root: "monade",
+        label: "monade",
+        category: null,
+        expandable: true,
+        open: false,
+      },
+    ]);
+  });
+
+  it("aperto un gruppo: figli piatti con etichetta relativa", () => {
+    const rows = buildSettingsCategoryRows(
+      settingsSample,
+      new Set(["casa"]),
+      "",
+    );
+    expect(rows.map((row) => row.kind + ":" + row.label)).toEqual([
+      "group:casa",
+      "child:bollette.gas",
+      "child:mutuo",
+      "group:monade",
+    ]);
+    expect(rows[1]).toMatchObject({
+      kind: "child",
+      label: "bollette.gas",
+      category: settingsSample[2],
+    });
+  });
+
+  it("foglia di primo livello senza freccia", () => {
+    const rows = buildSettingsCategoryRows(
+      [full("energia", "energia")],
+      new Set(),
+      "",
+    );
+    expect(rows).toEqual([
+      {
+        kind: "group",
+        root: "energia",
+        label: "energia",
+        category: full("energia", "energia"),
+        expandable: false,
+        open: false,
+      },
+    ]);
+  });
+
+  it("in ricerca i gruppi restano aperti e filtrati", () => {
+    const rows = buildSettingsCategoryRows(settingsSample, new Set(), "gas");
+    expect(rows.map((row) => row.kind + ":" + row.label)).toEqual([
+      "group:casa",
+      "child:bollette.gas",
+    ]);
+    expect(rows[0]).toMatchObject({ expandable: true, open: true });
   });
 });

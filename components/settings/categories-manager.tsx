@@ -3,9 +3,12 @@
 import {
   createCategory,
   deleteCategory,
+  renameCategoryPrefix,
   updateCategory,
 } from "@/app/actions/categories";
+import { buildSettingsCategoryRows } from "@/lib/categories/tree";
 import type { MovementCategory } from "@/lib/categories/types";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -41,7 +44,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { MoreHorizontalIcon } from "lucide-react";
+import {
+  ChevronDownIcon,
+  ChevronRightIcon,
+  MoreHorizontalIcon,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -61,10 +68,18 @@ export function CategoriesManager({
   const [editingCategory, setEditingCategory] = useState<MovementCategory | null>(
     null,
   );
+  const [editingPrefix, setEditingPrefix] = useState<string | null>(null);
   const [categoryToDelete, setCategoryToDelete] =
     useState<MovementCategory | null>(null);
   const [reassignToId, setReassignToId] = useState("");
   const [name, setName] = useState("");
+  const [query, setQuery] = useState("");
+  const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
+
+  const rows = useMemo(
+    () => buildSettingsCategoryRows(categories, expanded, query),
+    [categories, expanded, query],
+  );
 
   const reassignOptions = useMemo(() => {
     if (!categoryToDelete) {
@@ -85,6 +100,7 @@ export function CategoriesManager({
 
   function resetForm() {
     setEditingCategory(null);
+    setEditingPrefix(null);
     setName("");
   }
 
@@ -95,7 +111,15 @@ export function CategoriesManager({
 
   function openEditDialog(category: MovementCategory) {
     setEditingCategory(category);
+    setEditingPrefix(null);
     setName(category.name);
+    setDialogOpen(true);
+  }
+
+  function openEditPrefixDialog(prefix: string) {
+    setEditingCategory(null);
+    setEditingPrefix(prefix);
+    setName(prefix);
     setDialogOpen(true);
   }
 
@@ -123,13 +147,27 @@ export function CategoriesManager({
     setReassignToId("");
   }
 
+  function toggleGroup(root: string) {
+    setExpanded((current) => {
+      const next = new Set(current);
+      if (next.has(root)) {
+        next.delete(root);
+      } else {
+        next.add(root);
+      }
+      return next;
+    });
+  }
+
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     startTransition(async () => {
-      const result = editingCategory
-        ? await updateCategory(editingCategory.id, name)
-        : await createCategory(name);
+      const result = editingPrefix
+        ? await renameCategoryPrefix(editingPrefix, name)
+        : editingCategory
+          ? await updateCategory(editingCategory.id, name)
+          : await createCategory(name);
 
       if (!result.ok) {
         toast.error(result.error);
@@ -137,7 +175,9 @@ export function CategoriesManager({
       }
 
       toast.success(
-        editingCategory ? "Categoria aggiornata." : "Categoria aggiunta.",
+        editingPrefix || editingCategory
+          ? "Categoria aggiornata."
+          : "Categoria aggiunta.",
       );
       setDialogOpen(false);
       resetForm();
@@ -183,6 +223,14 @@ export function CategoriesManager({
     });
   }
 
+  const editingName = editingPrefix ?? editingCategory?.name ?? null;
+  const descendantCount = editingName
+    ? categories.filter((category) =>
+        category.name.startsWith(`${editingName}.`),
+      ).length
+    : 0;
+  const isEditing = editingCategory !== null || editingPrefix !== null;
+
   return (
     <div className="space-y-6">
       {canEdit ? (
@@ -194,10 +242,13 @@ export function CategoriesManager({
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>
-                  {editingCategory ? "Modifica categoria" : "Aggiungi categoria"}
+                  {isEditing ? "Modifica categoria" : "Aggiungi categoria"}
                 </DialogTitle>
                 <DialogDescription>
                   Il nome deve essere univoco (senza distinzione maiuscole/minuscole).
+                  {descendantCount > 0
+                    ? ` Cambiando il prefisso, ${descendantCount === 1 ? "si sposta anche la categoria sotto" : `si spostano anche le ${descendantCount} categorie sotto`}.`
+                    : null}
                 </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -216,7 +267,7 @@ export function CategoriesManager({
                     Annulla
                   </DialogClose>
                   <Button type="submit" disabled={pending}>
-                    {pending ? "Salvataggio…" : editingCategory ? "Salva" : "Aggiungi"}
+                    {pending ? "Salvataggio…" : isEditing ? "Salva" : "Aggiungi"}
                   </Button>
                 </DialogFooter>
               </form>
@@ -311,6 +362,16 @@ export function CategoriesManager({
         </DialogContent>
       </Dialog>
 
+      {categories.length > 0 ? (
+        <Input
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Cerca categoria"
+          autoComplete="off"
+          className="h-8"
+        />
+      ) : null}
+
       <div className="overflow-x-auto rounded-lg border">
         <Table>
           <TableHeader>
@@ -332,51 +393,141 @@ export function CategoriesManager({
                   Nessuna categoria definita.
                 </TableCell>
               </TableRow>
+            ) : rows.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={canEdit ? 3 : 2}
+                  className="py-8 text-center text-muted-foreground"
+                >
+                  Nessuna categoria trovata.
+                </TableCell>
+              </TableRow>
             ) : (
-              categories.map((category) => (
-                <TableRow key={category.id}>
-                  <TableCell className="font-medium">{category.name}</TableCell>
-                  <TableCell className="text-right tabular-nums">
-                    {category.movement_count}
-                  </TableCell>
-                  {canEdit ? (
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger
-                          render={
-                            <Button
-                              variant="ghost"
-                              size="icon-sm"
-                              disabled={pending}
-                              aria-label="Azioni categoria"
-                            />
-                          }
-                        >
-                          <MoreHorizontalIcon />
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={() => openEditDialog(category)}
+              rows.map((row, index) => {
+                const stripe = index % 2 === 1 ? "bg-muted/40 hover:bg-muted/40" : "";
+
+                if (row.kind === "group") {
+                  const rootCategory = row.category;
+                  return (
+                    <TableRow key={`group-${row.root}`} className={stripe}>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-1">
+                          {row.expandable ? (
+                            <button
+                              type="button"
+                              aria-expanded={row.open}
+                              aria-label={
+                                row.open
+                                  ? `Chiudi ${row.root}`
+                                  : `Apri ${row.root}`
+                              }
+                              onClick={() => toggleGroup(row.root)}
+                              className="flex size-7 shrink-0 items-center justify-center text-muted-foreground"
+                            >
+                              {row.open ? (
+                                <ChevronDownIcon className="size-3.5" />
+                              ) : (
+                                <ChevronRightIcon className="size-3.5" />
+                              )}
+                            </button>
+                          ) : (
+                            <span className="size-7 shrink-0" />
+                          )}
+                          <span
+                            className={cn(!rootCategory && "text-muted-foreground")}
                           >
-                            Modifica
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            variant="destructive"
-                            onClick={() => openDeleteDialog(category)}
-                          >
-                            Elimina
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                            {row.label}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {rootCategory ? rootCategory.movement_count : "—"}
+                      </TableCell>
+                      {canEdit ? (
+                        <TableCell className="text-right">
+                          <CategoryActions
+                            pending={pending}
+                            onEdit={() =>
+                              rootCategory
+                                ? openEditDialog(rootCategory)
+                                : openEditPrefixDialog(row.root)
+                            }
+                            onDelete={
+                              rootCategory
+                                ? () => openDeleteDialog(rootCategory)
+                                : undefined
+                            }
+                          />
+                        </TableCell>
+                      ) : null}
+                    </TableRow>
+                  );
+                }
+
+                return (
+                  <TableRow key={row.category.id} className={stripe}>
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-1 pl-7">
+                        <span className="pl-5">{row.label}</span>
+                      </div>
                     </TableCell>
-                  ) : null}
-                </TableRow>
-              ))
+                    <TableCell className="text-right tabular-nums">
+                      {row.category.movement_count}
+                    </TableCell>
+                    {canEdit ? (
+                      <TableCell className="text-right">
+                        <CategoryActions
+                          pending={pending}
+                          onEdit={() => openEditDialog(row.category)}
+                          onDelete={() => openDeleteDialog(row.category)}
+                        />
+                      </TableCell>
+                    ) : null}
+                  </TableRow>
+                );
+              })
             )}
           </TableBody>
         </Table>
       </div>
     </div>
+  );
+}
+
+function CategoryActions({
+  pending,
+  onEdit,
+  onDelete,
+}: {
+  pending: boolean;
+  onEdit: () => void;
+  onDelete?: () => void;
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            disabled={pending}
+            aria-label="Azioni categoria"
+          />
+        }
+      >
+        <MoreHorizontalIcon />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={onEdit}>Modifica</DropdownMenuItem>
+        {onDelete ? (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem variant="destructive" onClick={onDelete}>
+              Elimina
+            </DropdownMenuItem>
+          </>
+        ) : null}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
