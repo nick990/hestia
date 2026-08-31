@@ -5,6 +5,7 @@ import {
   deleteMovement,
   updateMovement,
 } from "@/app/actions/movements";
+import { CategoryPicker } from "@/components/cashflow/category-picker";
 import { DeleteMovementDialog } from "@/components/cashflow/delete-movement-dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -97,17 +98,6 @@ export function MovementFormDialog({
   const [isFamily, setIsFamily] = useState(true);
   const [assigneeUserId, setAssigneeUserId] = useState(currentUserId);
   const [isPrivate, setIsPrivate] = useState(false);
-
-  const categorySelectItems = useMemo(
-    () => [
-      { value: "none", label: "Nessuna" },
-      ...categories.map((category) => ({
-        value: category.id,
-        label: category.name,
-      })),
-    ],
-    [categories],
-  );
 
   const assigneeSelectItems = useMemo(
     () =>
@@ -296,23 +286,12 @@ export function MovementFormDialog({
           </div>
           <div className="space-y-2">
             <Label htmlFor="category">Categoria</Label>
-            <Select
+            <CategoryPicker
+              id="category"
+              categories={categories}
               value={categoryId}
-              items={categorySelectItems}
-              onValueChange={(value) => setCategoryId(value ?? "none")}
-            >
-              <SelectTrigger id="category" className="w-full">
-                <SelectValue placeholder="Nessuna" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Nessuna</SelectItem>
-                {categories.map((category) => (
-                  <SelectItem key={category.id} value={category.id}>
-                    {category.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              onChange={setCategoryId}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="description">Descrizione (opzionale)</Label>
