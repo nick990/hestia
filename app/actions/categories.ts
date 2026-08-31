@@ -1,6 +1,7 @@
 "use server";
 
 import { requireAdmin } from "@/lib/auth/member";
+import { missingCategoryPrefixes } from "@/lib/categories/prefixes";
 import { planPrefixRename } from "@/lib/categories/rename";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
@@ -40,7 +41,21 @@ export async function createCategory(name: string): Promise<ActionResult> {
   }
 
   const admin = createAdminClient();
-  const { error } = await admin.from("movement_categories").insert({ name: parsed });
+  const { data: existing, error: listError } = await admin
+    .from("movement_categories")
+    .select("name");
+
+  if (listError) {
+    return { ok: false, error: listError.message };
+  }
+
+  const prefixes = missingCategoryPrefixes([
+    ...(existing ?? []).map((row) => row.name),
+    parsed,
+  ]);
+  const { error } = await admin
+    .from("movement_categories")
+    .insert([...prefixes.map((name) => ({ name })), { name: parsed }]);
 
   if (error) {
     return { ok: false, error: mapDuplicateNameError(error) };
@@ -74,6 +89,22 @@ async function applyPrefixRename(
       .from("movement_categories")
       .update({ name: update.name })
       .eq("id", update.id);
+
+    if (error) {
+      return { ok: false, error: mapDuplicateNameError(error) };
+    }
+  }
+
+  const nextNames = (data ?? []).map((row) => {
+    const update = plan.updates.find((item) => item.id === row.id);
+    return update?.name ?? row.name;
+  });
+  const prefixes = missingCategoryPrefixes(nextNames);
+
+  if (prefixes.length > 0) {
+    const { error } = await admin
+      .from("movement_categories")
+      .insert(prefixes.map((name) => ({ name })));
 
     if (error) {
       return { ok: false, error: mapDuplicateNameError(error) };

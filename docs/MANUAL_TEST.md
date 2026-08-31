@@ -69,6 +69,7 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 - [ ] Movimento con/senza categoria → colonna Categoria corretta.
 - [ ] Form movimento, campo Categoria: trigger mostra nome intero o «Nessuna».
 - [ ] Picker chiuso a primi livelli, alfabetico; freccia apre il secondo livello; un altro livello si apre solo se ci sono nipoti; tap sul nome della radice (se esiste) la assegna.
+- [ ] Con foglie tipo `lavoro.monade.stipendio`: tap su **lavoro** e su **monade** le assegna (prefissi materializzati).
 - [ ] Gruppo aperto: figli in un blocco rientrato con linea verticale a sinistra; niente zebra tra padre e figli.
 - [ ] Cerca «gas»: restano solo i gruppi con match, aperti e filtrati; «Nessuna» sparisce; query vuota la riporta.
 - [ ] Cerca senza risultati: «Nessuna categoria trovata»; chiudere lascia la scelta precedente.

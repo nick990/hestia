@@ -44,6 +44,26 @@ describe("buildCategoryGroups", () => {
     expect(buildCategoryGroups([])).toEqual([]);
   });
 
+  it("con i prefissi materializzati lavoro e monade sono selezionabili", () => {
+    const groups = buildCategoryGroups([
+      cat("lavoro", "lavoro"),
+      cat("extra", "lavoro.extra"),
+      cat("monade", "lavoro.monade"),
+      cat("stipendio", "lavoro.monade.stipendio"),
+    ]);
+
+    expect(groups).toHaveLength(1);
+    expect(groups[0]?.rootCategory).toEqual(cat("lavoro", "lavoro"));
+    expect(groups[0]?.children.map((child) => child.segment)).toEqual([
+      "extra",
+      "monade",
+    ]);
+    expect(groups[0]?.children[1]).toMatchObject({
+      path: "lavoro.monade",
+      category: cat("monade", "lavoro.monade"),
+    });
+  });
+
   it("gruppa al primo e al secondo livello, il resto sotto il secondo", () => {
     const groups = buildCategoryGroups(sample);
     expect(groups.map((group) => group.root)).toEqual(["casa", "monade"]);
