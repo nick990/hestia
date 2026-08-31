@@ -168,6 +168,8 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 - [ ] Rinomina di una radice esistente (casa → lavoro.casa) rinomina anche casa.mutuo e gli altri discendenti.
 - [ ] Cerca filtra i rami come nel form movimento.
 - [ ] Admin crea/modifica categoria.
+- [ ] Admin: menu riga **Aggiungi sotto** → dialog con `{path}.` (es. `lavoro.`); completa `lavoro.bonus` → compare sotto `lavoro` aperto. `lavoro.` da solo → «Nome non valido.»
+- [ ] «Aggiungi categoria» in alto apre il dialog con Nome vuoto.
 - [ ] User vede lista categorie senza pulsanti modifica.
 - [ ] Elimina categoria senza movimenti → OK.
 - [ ] Elimina categoria con movimenti → select destinazione obbligatoria → movimenti riassegnati.
