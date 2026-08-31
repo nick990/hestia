@@ -1,6 +1,7 @@
 "use server";
 
 import { requireAdmin } from "@/lib/auth/member";
+import { parseCategoryName } from "@/lib/categories/name";
 import { missingCategoryPrefixes } from "@/lib/categories/prefixes";
 import { planPrefixRename } from "@/lib/categories/rename";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -14,13 +15,7 @@ function revalidateCategoryPaths() {
 }
 
 function parseName(raw: string): string | null {
-  const trimmed = raw.trim();
-
-  if (!trimmed || trimmed.length > 100) {
-    return null;
-  }
-
-  return trimmed;
+  return parseCategoryName(raw);
 }
 
 function mapDuplicateNameError(error: { code?: string; message: string }) {
