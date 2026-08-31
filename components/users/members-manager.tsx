@@ -191,6 +191,7 @@ export function MembersManager({ members }: { members: MemberListItem[] }) {
               <div className="space-y-2">
                 <Label htmlFor="role">Ruolo</Label>
                 <Select
+                  modal={false}
                   value={role}
                   onValueChange={(value) => setRole(value as MemberRole)}
                 >

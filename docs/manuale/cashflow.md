@@ -17,7 +17,7 @@ Esempio: tu puoi registrare il mutuo e assegnarlo alla **famiglia**. Oppure regi
 - **Di famiglia** — spese e entrate di casa (bollette, mutuo, spesa comune). Tutti i membri della famiglia le vedono.
 - **Di una persona** — stipendio, regalo, spesa individuale. Gli altri le vedono solo se non le segni come private.
 
-Se non fai parte di una famiglia nell’app, tutto ciò che registri è solo tuo: non compare l’opzione «Di famiglia».
+Se non fai parte di una famiglia nell’app, tutto ciò che registri è solo tuo: non compare il campo Assegnatario.
 
 ## Come aggiungerne uno
 
@@ -25,14 +25,14 @@ Dal pulsante **Aggiungi movimento** (sul telefono anche il pulsante + in basso).
 
 **Se stai registrando un’uscita**
 
-Di solito è di casa: l’opzione **Di famiglia** parte già attiva.  
-Se invece è personale, togli «Di famiglia» e scegli a chi assegnarla (di solito te stesso).  
-Solo se l’assegnatario sei tu puoi marcare **Privato**.
+Di solito è di casa: in **Assegnatario** è già selezionato **Di famiglia**.  
+Se invece è personale, scegli un membro dalla stessa lista (di solito te stesso).  
+Solo se l’assegnatario sei tu puoi marcare **Privato**. Se è **Di famiglia**, la casella resta visibile ma spenta.
 
 **Se stai registrando un’entrata**
 
-Di solito è personale: «Di famiglia» parte spento e l’assegnatario sei tu.  
-Se è un’entrata condivisa (per esempio un rimborso di casa), attiva «Di famiglia».
+Di solito è personale: l’assegnatario sei tu.  
+Se è un’entrata condivisa (per esempio un rimborso di casa), scegli **Di famiglia**.
 
 In entrambi i casi puoi indicare data, importo, una categoria e una descrizione, se ti servono.
 
@@ -44,7 +44,7 @@ Le categorie si gestiscono in **Impostazioni → Categorie**. Da una riga, **Agg
 
 Un movimento privato lo vedi **solo tu** (se sei l’assegnatario). Gli altri membri della famiglia no.
 
-Puoi usare «Privato» solo quando l’assegnatario sei tu. Se lo assegni alla famiglia o a un’altra persona, l’opzione non c’è.
+Puoi usare «Privato» solo quando l’assegnatario sei tu. Se lo assegni alla famiglia o a un’altra persona, la casella resta visibile ma non si può spuntare.
 
 ## Chi può correggere o cancellare
 

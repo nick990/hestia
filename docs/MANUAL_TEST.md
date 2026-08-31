@@ -89,12 +89,12 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 
 - [ ] Admin: Impostazioni → Famiglie → crea famiglia e assegna 2 utenti registrati.
 - [ ] Tabella: colonna **Assegnatario** valorizzata (Famiglia o nome da Account).
-- [ ] Utente A: **uscita** default «Di famiglia» ON → assegnatario Famiglia; visibile a B con filtri default.
-- [ ] Utente A: **uscita** «Di famiglia» OFF → selettore assegnatario (default self); importo reale (no quota ÷ N).
-- [ ] Utente A: **entrata** default personale self; toggle «Di famiglia» OFF.
-- [ ] Utente A: **entrata** «Di famiglia» ON → assegnatario Famiglia; visibile a B.
+- [ ] Utente A: **uscita** default select Assegnatario = **Di famiglia**; visibile a B con filtri default.
+- [ ] Utente A: **uscita** Assegnatario = un membro (default se si cambia dalla famiglia: self); importo reale (no quota ÷ N).
+- [ ] Utente A: **entrata** default Assegnatario = self; **Di famiglia** è una voce della stessa select.
+- [ ] Utente A: **entrata** Assegnatario = **Di famiglia** → visibile a B.
 - [ ] Movimento personale non privato assegnato a B → visibile a tutta la famiglia se filtro include B.
-- [ ] Movimento personale **privato** (checkbox «Privato», solo se assegnatario = self) → visibile solo ad A; B non lo vede.
+- [ ] Movimento personale **privato** (checkbox «Privato» attiva se assegnatario = self; disabilitata se Di famiglia) → visibile solo ad A; B non lo vede.
 - [ ] Filtri **Entrate** / **Uscite** sempre visibili su due righe, sotto il periodo e sopra i totali: chip Famiglia + membri; default tutti ON.
 - [ ] Deseleziona tutte le checkbox Entrate → nessuna entrata in tabella/totali/Sankey.
 - [ ] Filtro membro = self attivo → sotto-checkbox **Mostra privati** (default ON); OFF → privati nascosti.
@@ -103,7 +103,7 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 - [ ] B apre modifica movimento privato di A → non visibile in lista (RLS).
 - [ ] A modifica il proprio movimento di famiglia → può attivare «Privato» solo se assegnatario = self; movimento sparisce a B.
 - [ ] Totali periodo e riepilogo annuale cambiano con i filtri assegnatario.
-- [ ] Utente senza famiglia: nessun toggle «Di famiglia»; solo personale self; righe filtri assegnatario nascoste.
+- [ ] Utente senza famiglia: nessun campo Assegnatario; solo personale self; righe filtri assegnatario nascoste.
 - [ ] Admin rimuove membro: ex-membro non vede più movimenti di famiglia; movimenti family restano per la famiglia.
 - [ ] Ricarica pagina → filtri assegnatario ripristinati da localStorage; periodo da URL.
 

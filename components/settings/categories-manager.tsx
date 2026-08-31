@@ -330,6 +330,7 @@ export function CategoriesManager({
               <div className="space-y-2">
                 <Label htmlFor="reassign-category">Sposta i movimenti in</Label>
                 <Select
+                  modal={false}
                   value={reassignToId}
                   items={reassignSelectItems}
                   onValueChange={(value) => setReassignToId(value ?? "")}

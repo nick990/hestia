@@ -35,6 +35,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 
+const FAMILY_ASSIGNEE_VALUE = "family";
+
 type MovementFormDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -100,11 +102,13 @@ export function MovementFormDialog({
   const [isPrivate, setIsPrivate] = useState(false);
 
   const assigneeSelectItems = useMemo(
-    () =>
-      familyMembers.map((member) => ({
+    () => [
+      { value: FAMILY_ASSIGNEE_VALUE, label: "Di famiglia" },
+      ...familyMembers.map((member) => ({
         value: member.user_id,
         label: member.display_name,
       })),
+    ],
     [familyMembers],
   );
 
@@ -152,18 +156,17 @@ export function MovementFormDialog({
     }
   }
 
-  function handleFamilyChange(checked: boolean) {
-    setIsFamily(checked);
-
-    if (checked) {
+  function handleAssigneeChange(value: string) {
+    if (value === FAMILY_ASSIGNEE_VALUE) {
+      setIsFamily(true);
       setIsPrivate(false);
+      return;
     }
-  }
 
-  function handleAssigneeChange(userId: string) {
-    setAssigneeUserId(userId);
+    setIsFamily(false);
+    setAssigneeUserId(value);
 
-    if (userId !== currentUserId) {
+    if (value !== currentUserId) {
       setIsPrivate(false);
     }
   }
@@ -304,53 +307,44 @@ export function MovementFormDialog({
           </div>
           {hasFamily ? (
             <div className="space-y-3">
+              <div className="space-y-2">
+                <Label htmlFor="assignee">Assegnatario</Label>
+                <Select
+                  modal={false}
+                  value={isFamily ? FAMILY_ASSIGNEE_VALUE : assigneeUserId}
+                  items={assigneeSelectItems}
+                  onValueChange={(value) => {
+                    if (value) {
+                      handleAssigneeChange(value);
+                    }
+                  }}
+                >
+                  <SelectTrigger id="assignee" className="w-full">
+                    <SelectValue placeholder="Seleziona assegnatario" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={FAMILY_ASSIGNEE_VALUE}>
+                      Di famiglia
+                    </SelectItem>
+                    {familyMembers.map((member) => (
+                      <SelectItem key={member.user_id} value={member.user_id}>
+                        {member.display_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="flex items-center gap-2">
                 <Checkbox
-                  id="movement-family"
-                  checked={isFamily}
-                  onCheckedChange={(checked) =>
-                    handleFamilyChange(checked === true)
-                  }
+                  id="movement-private"
+                  checked={isPrivate}
+                  disabled={!canSetPrivate}
+                  onCheckedChange={(checked) => setIsPrivate(checked === true)}
                 />
-                <Label htmlFor="movement-family" className="font-normal">
-                  Di famiglia
+                <Label htmlFor="movement-private" className="font-normal">
+                  Privato
                 </Label>
               </div>
-              {!isFamily ? (
-                <div className="space-y-2">
-                  <Label htmlFor="assignee">Assegnatario</Label>
-                  <Select
-                    value={assigneeUserId}
-                    items={assigneeSelectItems}
-                    onValueChange={(value) =>
-                      handleAssigneeChange(value ?? currentUserId)
-                    }
-                  >
-                    <SelectTrigger id="assignee" className="w-full">
-                      <SelectValue placeholder="Seleziona membro" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {familyMembers.map((member) => (
-                        <SelectItem key={member.user_id} value={member.user_id}>
-                          {member.display_name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              ) : null}
-              {canSetPrivate ? (
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id="movement-private"
-                    checked={isPrivate}
-                    onCheckedChange={(checked) => setIsPrivate(checked === true)}
-                  />
-                  <Label htmlFor="movement-private" className="font-normal">
-                    Privato
-                  </Label>
-                </div>
-              ) : null}
             </div>
           ) : (
             <div className="flex items-center gap-2">
