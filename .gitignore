@@ -16,6 +16,9 @@
 # git worktrees locali
 .worktrees/
 
+# piani di implementazione (le spec restano in docs/superpowers/specs/)
+docs/superpowers/plans/
+
 # next.js
 /.next/
 /out/
