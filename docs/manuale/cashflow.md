@@ -36,6 +36,8 @@ Se è un’entrata condivisa (per esempio un rimborso di casa), attiva «Di fami
 
 In entrambi i casi puoi indicare data, importo, una categoria e una descrizione, se ti servono.
 
+Nella **categoria** puoi cercare. All’inizio vedi solo i primi livelli (casa, monade, …), in ordine alfabetico. Aprendo un gruppo compaiono tutte le categorie sotto, anche se hanno altri punti nel nome. Se esiste proprio quel primo livello (per esempio `casa`), puoi assegnarlo toccando il nome; la freccia apre e chiude. Senza una scelta resta «Nessuna».
+
 ## Cosa significa «Privato»
 
 Un movimento privato lo vedi **solo tu** (se sei l’assegnatario). Gli altri membri della famiglia no.

@@ -67,6 +67,12 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 - [ ] Empty state periodo vuoto → CTA «Aggiungi movimento».
 - [ ] Mobile: riepilogo mesi scroll orizzontale.
 - [ ] Movimento con/senza categoria → colonna Categoria corretta.
+- [ ] Form movimento, campo Categoria: trigger mostra nome intero o «Nessuna».
+- [ ] Picker chiuso a primi livelli, alfabetico; freccia apre tutti i discendenti (etichetta relativa); tap sul nome della radice (se esiste) la assegna.
+- [ ] Cerca «gas»: restano solo i gruppi con match, aperti e filtrati; «Nessuna» sparisce; query vuota la riporta.
+- [ ] Cerca senza risultati: «Nessuna categoria trovata»; chiudere lascia la scelta precedente.
+- [ ] Telefono: Sheet dal basso, tastiera non si apre da sola; Indietro chiude il picker e lascia il form. Secondo Indietro chiude il form.
+- [ ] Desktop (≥ md): Popover sul campo, focus sulla cerca; Esc / tap fuori chiude solo il picker.
 - [ ] Tabella: ordine default per data discendente (più recenti in cima).
 - [ ] Tabella: click header Data / Categoria / Descrizione / Importo → ordinamento asc/desc.
 - [ ] Filtro categoria: checkbox multipla → sole righe selezionate; icona filtro attiva.
@@ -180,6 +186,7 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 - [ ] Telefono: apri una nota, Indietro la chiude e resti sulla bacheca. Apri Elimina sopra la nota: il primo Indietro chiude la conferma, il secondo la nota.
 - [ ] Menu hamburger: Indietro chiude il menu, resti sulla pagina. Tap su Cashflow / Notes / Impostazioni apre la pagina e chiude il menu.
 - [ ] Aggiungi movimento (home o Cashflow): Indietro chiude il form. Sankey uguale.
+- [ ] Telefono: nel form, apri il picker categoria → Indietro chiude il picker, non il form.
 - [ ] Chiudi / Esc / tap fuori toglie il gradino di history: un altro Indietro esce dalla pagina, non riapre la finestra.
 
 ## Home mobile (tab)
