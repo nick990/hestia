@@ -68,8 +68,9 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 - [ ] Mobile: riepilogo mesi scroll orizzontale.
 - [ ] Movimento con/senza categoria → colonna Categoria corretta.
 - [ ] Form movimento, campo Categoria: trigger mostra nome intero o «Nessuna».
-- [ ] Picker chiuso a primi livelli, alfabetico; freccia apre il secondo livello; un altro livello si apre solo se ci sono nipoti; tap sul nome della radice (se esiste) la assegna.
-- [ ] Con foglie tipo `lavoro.monade.stipendio`: tap su **lavoro** e su **monade** le assegna (prefissi materializzati).
+- [ ] Desktop: picker chiuso a primi livelli; tap sul nome della radice (se esiste) la assegna; la freccia apre il secondo livello; un altro livello si apre solo se ci sono nipoti.
+- [ ] Telefono: tap sul nome di `lavoro` o `monade` apre/chiude e non cambia il trigger; tap sul pallino assegna quel livello e chiude il picker.
+- [ ] Foglia (`extra`, `stipendio`) e «Nessuna»: tap sulla riga assegna, su telefono e desktop. Niente pallino.
 - [ ] Gruppo aperto: figli in un blocco rientrato con linea verticale a sinistra; niente zebra tra padre e figli.
 - [ ] Cerca «gas»: restano solo i gruppi con match, aperti e filtrati; «Nessuna» sparisce; query vuota la riporta.
 - [ ] Cerca senza risultati: «Nessuna categoria trovata»; chiudere lascia la scelta precedente.
