@@ -7,7 +7,7 @@
 
 ## Obiettivo
 
-Sul telefono, tap su una categoria **con figli** deve **aprire o chiudere** il gruppo. Assegnare quel livello resta possibile, ma con un controllo distinto (pallino a sinistra). Su desktop non cambia nulla.
+Sul telefono, tap su una categoria **con figli** deve **aprire o chiudere** il gruppo. Assegnare quel livello resta possibile, ma con un controllo distinto (pallino a destra del nome). Su desktop non cambia nulla.
 
 Il modello dati non cambia: si continua a salvare `category_id`.
 
@@ -16,7 +16,7 @@ Il modello dati non cambia: si continua a salvare `category_id`.
 | ID | Requisito |
 |----|-----------|
 | M1 | Vale solo sul viewport dello Sheet: `< md`. Da `md` in su resta: tap sul nome seleziona, tap sulla freccia apre/chiude |
-| M2 | Riga **espandibile e selezionabile** (es. `lavoro`, `lavoro.monade`): pallino a sinistra; tap sul pallino assegna e chiude il picker; tap sul nome **o** sulla freccia apre/chiude |
+| M2 | Riga **espandibile e selezionabile** (es. `lavoro`, `lavoro.monade`): pallino a destra del nome; tap sul pallino assegna e chiude il picker; tap sul nome **o** sulla freccia apre/chiude |
 | M3 | Riga **foglia** (niente figli) e **Nessuna**: tap sulla riga assegna e chiude; niente pallino |
 | M4 | Gruppo **virtuale** (nessuna categoria su quel path): niente pallino; tap sul nome o sulla freccia apre/chiude |
 | M5 | Pallino vuoto se quel livello non è la scelta corrente; pieno (terracotta / `primary`) se sì. La riga scelta resta con lo sfondo accento già usato |
@@ -37,7 +37,7 @@ Il modello dati non cambia: si continua a salvare `category_id`.
 | Tema | Decisione |
 |------|-----------|
 | Dove | Solo Sheet (`useMinMd() === false`) |
-| Come si sceglie il padre | Pallino a sinistra, non tap sul nome |
+| Come si sceglie il padre | Pallino a destra del nome, non tap sul nome |
 | Come si apre | Tap sul nome o sulla freccia |
 | Foglie | Tap sulla riga, senza pallino (due azioni solo dove servono) |
 | Gruppo senza id | Solo apri/chiude |
@@ -46,10 +46,10 @@ Il modello dati non cambia: si continua a salvare `category_id`.
 ## Interazione (Sheet)
 
 ```
-[ ○  lavoro                         ▸ ]   pallino → sceglie `lavoro`
-[ ●  lavoro                         ▾ ]   già scelta; tap nome/freccia chiude i figli
-[     extra                           ]   foglia: tap riga
-[ ○  monade                         ▸ ]   pallino → sceglie `lavoro.monade`
+[ lavoro  ○                         ▸ ]   pallino → sceglie `lavoro`
+[ lavoro  ●                         ▾ ]   già scelta; tap nome/freccia chiude i figli
+[ extra                               ]   foglia: tap riga
+[ monade  ○                         ▸ ]   pallino → sceglie `lavoro.monade`
 ```
 
 ## Architettura

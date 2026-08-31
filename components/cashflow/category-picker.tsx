@@ -225,21 +225,22 @@ function CategoryPickerPanel({
         autoComplete="off"
         className="h-7 shrink-0"
       />
-      <div className="min-h-0 flex-1 overflow-y-auto">
+      <div className="min-h-0 flex-1 divide-y divide-border overflow-y-auto">
         {noneVisible ? (
           <button
             type="button"
             onClick={() => onSelect("none")}
-            className={rowClass(value === "none")}
+            className={rowClass(value === "none", false, mobile)}
           >
             Nessuna
           </button>
         ) : null}
-        {visibleGroups.map((group) => {
+        {visibleGroups.map((group, index) => {
           const expandable = group.children.length > 0;
           const open = expandable && (isSearching || expanded.has(group.root));
           const rootCategory = group.rootCategory;
           const selected = rootCategory ? value === rootCategory.id : false;
+          const stripe = (noneVisible ? index + 1 : index) % 2 === 1;
 
           return (
             <div key={group.root}>
@@ -249,6 +250,7 @@ function CategoryPickerPanel({
                 mobile={mobile}
                 open={open}
                 selected={selected}
+                stripe={stripe}
                 weight="parent"
                 onSelect={
                   rootCategory ? () => onSelect(rootCategory.id) : undefined
@@ -329,7 +331,7 @@ function Level2Branch({
               key={child.id}
               type="button"
               onClick={() => onSelect(child.id)}
-              className={rowClass(value === child.id, index % 2 === 1)}
+              className={rowClass(value === child.id, index % 2 === 1, mobile)}
             >
               {child.label}
             </button>
@@ -369,24 +371,7 @@ function BranchRow({
   const hit = mobile ? "size-11" : "size-7";
 
   return (
-    <div className={cn(rowClass(selected, stripe), "flex items-center")}>
-      {showRadio && onSelect ? (
-        <button
-          type="button"
-          aria-label={`Scegli ${label}`}
-          onClick={onSelect}
-          className={cn(
-            "flex shrink-0 items-center justify-center text-muted-foreground",
-            hit,
-          )}
-        >
-          {selected ? (
-            <CircleDotIcon className="size-4 text-primary" />
-          ) : (
-            <CircleIcon className="size-4" />
-          )}
-        </button>
-      ) : null}
+    <div className={rowClass(selected, stripe, mobile)}>
       {nameAction === "select" && onSelect ? (
         <button
           type="button"
@@ -424,6 +409,23 @@ function BranchRow({
           {label}
         </span>
       ) : null}
+      {showRadio && onSelect ? (
+        <button
+          type="button"
+          aria-label={`Scegli ${label}`}
+          onClick={onSelect}
+          className={cn(
+            "flex shrink-0 items-center justify-center text-muted-foreground",
+            hit,
+          )}
+        >
+          {selected ? (
+            <CircleDotIcon className="size-4 text-primary" />
+          ) : (
+            <CircleIcon className="size-4" />
+          )}
+        </button>
+      ) : null}
       {expandable ? (
         <button
           type="button"
@@ -447,11 +449,12 @@ function BranchRow({
 }
 
 const nestClass =
-  "ml-2.5 border-l-2 border-primary/25 bg-muted/25";
+  "ml-2.5 divide-y divide-border border-l-2 border-primary/25 bg-muted/25";
 
-function rowClass(selected: boolean, stripe = false) {
+function rowClass(selected: boolean, stripe = false, mobile = false) {
   return cn(
-    "w-full px-2 py-1 text-left text-sm",
+    "flex w-full items-center px-2 text-left text-sm",
+    mobile ? "min-h-11" : "min-h-8",
     stripe && !selected && "bg-muted/40",
     selected ? "bg-accent text-accent-foreground" : "hover:bg-muted/70",
   );

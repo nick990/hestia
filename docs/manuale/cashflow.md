@@ -36,7 +36,7 @@ Se è un’entrata condivisa (per esempio un rimborso di casa), attiva «Di fami
 
 In entrambi i casi puoi indicare data, importo, una categoria e una descrizione, se ti servono.
 
-Nella **categoria** puoi cercare. All’inizio vedi solo i primi livelli (casa, lavoro, …), in ordine alfabetico. Aprendo un gruppo vedi il secondo livello (`mutuo`, `monade`); se anche quello ha figli, si apre ancora e sotto trovi il resto (`stipendio`). Sul **telefono**, tocca il nome per aprire o chiudere un gruppo con figli; il pallino a sinistra assegna quel livello (`lavoro` o `lavoro.monade`). Sul **computer**, tocca il nome per assegnare e la freccia per aprire. Senza una scelta resta «Nessuna».
+Nella **categoria** puoi cercare. All’inizio vedi solo i primi livelli (casa, lavoro, …), in ordine alfabetico. Aprendo un gruppo vedi il secondo livello (`mutuo`, `monade`); se anche quello ha figli, si apre ancora e sotto trovi il resto (`stipendio`). Sul **telefono**, tocca il nome per aprire o chiudere un gruppo con figli; il pallino a destra del nome assegna quel livello (`lavoro` o `lavoro.monade`). Sul **computer**, tocca il nome per assegnare e la freccia per aprire. Senza una scelta resta «Nessuna».
 
 ## Cosa significa «Privato»
 
