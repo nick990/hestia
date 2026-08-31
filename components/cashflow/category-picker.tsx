@@ -14,6 +14,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useMinMd } from "@/hooks/use-min-md";
+import { branchInteraction } from "@/lib/categories/interaction";
 import {
   buildCategoryGroups,
   categoryTriggerLabel,
@@ -25,7 +26,12 @@ import {
 } from "@/lib/categories/tree";
 import type { MovementCategoryOption } from "@/lib/categories/types";
 import { cn } from "@/lib/utils";
-import { ChevronDownIcon, ChevronRightIcon } from "lucide-react";
+import {
+  ChevronDownIcon,
+  ChevronRightIcon,
+  CircleDotIcon,
+  CircleIcon,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 
 const triggerClassName =
@@ -138,6 +144,7 @@ export function CategoryPicker({
       autoFocusSearch={minMd}
       empty={empty}
       isSearching={isSearching}
+      mobile={!minMd}
       noneVisible={noneVisible}
       query={query}
       value={value}
@@ -185,6 +192,7 @@ function CategoryPickerPanel({
   autoFocusSearch,
   empty,
   isSearching,
+  mobile,
   noneVisible,
   query,
   value,
@@ -197,6 +205,7 @@ function CategoryPickerPanel({
   autoFocusSearch: boolean;
   empty: boolean;
   isSearching: boolean;
+  mobile: boolean;
   noneVisible: boolean;
   query: string;
   value: string;
@@ -237,6 +246,7 @@ function CategoryPickerPanel({
               <BranchRow
                 expandable={expandable}
                 label={group.root}
+                mobile={mobile}
                 open={open}
                 selected={selected}
                 weight="parent"
@@ -253,6 +263,7 @@ function CategoryPickerPanel({
                       expanded={expanded}
                       isSearching={isSearching}
                       level={level}
+                      mobile={mobile}
                       stripe={index % 2 === 1}
                       value={value}
                       onSelect={onSelect}
@@ -278,6 +289,7 @@ function Level2Branch({
   expanded,
   isSearching,
   level,
+  mobile,
   stripe,
   value,
   onSelect,
@@ -286,6 +298,7 @@ function Level2Branch({
   expanded: Set<string>;
   isSearching: boolean;
   level: CategoryLevel2;
+  mobile: boolean;
   stripe: boolean;
   value: string;
   onSelect: (value: string) => void;
@@ -301,6 +314,7 @@ function Level2Branch({
       <BranchRow
         expandable={expandable}
         label={level.segment}
+        mobile={mobile}
         open={open}
         selected={selected}
         stripe={stripe}
@@ -329,6 +343,7 @@ function Level2Branch({
 function BranchRow({
   expandable,
   label,
+  mobile,
   open,
   selected,
   stripe = false,
@@ -338,6 +353,7 @@ function BranchRow({
 }: {
   expandable: boolean;
   label: string;
+  mobile: boolean;
   open: boolean;
   selected: boolean;
   stripe?: boolean;
@@ -345,9 +361,33 @@ function BranchRow({
   onSelect?: () => void;
   onToggle: () => void;
 }) {
+  const { nameAction, showRadio } = branchInteraction({
+    mobile,
+    expandable,
+    selectable: Boolean(onSelect),
+  });
+  const hit = mobile ? "size-11" : "size-7";
+
   return (
     <div className={cn(rowClass(selected, stripe), "flex items-center")}>
-      {onSelect ? (
+      {showRadio && onSelect ? (
+        <button
+          type="button"
+          aria-label={`Scegli ${label}`}
+          onClick={onSelect}
+          className={cn(
+            "flex shrink-0 items-center justify-center text-muted-foreground",
+            hit,
+          )}
+        >
+          {selected ? (
+            <CircleDotIcon className="size-4 text-primary" />
+          ) : (
+            <CircleIcon className="size-4" />
+          )}
+        </button>
+      ) : null}
+      {nameAction === "select" && onSelect ? (
         <button
           type="button"
           onClick={onSelect}
@@ -358,7 +398,23 @@ function BranchRow({
         >
           {label}
         </button>
-      ) : (
+      ) : null}
+      {nameAction === "toggle" ? (
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-label={open ? `Chiudi ${label}` : `Apri ${label}`}
+          onClick={onToggle}
+          className={cn(
+            "min-w-0 flex-1 truncate py-0 text-left",
+            weight === "parent" && "font-medium",
+            !onSelect && "text-muted-foreground",
+          )}
+        >
+          {label}
+        </button>
+      ) : null}
+      {nameAction === "none" ? (
         <span
           className={cn(
             "min-w-0 flex-1 truncate text-muted-foreground",
@@ -367,14 +423,17 @@ function BranchRow({
         >
           {label}
         </span>
-      )}
+      ) : null}
       {expandable ? (
         <button
           type="button"
           aria-expanded={open}
           aria-label={open ? `Chiudi ${label}` : `Apri ${label}`}
           onClick={onToggle}
-          className="flex size-7 shrink-0 items-center justify-center text-muted-foreground"
+          className={cn(
+            "flex shrink-0 items-center justify-center text-muted-foreground",
+            hit,
+          )}
         >
           {open ? (
             <ChevronDownIcon className="size-3.5" />
