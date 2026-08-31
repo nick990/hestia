@@ -8,6 +8,7 @@ import {
 } from "@/app/actions/categories";
 import {
   buildSettingsCategoryRows,
+  selectedExpandPaths,
   type SettingsCategoryRow,
 } from "@/lib/categories/tree";
 import type { MovementCategory } from "@/lib/categories/types";
@@ -112,6 +113,12 @@ export function CategoriesManager({
     setDialogOpen(true);
   }
 
+  function openCreateChild(path: string) {
+    resetForm();
+    setName(`${path}.`);
+    setDialogOpen(true);
+  }
+
   function openEditDialog(category: MovementCategory) {
     setEditingCategory(category);
     setEditingPrefix(null);
@@ -182,6 +189,9 @@ export function CategoriesManager({
           ? "Categoria aggiornata."
           : "Categoria aggiunta.",
       );
+      if (!editingPrefix && !editingCategory) {
+        setExpanded(new Set(selectedExpandPaths(name)));
+      }
       setDialogOpen(false);
       resetForm();
       router.refresh();
@@ -462,6 +472,7 @@ export function CategoriesManager({
                         <TableCell className="text-right">
                           <CategoryActions
                             pending={pending}
+                            onCreateChild={() => openCreateChild(row.path)}
                             onEdit={() =>
                               rootCategory
                                 ? openEditDialog(rootCategory)
@@ -493,6 +504,9 @@ export function CategoriesManager({
                       <TableCell className="text-right">
                         <CategoryActions
                           pending={pending}
+                          onCreateChild={() =>
+                            openCreateChild(row.category.name)
+                          }
                           onEdit={() => openEditDialog(row.category)}
                           onDelete={() => openDeleteDialog(row.category)}
                         />
@@ -542,10 +556,12 @@ function nestNameClass(depth: 0 | 1 | 2) {
 
 function CategoryActions({
   pending,
+  onCreateChild,
   onEdit,
   onDelete,
 }: {
   pending: boolean;
+  onCreateChild: () => void;
   onEdit: () => void;
   onDelete?: () => void;
 }) {
@@ -564,6 +580,9 @@ function CategoryActions({
         <MoreHorizontalIcon />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={onCreateChild}>
+          Aggiungi sotto
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={onEdit}>Modifica</DropdownMenuItem>
         {onDelete ? (
           <>
