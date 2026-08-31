@@ -409,19 +409,24 @@ export function CategoriesManager({
                 if (row.kind === "group") {
                   const rootCategory = row.category;
                   return (
-                    <TableRow key={`group-${row.root}`} className={stripe}>
+                    <TableRow key={`group-${row.path}`} className={stripe}>
                       <TableCell className="font-medium">
-                        <div className="flex items-center gap-1">
+                        <div
+                          className={cn(
+                            "flex items-center gap-1",
+                            row.depth === 1 && "pl-7",
+                          )}
+                        >
                           {row.expandable ? (
                             <button
                               type="button"
                               aria-expanded={row.open}
                               aria-label={
                                 row.open
-                                  ? `Chiudi ${row.root}`
-                                  : `Apri ${row.root}`
+                                  ? `Chiudi ${row.label}`
+                                  : `Apri ${row.label}`
                               }
-                              onClick={() => toggleGroup(row.root)}
+                              onClick={() => toggleGroup(row.path)}
                               className="flex size-7 shrink-0 items-center justify-center text-muted-foreground"
                             >
                               {row.open ? (
@@ -450,7 +455,7 @@ export function CategoriesManager({
                             onEdit={() =>
                               rootCategory
                                 ? openEditDialog(rootCategory)
-                                : openEditPrefixDialog(row.root)
+                                : openEditPrefixDialog(row.path)
                             }
                             onDelete={
                               rootCategory
@@ -467,7 +472,7 @@ export function CategoriesManager({
                 return (
                   <TableRow key={row.category.id} className={stripe}>
                     <TableCell className="font-medium">
-                      <div className="flex items-center gap-1 pl-7">
+                      <div className="flex items-center gap-1 pl-14">
                         <span className="pl-5">{row.label}</span>
                       </div>
                     </TableCell>

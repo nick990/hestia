@@ -12,6 +12,7 @@ import {
   firstSegment,
   matchesCategoryQuery,
   relativeLabel,
+  selectedExpandPaths,
   selectedGroupRoot,
   showNoneOption,
 } from "@/lib/categories/tree";
@@ -43,28 +44,49 @@ describe("buildCategoryGroups", () => {
     expect(buildCategoryGroups([])).toEqual([]);
   });
 
-  it("gruppa dal primo segmento, flatten dei discendenti, radice selezionabile", () => {
+  it("gruppa al primo e al secondo livello, il resto sotto il secondo", () => {
     const groups = buildCategoryGroups(sample);
     expect(groups.map((group) => group.root)).toEqual(["casa", "monade"]);
 
     const casa = groups[0];
     expect(casa.rootCategory).toEqual(cat("casa", "casa"));
-    expect(casa.children.map((child) => child.label)).toEqual([
-      "bollette.gas",
+    expect(casa.children.map((child) => child.segment)).toEqual([
+      "bollette",
       "mutuo",
     ]);
-    expect(casa.children.map((child) => child.name)).toEqual([
-      "casa.bollette.gas",
-      "casa.mutuo",
-    ]);
+    expect(casa.children[0]).toEqual({
+      segment: "bollette",
+      path: "casa.bollette",
+      category: null,
+      children: [
+        {
+          id: "gas",
+          name: "casa.bollette.gas",
+          label: "gas",
+        },
+      ],
+    });
+    expect(casa.children[1]).toEqual({
+      segment: "mutuo",
+      path: "casa.mutuo",
+      category: cat("mutuo", "casa.mutuo"),
+      children: [],
+    });
 
     const monade = groups[1];
     expect(monade.rootCategory).toBeNull();
     expect(monade.children).toEqual([
       {
-        id: "extra",
-        name: "monade.stipendio.extra",
-        label: "stipendio.extra",
+        segment: "stipendio",
+        path: "monade.stipendio",
+        category: null,
+        children: [
+          {
+            id: "extra",
+            name: "monade.stipendio.extra",
+            label: "extra",
+          },
+        ],
       },
     ]);
   });
@@ -101,9 +123,12 @@ describe("matchesCategoryQuery e filterCategoryGroups", () => {
     const filtered = filterCategoryGroups(groups, "gas");
     expect(filtered.map((group) => group.root)).toEqual(["casa"]);
     expect(filtered[0]?.rootCategory?.id).toBe("casa");
-    expect(filtered[0]?.children.map((child) => child.label)).toEqual([
-      "bollette.gas",
+    expect(filtered[0]?.children.map((child) => child.segment)).toEqual([
+      "bollette",
     ]);
+    expect(filtered[0]?.children[0]?.children.map((child) => child.label)).toEqual(
+      ["gas"],
+    );
   });
 
   it("query vuota non filtra", () => {
@@ -143,6 +168,15 @@ describe("categoryTriggerLabel e selectedGroupRoot", () => {
     expect(selectedGroupRoot(sample, "gas")).toBe("casa");
     expect(selectedGroupRoot(sample, "casa")).toBe("casa");
   });
+
+  it("percorsi da aprire per arrivare alla selezione", () => {
+    expect(selectedExpandPaths("casa")).toEqual(["casa"]);
+    expect(selectedExpandPaths("casa.mutuo")).toEqual(["casa", "casa.mutuo"]);
+    expect(selectedExpandPaths("casa.bollette.gas")).toEqual([
+      "casa",
+      "casa.bollette",
+    ]);
+  });
 });
 
 const full = (
@@ -169,24 +203,26 @@ describe("buildSettingsCategoryRows", () => {
     expect(rows).toEqual([
       {
         kind: "group",
-        root: "casa",
+        path: "casa",
         label: "casa",
         category: settingsSample[0],
         expandable: true,
         open: false,
+        depth: 0,
       },
       {
         kind: "group",
-        root: "monade",
+        path: "monade",
         label: "monade",
         category: null,
         expandable: true,
         open: false,
+        depth: 0,
       },
     ]);
   });
 
-  it("aperto un gruppo: figli piatti con etichetta relativa", () => {
+  it("aperto il primo livello: secondo livello, non i nipoti", () => {
     const rows = buildSettingsCategoryRows(
       settingsSample,
       new Set(["casa"]),
@@ -194,14 +230,38 @@ describe("buildSettingsCategoryRows", () => {
     );
     expect(rows.map((row) => row.kind + ":" + row.label)).toEqual([
       "group:casa",
-      "child:bollette.gas",
-      "child:mutuo",
+      "group:bollette",
+      "group:mutuo",
       "group:monade",
     ]);
     expect(rows[1]).toMatchObject({
+      kind: "group",
+      path: "casa.bollette",
+      expandable: true,
+      open: false,
+      depth: 1,
+      category: null,
+    });
+  });
+
+  it("aperto il secondo livello: i nipoti con etichetta relativa", () => {
+    const rows = buildSettingsCategoryRows(
+      settingsSample,
+      new Set(["casa", "casa.bollette"]),
+      "",
+    );
+    expect(rows.map((row) => row.kind + ":" + row.label)).toEqual([
+      "group:casa",
+      "group:bollette",
+      "child:gas",
+      "group:mutuo",
+      "group:monade",
+    ]);
+    expect(rows[2]).toMatchObject({
       kind: "child",
-      label: "bollette.gas",
+      label: "gas",
       category: settingsSample[2],
+      depth: 2,
     });
   });
 
@@ -214,11 +274,12 @@ describe("buildSettingsCategoryRows", () => {
     expect(rows).toEqual([
       {
         kind: "group",
-        root: "energia",
+        path: "energia",
         label: "energia",
         category: full("energia", "energia"),
         expandable: false,
         open: false,
+        depth: 0,
       },
     ]);
   });
@@ -227,8 +288,10 @@ describe("buildSettingsCategoryRows", () => {
     const rows = buildSettingsCategoryRows(settingsSample, new Set(), "gas");
     expect(rows.map((row) => row.kind + ":" + row.label)).toEqual([
       "group:casa",
-      "child:bollette.gas",
+      "group:bollette",
+      "child:gas",
     ]);
     expect(rows[0]).toMatchObject({ expandable: true, open: true });
+    expect(rows[1]).toMatchObject({ expandable: true, open: true });
   });
 });

@@ -18,10 +18,11 @@ import {
   buildCategoryGroups,
   categoryTriggerLabel,
   filterCategoryGroups,
-  selectedGroupRoot,
+  selectedExpandPaths,
   showNoneOption,
   type CategoryChildRow,
   type CategoryGroup,
+  type CategoryLevel2,
 } from "@/lib/categories/tree";
 import type { MovementCategoryOption } from "@/lib/categories/types";
 import { cn } from "@/lib/utils";
@@ -50,6 +51,13 @@ type VisibleRow =
       key: string;
       kind: "group";
       group: CategoryGroup;
+      expandable: boolean;
+      open: boolean;
+    }
+  | {
+      key: string;
+      kind: "level2";
+      level: CategoryLevel2;
       expandable: boolean;
       open: boolean;
     }
@@ -86,8 +94,10 @@ export function CategoryPicker({
     if (next) {
       setQuery("");
       setExpandedBeforeSearch(null);
-      const root = selectedGroupRoot(categories, value);
-      setExpanded(root ? new Set([root]) : new Set());
+      const selected = categories.find((category) => category.id === value);
+      setExpanded(
+        selected ? new Set(selectedExpandPaths(selected.name)) : new Set(),
+      );
     }
 
     setOpen(next);
@@ -216,12 +226,27 @@ function buildVisibleRows(
     });
 
     if (open) {
-      for (const child of group.children) {
+      for (const level of group.children) {
+        const levelExpandable = level.children.length > 0;
+        const levelOpen =
+          levelExpandable && (isSearching || expanded.has(level.path));
         rows.push({
-          key: `child-${child.id}`,
-          kind: "child",
-          child,
+          key: `level2-${level.path}`,
+          kind: "level2",
+          level,
+          expandable: levelExpandable,
+          open: levelOpen,
         });
+
+        if (levelOpen) {
+          for (const child of level.children) {
+            rows.push({
+              key: `child-${child.id}`,
+              kind: "child",
+              child,
+            });
+          }
+        }
       }
     }
   }
@@ -308,10 +333,57 @@ function CategoryPickerPanel({
                 key={row.key}
                 type="button"
                 onClick={() => onSelect(row.child.id)}
-                className={cn(rowClass(value === row.child.id, index), "pl-5")}
+                className={cn(rowClass(value === row.child.id, index), "pl-9")}
               >
                 {row.child.label}
               </button>
+            );
+          }
+
+          if (row.kind === "level2") {
+            const { level, expandable, open } = row;
+            const levelCategory = level.category;
+            const selected = levelCategory
+              ? value === levelCategory.id
+              : false;
+
+            return (
+              <div
+                key={row.key}
+                className={cn(
+                  rowClass(selected, index),
+                  "flex items-center pl-5",
+                )}
+              >
+                {levelCategory ? (
+                  <button
+                    type="button"
+                    onClick={() => onSelect(levelCategory.id)}
+                    className="min-w-0 flex-1 truncate py-0 text-left"
+                  >
+                    {level.segment}
+                  </button>
+                ) : (
+                  <span className="min-w-0 flex-1 truncate">{level.segment}</span>
+                )}
+                {expandable ? (
+                  <button
+                    type="button"
+                    aria-expanded={open}
+                    aria-label={
+                      open ? `Chiudi ${level.segment}` : `Apri ${level.segment}`
+                    }
+                    onClick={() => onToggleGroup(level.path)}
+                    className="flex size-7 shrink-0 items-center justify-center text-muted-foreground"
+                  >
+                    {open ? (
+                      <ChevronDownIcon className="size-3.5" />
+                    ) : (
+                      <ChevronRightIcon className="size-3.5" />
+                    )}
+                  </button>
+                ) : null}
+              </div>
             );
           }
 

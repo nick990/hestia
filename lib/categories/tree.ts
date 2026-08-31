@@ -9,10 +9,17 @@ export type CategoryChildRow = {
   label: string;
 };
 
+export type CategoryLevel2 = {
+  segment: string;
+  path: string;
+  category: MovementCategoryOption | null;
+  children: CategoryChildRow[];
+};
+
 export type CategoryGroup = {
   root: string;
   rootCategory: MovementCategoryOption | null;
-  children: CategoryChildRow[];
+  children: CategoryLevel2[];
 };
 
 export function compareItalian(a: string, b: string): number {
@@ -26,6 +33,20 @@ export function firstSegment(name: string): string {
 export function relativeLabel(name: string, root: string): string {
   const prefix = `${root}.`;
   return name.startsWith(prefix) ? name.slice(prefix.length) : name;
+}
+
+export function selectedExpandPaths(name: string): string[] {
+  const parts = name.split(".").filter(Boolean);
+  if (parts.length === 0) {
+    return [];
+  }
+
+  const paths = [parts[0]];
+  if (parts.length >= 2) {
+    paths.push(`${parts[0]}.${parts[1]}`);
+  }
+
+  return paths;
 }
 
 export function buildCategoryGroups(
@@ -48,15 +69,41 @@ export function buildCategoryGroups(
 
   for (const [root, items] of byRoot) {
     const rootCategory = items.find((item) => item.name === root) ?? null;
-    const children = items
-      .filter((item) => item.name.startsWith(`${root}.`))
-      .map((item) => ({
-        id: item.id,
-        name: item.name,
-        label: relativeLabel(item.name, root),
-      }))
-      .sort((a, b) => compareItalian(a.label, b.label));
+    const bySecond = new Map<string, MovementCategoryOption[]>();
 
+    for (const item of items) {
+      if (!item.name.startsWith(`${root}.`)) {
+        continue;
+      }
+
+      const segment = relativeLabel(item.name, root).split(".")[0] ?? "";
+      if (!segment) {
+        continue;
+      }
+
+      const list = bySecond.get(segment) ?? [];
+      list.push(item);
+      bySecond.set(segment, list);
+    }
+
+    const children: CategoryLevel2[] = [];
+
+    for (const [segment, l2Items] of bySecond) {
+      const path = `${root}.${segment}`;
+      const category = l2Items.find((item) => item.name === path) ?? null;
+      const grandchildren = l2Items
+        .filter((item) => item.name.startsWith(`${path}.`))
+        .map((item) => ({
+          id: item.id,
+          name: item.name,
+          label: relativeLabel(item.name, path),
+        }))
+        .sort((a, b) => compareItalian(a.label, b.label));
+
+      children.push({ segment, path, category, children: grandchildren });
+    }
+
+    children.sort((a, b) => compareItalian(a.segment, b.segment));
     groups.push({ root, rootCategory, children });
   }
 
@@ -86,9 +133,21 @@ export function filterCategoryGroups(
   for (const group of groups) {
     const rootName = group.rootCategory?.name ?? group.root;
     const rootMatches = matchesCategoryQuery(rootName, query);
-    const children = group.children.filter((child) =>
-      matchesCategoryQuery(child.name, query),
-    );
+    const children = group.children
+      .map((level) => {
+        const name = level.category?.name ?? level.path;
+        const selfMatches = matchesCategoryQuery(name, query);
+        const grandchildren = level.children.filter((child) =>
+          matchesCategoryQuery(child.name, query),
+        );
+
+        if (!selfMatches && grandchildren.length === 0) {
+          return null;
+        }
+
+        return { ...level, children: grandchildren };
+      })
+      .filter((level): level is CategoryLevel2 => level !== null);
 
     if (!rootMatches && children.length === 0) {
       continue;
@@ -132,16 +191,18 @@ export function selectedGroupRoot(
 export type SettingsCategoryRow =
   | {
       kind: "group";
-      root: string;
+      path: string;
       label: string;
       category: MovementCategory | null;
       expandable: boolean;
       open: boolean;
+      depth: 0 | 1;
     }
   | {
       kind: "child";
       label: string;
       category: MovementCategory;
+      depth: 2;
     };
 
 export function buildSettingsCategoryRows(
@@ -164,30 +225,51 @@ export function buildSettingsCategoryRows(
     const open = expandable && (isSearching || expanded.has(group.root));
     rows.push({
       kind: "group",
-      root: group.root,
+      path: group.root,
       label: group.root,
       category: group.rootCategory
         ? (byId.get(group.rootCategory.id) ?? null)
         : null,
       expandable,
       open,
+      depth: 0,
     });
 
     if (!open) {
       continue;
     }
 
-    for (const child of group.children) {
-      const category = byId.get(child.id);
-      if (!category) {
+    for (const level of group.children) {
+      const levelExpandable = level.children.length > 0;
+      const levelOpen =
+        levelExpandable && (isSearching || expanded.has(level.path));
+      rows.push({
+        kind: "group",
+        path: level.path,
+        label: level.segment,
+        category: level.category ? (byId.get(level.category.id) ?? null) : null,
+        expandable: levelExpandable,
+        open: levelOpen,
+        depth: 1,
+      });
+
+      if (!levelOpen) {
         continue;
       }
 
-      rows.push({
-        kind: "child",
-        label: child.label,
-        category,
-      });
+      for (const child of level.children) {
+        const category = byId.get(child.id);
+        if (!category) {
+          continue;
+        }
+
+        rows.push({
+          kind: "child",
+          label: child.label,
+          category,
+          depth: 2,
+        });
+      }
     }
   }
 
