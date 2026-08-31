@@ -69,6 +69,7 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 - [ ] Movimento con/senza categoria → colonna Categoria corretta.
 - [ ] Form movimento, campo Categoria: trigger mostra nome intero o «Nessuna».
 - [ ] Picker chiuso a primi livelli, alfabetico; freccia apre il secondo livello; un altro livello si apre solo se ci sono nipoti; tap sul nome della radice (se esiste) la assegna.
+- [ ] Gruppo aperto: figli in un blocco rientrato con linea verticale a sinistra; niente zebra tra padre e figli.
 - [ ] Cerca «gas»: restano solo i gruppi con match, aperti e filtrati; «Nessuna» sparisce; query vuota la riporta.
 - [ ] Cerca senza risultati: «Nessuna categoria trovata»; chiudere lascia la scelta precedente.
 - [ ] Telefono: Sheet dal basso, tastiera non si apre da sola; Indietro chiude il picker e lascia il form. Secondo Indietro chiude il form.
@@ -160,6 +161,7 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 ## Categorie (Impostazioni)
 
 - [ ] Lista a primi livelli collassati; il secondo livello (bollette, mutuo) sta sotto il primo; i nipoti solo aprendo il secondo.
+- [ ] Figli in blocco con linea verticale a sinistra; niente zebra tra padre e figli.
 - [ ] Gruppo senza categoria-radice: si può modificare il prefisso (es. monade → lavoro.monade) e i figli si spostano sotto.
 - [ ] Rinomina di una radice esistente (casa → lavoro.casa) rinomina anche casa.mutuo e gli altri discendenti.
 - [ ] Cerca filtra i rami come nel form movimento.

@@ -6,7 +6,10 @@ import {
   renameCategoryPrefix,
   updateCategory,
 } from "@/app/actions/categories";
-import { buildSettingsCategoryRows } from "@/lib/categories/tree";
+import {
+  buildSettingsCategoryRows,
+  type SettingsCategoryRow,
+} from "@/lib/categories/tree";
 import type { MovementCategory } from "@/lib/categories/types";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -404,19 +407,26 @@ export function CategoriesManager({
               </TableRow>
             ) : (
               rows.map((row, index) => {
-                const stripe = index % 2 === 1 ? "bg-muted/40 hover:bg-muted/40" : "";
+                const stripe = siblingStripe(rows, index);
+                const nest = nestNameClass(row.depth);
+                const rowTint =
+                  row.depth > 0
+                    ? cn(
+                        "bg-muted/15 hover:bg-muted/25",
+                        stripe && "bg-muted/40 hover:bg-muted/40",
+                      )
+                    : undefined;
 
                 if (row.kind === "group") {
                   const rootCategory = row.category;
                   return (
-                    <TableRow key={`group-${row.path}`} className={stripe}>
-                      <TableCell className="font-medium">
-                        <div
-                          className={cn(
-                            "flex items-center gap-1",
-                            row.depth === 1 && "pl-7",
-                          )}
-                        >
+                    <TableRow key={`group-${row.path}`} className={rowTint}>
+                      <TableCell
+                        className={cn(
+                          (row.depth === 0 || row.expandable) && "font-medium",
+                        )}
+                      >
+                        <div className={cn("flex items-center gap-1", nest)}>
                           {row.expandable ? (
                             <button
                               type="button"
@@ -470,10 +480,10 @@ export function CategoriesManager({
                 }
 
                 return (
-                  <TableRow key={row.category.id} className={stripe}>
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-1 pl-14">
-                        <span className="pl-5">{row.label}</span>
+                  <TableRow key={row.category.id} className={rowTint}>
+                    <TableCell>
+                      <div className={cn("flex items-center gap-1", nest)}>
+                        <span className="pl-7">{row.label}</span>
                       </div>
                     </TableCell>
                     <TableCell className="text-right tabular-nums">
@@ -496,6 +506,37 @@ export function CategoriesManager({
         </Table>
       </div>
     </div>
+  );
+}
+
+function siblingStripe(rows: SettingsCategoryRow[], index: number): boolean {
+  const depth = rows[index].depth;
+  if (depth === 0) {
+    return false;
+  }
+
+  let count = 0;
+  for (let i = index - 1; i >= 0; i--) {
+    if (rows[i].depth < depth) {
+      break;
+    }
+    if (rows[i].depth === depth) {
+      count += 1;
+    }
+  }
+
+  return count % 2 === 1;
+}
+
+function nestNameClass(depth: 0 | 1 | 2) {
+  if (depth === 0) {
+    return undefined;
+  }
+
+  return cn(
+    "border-l-2 border-primary/25 bg-muted/25",
+    depth === 1 && "ml-2.5 pl-2",
+    depth === 2 && "ml-7 pl-2",
   );
 }
 

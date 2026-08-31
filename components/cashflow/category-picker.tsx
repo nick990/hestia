@@ -20,7 +20,6 @@ import {
   filterCategoryGroups,
   selectedExpandPaths,
   showNoneOption,
-  type CategoryChildRow,
   type CategoryGroup,
   type CategoryLevel2,
 } from "@/lib/categories/tree";
@@ -44,25 +43,6 @@ type CategoryPickerProps = {
   value: string;
   onChange: (value: string) => void;
 };
-
-type VisibleRow =
-  | { key: string; kind: "none" }
-  | {
-      key: string;
-      kind: "group";
-      group: CategoryGroup;
-      expandable: boolean;
-      open: boolean;
-    }
-  | {
-      key: string;
-      kind: "level2";
-      level: CategoryLevel2;
-      expandable: boolean;
-      open: boolean;
-    }
-  | { key: string; kind: "child"; child: CategoryChildRow }
-  | { key: string; kind: "empty" };
 
 export function CategoryPicker({
   id,
@@ -201,63 +181,6 @@ export function CategoryPicker({
   );
 }
 
-function buildVisibleRows(
-  noneVisible: boolean,
-  visibleGroups: CategoryGroup[],
-  isSearching: boolean,
-  expanded: Set<string>,
-  empty: boolean,
-): VisibleRow[] {
-  const rows: VisibleRow[] = [];
-
-  if (noneVisible) {
-    rows.push({ key: "none", kind: "none" });
-  }
-
-  for (const group of visibleGroups) {
-    const expandable = group.children.length > 0;
-    const open = expandable && (isSearching || expanded.has(group.root));
-    rows.push({
-      key: `group-${group.root}`,
-      kind: "group",
-      group,
-      expandable,
-      open,
-    });
-
-    if (open) {
-      for (const level of group.children) {
-        const levelExpandable = level.children.length > 0;
-        const levelOpen =
-          levelExpandable && (isSearching || expanded.has(level.path));
-        rows.push({
-          key: `level2-${level.path}`,
-          kind: "level2",
-          level,
-          expandable: levelExpandable,
-          open: levelOpen,
-        });
-
-        if (levelOpen) {
-          for (const child of level.children) {
-            rows.push({
-              key: `child-${child.id}`,
-              kind: "child",
-              child,
-            });
-          }
-        }
-      }
-    }
-  }
-
-  if (empty) {
-    rows.push({ key: "empty", kind: "empty" });
-  }
-
-  return rows;
-}
-
 function CategoryPickerPanel({
   autoFocusSearch,
   empty,
@@ -283,14 +206,6 @@ function CategoryPickerPanel({
   onSelect: (value: string) => void;
   onToggleGroup: (root: string) => void;
 }) {
-  const rows = buildVisibleRows(
-    noneVisible,
-    visibleGroups,
-    isSearching,
-    expanded,
-    empty,
-  );
-
   return (
     <div className="flex h-full min-h-0 flex-col gap-1.5">
       <Input
@@ -302,142 +217,183 @@ function CategoryPickerPanel({
         className="h-7 shrink-0"
       />
       <div className="min-h-0 flex-1 overflow-y-auto">
-        {rows.map((row, index) => {
-          if (row.kind === "empty") {
-            return (
-              <p
-                key={row.key}
-                className="px-2 py-1.5 text-sm text-muted-foreground"
-              >
-                Nessuna categoria trovata
-              </p>
-            );
-          }
-
-          if (row.kind === "none") {
-            return (
-              <button
-                key={row.key}
-                type="button"
-                onClick={() => onSelect("none")}
-                className={rowClass(value === "none", index)}
-              >
-                Nessuna
-              </button>
-            );
-          }
-
-          if (row.kind === "child") {
-            return (
-              <button
-                key={row.key}
-                type="button"
-                onClick={() => onSelect(row.child.id)}
-                className={cn(rowClass(value === row.child.id, index), "pl-9")}
-              >
-                {row.child.label}
-              </button>
-            );
-          }
-
-          if (row.kind === "level2") {
-            const { level, expandable, open } = row;
-            const levelCategory = level.category;
-            const selected = levelCategory
-              ? value === levelCategory.id
-              : false;
-
-            return (
-              <div
-                key={row.key}
-                className={cn(
-                  rowClass(selected, index),
-                  "flex items-center pl-5",
-                )}
-              >
-                {levelCategory ? (
-                  <button
-                    type="button"
-                    onClick={() => onSelect(levelCategory.id)}
-                    className="min-w-0 flex-1 truncate py-0 text-left"
-                  >
-                    {level.segment}
-                  </button>
-                ) : (
-                  <span className="min-w-0 flex-1 truncate">{level.segment}</span>
-                )}
-                {expandable ? (
-                  <button
-                    type="button"
-                    aria-expanded={open}
-                    aria-label={
-                      open ? `Chiudi ${level.segment}` : `Apri ${level.segment}`
-                    }
-                    onClick={() => onToggleGroup(level.path)}
-                    className="flex size-7 shrink-0 items-center justify-center text-muted-foreground"
-                  >
-                    {open ? (
-                      <ChevronDownIcon className="size-3.5" />
-                    ) : (
-                      <ChevronRightIcon className="size-3.5" />
-                    )}
-                  </button>
-                ) : null}
-              </div>
-            );
-          }
-
-          const { group, expandable, open } = row;
+        {noneVisible ? (
+          <button
+            type="button"
+            onClick={() => onSelect("none")}
+            className={rowClass(value === "none")}
+          >
+            Nessuna
+          </button>
+        ) : null}
+        {visibleGroups.map((group) => {
+          const expandable = group.children.length > 0;
+          const open = expandable && (isSearching || expanded.has(group.root));
           const rootCategory = group.rootCategory;
           const selected = rootCategory ? value === rootCategory.id : false;
 
           return (
-            <div
-              key={row.key}
-              className={cn(rowClass(selected, index), "flex items-center")}
-            >
-              {rootCategory ? (
-                <button
-                  type="button"
-                  onClick={() => onSelect(rootCategory.id)}
-                  className="min-w-0 flex-1 truncate py-0 text-left"
-                >
-                  {group.root}
-                </button>
-              ) : (
-                <span className="min-w-0 flex-1 truncate">{group.root}</span>
-              )}
-              {expandable ? (
-                <button
-                  type="button"
-                  aria-expanded={open}
-                  aria-label={
-                    open ? `Chiudi ${group.root}` : `Apri ${group.root}`
-                  }
-                  onClick={() => onToggleGroup(group.root)}
-                  className="flex size-7 shrink-0 items-center justify-center text-muted-foreground"
-                >
-                  {open ? (
-                    <ChevronDownIcon className="size-3.5" />
-                  ) : (
-                    <ChevronRightIcon className="size-3.5" />
-                  )}
-                </button>
+            <div key={group.root}>
+              <BranchRow
+                expandable={expandable}
+                label={group.root}
+                open={open}
+                selected={selected}
+                weight="parent"
+                onSelect={
+                  rootCategory ? () => onSelect(rootCategory.id) : undefined
+                }
+                onToggle={() => onToggleGroup(group.root)}
+              />
+              {open ? (
+                <div className={nestClass}>
+                  {group.children.map((level, index) => (
+                    <Level2Branch
+                      key={level.path}
+                      expanded={expanded}
+                      isSearching={isSearching}
+                      level={level}
+                      stripe={index % 2 === 1}
+                      value={value}
+                      onSelect={onSelect}
+                      onToggleGroup={onToggleGroup}
+                    />
+                  ))}
+                </div>
               ) : null}
             </div>
           );
         })}
+        {empty ? (
+          <p className="px-2 py-1.5 text-sm text-muted-foreground">
+            Nessuna categoria trovata
+          </p>
+        ) : null}
       </div>
     </div>
   );
 }
 
-function rowClass(selected: boolean, index: number) {
+function Level2Branch({
+  expanded,
+  isSearching,
+  level,
+  stripe,
+  value,
+  onSelect,
+  onToggleGroup,
+}: {
+  expanded: Set<string>;
+  isSearching: boolean;
+  level: CategoryLevel2;
+  stripe: boolean;
+  value: string;
+  onSelect: (value: string) => void;
+  onToggleGroup: (path: string) => void;
+}) {
+  const expandable = level.children.length > 0;
+  const open = expandable && (isSearching || expanded.has(level.path));
+  const levelCategory = level.category;
+  const selected = levelCategory ? value === levelCategory.id : false;
+
+  return (
+    <div>
+      <BranchRow
+        expandable={expandable}
+        label={level.segment}
+        open={open}
+        selected={selected}
+        stripe={stripe}
+        weight={expandable ? "parent" : undefined}
+        onSelect={levelCategory ? () => onSelect(levelCategory.id) : undefined}
+        onToggle={() => onToggleGroup(level.path)}
+      />
+      {open ? (
+        <div className={nestClass}>
+          {level.children.map((child, index) => (
+            <button
+              key={child.id}
+              type="button"
+              onClick={() => onSelect(child.id)}
+              className={rowClass(value === child.id, index % 2 === 1)}
+            >
+              {child.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function BranchRow({
+  expandable,
+  label,
+  open,
+  selected,
+  stripe = false,
+  weight,
+  onSelect,
+  onToggle,
+}: {
+  expandable: boolean;
+  label: string;
+  open: boolean;
+  selected: boolean;
+  stripe?: boolean;
+  weight?: "parent";
+  onSelect?: () => void;
+  onToggle: () => void;
+}) {
+  return (
+    <div className={cn(rowClass(selected, stripe), "flex items-center")}>
+      {onSelect ? (
+        <button
+          type="button"
+          onClick={onSelect}
+          className={cn(
+            "min-w-0 flex-1 truncate py-0 text-left",
+            weight === "parent" && "font-medium",
+          )}
+        >
+          {label}
+        </button>
+      ) : (
+        <span
+          className={cn(
+            "min-w-0 flex-1 truncate text-muted-foreground",
+            weight === "parent" && "font-medium",
+          )}
+        >
+          {label}
+        </span>
+      )}
+      {expandable ? (
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-label={open ? `Chiudi ${label}` : `Apri ${label}`}
+          onClick={onToggle}
+          className="flex size-7 shrink-0 items-center justify-center text-muted-foreground"
+        >
+          {open ? (
+            <ChevronDownIcon className="size-3.5" />
+          ) : (
+            <ChevronRightIcon className="size-3.5" />
+          )}
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
+const nestClass =
+  "ml-2.5 border-l-2 border-primary/25 bg-muted/25";
+
+function rowClass(selected: boolean, stripe = false) {
   return cn(
     "w-full px-2 py-1 text-left text-sm",
-    index % 2 === 1 && !selected && "bg-muted/40",
-    selected
-      ? "bg-accent text-accent-foreground"
-      : "hover:bg-muted/70",
+    stripe && !selected && "bg-muted/40",
+    selected ? "bg-accent text-accent-foreground" : "hover:bg-muted/70",
   );
 }
