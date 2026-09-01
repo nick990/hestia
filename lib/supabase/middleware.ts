@@ -1,5 +1,4 @@
 import { createServerClient } from "@supabase/ssr";
-import { isMobileUserAgent } from "@/lib/device/is-mobile-user-agent";
 import { NextResponse, type NextRequest } from "next/server";
 
 const PUBLIC_PATHS = ["/login", "/auth/callback", "/account-disabled"];
@@ -59,22 +58,16 @@ export async function updateSession(request: NextRequest) {
 
   if (user && pathname === "/login") {
     const homeUrl = request.nextUrl.clone();
-    homeUrl.pathname = isMobileUserAgent(request) ? "/" : "/cashflow";
+    homeUrl.pathname = "/";
     homeUrl.search = "";
     return NextResponse.redirect(homeUrl);
   }
 
-  if (user && pathname === "/" && !isMobileUserAgent(request)) {
-    const cashflowUrl = request.nextUrl.clone();
-    cashflowUrl.pathname = "/cashflow";
-    return NextResponse.redirect(cashflowUrl);
-  }
-
   if (pathname === "/dashboard") {
-    const cashflowUrl = request.nextUrl.clone();
-    cashflowUrl.pathname = "/cashflow";
-    cashflowUrl.search = "";
-    return NextResponse.redirect(cashflowUrl);
+    const homeUrl = request.nextUrl.clone();
+    homeUrl.pathname = "/";
+    homeUrl.search = "";
+    return NextResponse.redirect(homeUrl);
   }
 
   if (pathname === "/users" || pathname.startsWith("/users/")) {

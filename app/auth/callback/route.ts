@@ -26,9 +26,9 @@ function missingEnvRedirect(origin: string) {
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  let next = searchParams.get("next") ?? "/cashflow";
+  let next = searchParams.get("next") ?? "/";
   if (!next.startsWith("/")) {
-    next = "/cashflow";
+    next = "/";
   }
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
