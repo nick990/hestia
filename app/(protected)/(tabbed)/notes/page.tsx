@@ -26,6 +26,7 @@ export default async function NotesRoutePage() {
       notes={notes}
       prefs={prefs}
       hasFamily={family !== null}
+      hideTitle
     />
   );
 }

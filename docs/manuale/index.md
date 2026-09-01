@@ -4,9 +4,14 @@ Hestia serve a tenere traccia delle entrate e delle uscite di casa: le tue, quel
 
 Questo manuale spiega come usarla, senza dettagli da sviluppatori.
 
-La **home** (menu **Home**, `/`) ha due tab: **Cashflow** (riepilogo del mese e nuovi movimenti) e **Notes** (stessi appunti della pagina Notes). Vale su telefono e computer.
+**Home** (`/`, menu in alto) è una pagina neutra con il nome Hestia. La navigazione principale è la **riga tab** sotto l’header: **Cashflow**, **Notes**, **In evidenza**.
 
-Dal menu: **Cashflow** apre la pagina completa (tabella su computer, lista su telefono); **Notes** apre la bacheca a pagina intera. Indietro del browser chiude menu e finestre aperte, una alla volta, senza lasciare la pagina.
+- **Cashflow** (`/cashflow`) — riepilogo del mese, lista movimenti, nuovo movimento
+- **Vista avanzata** (`/cashflow/avanzato`) — tabella completa, filtri, Sankey (link in fondo alla vista standard; da lì puoi tornare alla vista semplificata)
+- **Notes** (`/notes`) — bacheca appunti
+- **In evidenza** (`/evidenza`) — categoria di famiglia con limite di spesa opzionale
+
+Nel menu in alto: il logo **Hestia** porta alla home; su desktop l’ingranaggio apre **Impostazioni** (prima del nome account); su mobile **Impostazioni** resta nel menu hamburger. Indietro del browser chiude menu e finestre aperte, una alla volta, senza lasciare la pagina.
 
 ## Sezioni
 
@@ -17,5 +22,8 @@ Dal menu: **Cashflow** apre la pagina completa (tabella su computer, lista su te
 
 - Filtri e totali
 - Famiglie
-- Categorie
 - Account e Impostazioni
+
+## Categoria in evidenza
+
+Tab **In evidenza** in `/evidenza`: segui una categoria (es. vacanze) con spesa del ramo e limite di spesa opzionale. Si configura in **Impostazioni → Categorie**; tutti i membri della famiglia possono modificarla.

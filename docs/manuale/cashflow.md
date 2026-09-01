@@ -55,14 +55,14 @@ Chi li ha inseriti la prima volta non cambia, anche se un altro membro li aggior
 
 ## Esempi di tutti i giorni
 
-| Situazione | Cosa scegliere |
-|------------|----------------|
-| Mutuo o bolletta comune | Uscita, di famiglia |
-| Spesa della casa al supermercato | Uscita, di famiglia |
-| Il tuo stipendio | Entrata, personale (tua); privata solo se non vuoi che gli altri la vedano |
-| Un regalo che preferisci tenere per te | Uscita personale tua, privata |
-| Un rimborso che arriva sul “conto di casa” | Entrata, di famiglia |
-| Una spesa che vuoi contare sul partner | Uscita personale, assegnata al partner (non privata) |
+| Situazione                                 | Cosa scegliere                                                             |
+| ------------------------------------------ | -------------------------------------------------------------------------- |
+| Mutuo o bolletta comune                    | Uscita, di famiglia                                                        |
+| Spesa della casa al supermercato           | Uscita, di famiglia                                                        |
+| Il tuo stipendio                           | Entrata, personale (tua); privata solo se non vuoi che gli altri la vedano |
+| Un regalo che preferisci tenere per te     | Uscita personale tua, privata                                              |
+| Un rimborso che arriva sul “conto di casa” | Entrata, di famiglia                                                       |
+| Una spesa che vuoi contare sul partner     | Uscita personale, assegnata al partner (non privata)                       |
 
 ## Cosa Hestia non fa
 
@@ -72,5 +72,6 @@ Non gestisce ancora movimenti che si ripetono ogni mese, allegati o altre valute
 
 ## Dove li trovi
 
-- Sul **computer**, di solito apri la pagina Cashflow: lista completa, totali, mesi e grafico.
-- Sul **telefono**, la schermata iniziale apre il tab Cashflow: mese in corso, totali, filtri e ultimi movimenti, con il + per aggiungerne uno. Il tab Notes è accanto. Dal menu, **Cashflow** apre la lista completa.
+- **Cashflow** (`/cashflow`) — mese in corso, totali, lista movimenti, pulsante + per aggiungerne uno.
+- **Vista avanzata** (`/cashflow/avanzato`) — tabella completa, filtri, mesi dell’anno, grafico Sankey. Link **Vista semplificata** in fondo per tornare a `/cashflow`.
+- **Notes** e **In evidenza** — tab accanto a Cashflow nella riga sotto l’header.

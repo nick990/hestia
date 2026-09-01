@@ -26,7 +26,7 @@ export function DateRangeFilter({
     const params = new URLSearchParams(
       buildCashflowSearchParams({ from: nextFrom, to: nextTo, year }),
     );
-    onNavigate(`/cashflow?${params.toString()}`);
+    onNavigate(`/cashflow/avanzato?${params.toString()}`);
   }
 
   function commitRange(nextFrom: string, nextTo: string) {

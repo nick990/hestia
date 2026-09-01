@@ -1,20 +1,19 @@
-import { buildHomeHref, type HomeTab } from "@/lib/home/tab";
-import { cn } from "@/lib/utils";
-import { LoaderCircleIcon, StickyNoteIcon, WalletIcon } from "lucide-react";
-import Link from "next/link";
+"use client";
 
-type HomeTabsProps = {
-  tab: HomeTab;
-  from: string;
-  to: string;
-  pending: boolean;
-  onSelect: (tab: HomeTab) => void;
-};
+import { useTabNavigation } from "@/components/layout/tab-navigation";
+import { cn } from "@/lib/utils";
+import {
+  LoaderCircleIcon,
+  ParasolIcon,
+  StickyNoteIcon,
+  WalletIcon,
+} from "lucide-react";
+import Link from "next/link";
 
 const items = [
   {
     id: "cashflow" as const,
-    hrefTab: "cashflow" as const,
+    href: "/cashflow",
     label: "Cashflow",
     icon: WalletIcon,
     colorClass: "text-primary",
@@ -22,31 +21,40 @@ const items = [
   },
   {
     id: "notes" as const,
-    hrefTab: "notes" as const,
+    href: "/notes",
     label: "Notes",
     icon: StickyNoteIcon,
     colorClass: "text-home-tab-notes",
     selectedClass: "bg-home-tab-notes/15 text-home-tab-notes",
   },
+  {
+    id: "evidenza" as const,
+    href: "/evidenza",
+    label: "In evidenza",
+    icon: ParasolIcon,
+    colorClass: "text-home-tab-evidenza",
+    selectedClass: "bg-home-tab-evidenza/15 text-home-tab-evidenza",
+  },
 ];
 
-export function HomeTabs({
-  tab,
-  from,
-  to,
-  pending,
-  onSelect,
-}: HomeTabsProps) {
+export function AppTabBar() {
+  const { isPending, displayTab, selectTab } = useTabNavigation();
+
   return (
     <nav
-      aria-label="Sezioni home"
-      className="sticky top-0 z-20 flex justify-center gap-1 border-b bg-background px-3 py-1"
+      aria-label="Sezioni principali"
+      aria-busy={isPending}
+      className={cn(
+        "sticky top-0 z-20 flex justify-center gap-1 border-b bg-background px-3 py-1",
+        isPending && "pointer-events-none select-none",
+      )}
+      inert={isPending ? true : undefined}
     >
       {items.map((item) => {
-        const selected = tab === item.id;
-        const loading = pending && selected;
+        const selected = displayTab === item.id;
+        const loading = isPending && selected;
         const Icon = item.icon;
-        const href = buildHomeHref({ tab: item.hrefTab, from, to });
+        const href = item.href;
 
         return (
           <Link
@@ -54,7 +62,12 @@ export function HomeTabs({
             href={href}
             aria-current={selected ? "page" : undefined}
             aria-busy={loading || undefined}
-            className="flex min-h-9 items-center gap-1.5 rounded-lg px-2.5 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+            aria-disabled={isPending || undefined}
+            tabIndex={isPending ? -1 : undefined}
+            className={cn(
+              "flex min-h-9 items-center gap-1.5 rounded-lg px-2.5 outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+              isPending && "cursor-wait",
+            )}
             onClick={(event) => {
               if (
                 event.metaKey ||
@@ -67,7 +80,7 @@ export function HomeTabs({
               }
 
               event.preventDefault();
-              onSelect(item.id);
+              selectTab(item.id, href);
             }}
           >
             <span
@@ -93,9 +106,6 @@ export function HomeTabs({
           </Link>
         );
       })}
-      <span className="sr-only" aria-live="polite">
-        {pending ? "Caricamento…" : ""}
-      </span>
     </nav>
   );
 }

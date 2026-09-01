@@ -16,7 +16,7 @@ export default function NotesError({
   }, [error]);
 
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-1 items-start px-4 py-12 sm:px-6">
+    <main className="flex flex-1 items-start px-4 py-12 sm:px-6">
       <div className="w-full rounded-xl border border-border bg-card p-6 text-center shadow-sm">
         <TriangleAlertIcon
           className="mx-auto size-6 text-destructive"

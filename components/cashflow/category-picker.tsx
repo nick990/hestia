@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/sheet";
 import { useMinMd } from "@/hooks/use-min-md";
 import { branchInteraction } from "@/lib/categories/interaction";
+import { filterCategoriesByPrefix } from "@/lib/categories/prefix-match";
 import {
   buildCategoryGroups,
   categoryTriggerLabel,
@@ -48,6 +49,7 @@ type CategoryPickerProps = {
   categories: MovementCategoryOption[];
   value: string;
   onChange: (value: string) => void;
+  lockedCategoryPrefix?: string;
 };
 
 export function CategoryPicker({
@@ -55,6 +57,7 @@ export function CategoryPicker({
   categories,
   value,
   onChange,
+  lockedCategoryPrefix,
 }: CategoryPickerProps) {
   const minMd = useMinMd();
   const [open, setOpen] = useState(false);
@@ -63,24 +66,32 @@ export function CategoryPicker({
   const [expandedBeforeSearch, setExpandedBeforeSearch] =
     useState<Set<string> | null>(null);
 
+  const visibleCategories = useMemo(
+    () =>
+      lockedCategoryPrefix
+        ? filterCategoriesByPrefix(categories, lockedCategoryPrefix)
+        : categories,
+    [categories, lockedCategoryPrefix],
+  );
+
   const groups = useMemo(
-    () => buildCategoryGroups(categories),
-    [categories],
+    () => buildCategoryGroups(visibleCategories),
+    [visibleCategories],
   );
   const visibleGroups = useMemo(
     () => filterCategoryGroups(groups, query),
     [groups, query],
   );
-  const noneVisible = showNoneOption(query);
+  const noneVisible = !lockedCategoryPrefix && showNoneOption(query);
   const isSearching = query.trim().length > 0;
   const empty = !noneVisible && visibleGroups.length === 0;
-  const label = categoryTriggerLabel(categories, value);
+  const label = categoryTriggerLabel(visibleCategories, value);
 
   function handleOpenChange(next: boolean) {
     if (next) {
       setQuery("");
       setExpandedBeforeSearch(null);
-      const selected = categories.find((category) => category.id === value);
+      const selected = visibleCategories.find((category) => category.id === value);
       setExpanded(
         selected ? new Set(selectedExpandPaths(selected.name)) : new Set(),
       );

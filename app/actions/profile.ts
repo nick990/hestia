@@ -1,14 +1,15 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { revalidateTabbedSections } from "@/lib/revalidate-tabbed";
 import { revalidatePath } from "next/cache";
 
 type ActionResult = { ok: true } | { ok: false; error: string };
 
 function revalidateProfilePaths() {
   revalidatePath("/settings/account");
-  revalidatePath("/cashflow");
   revalidatePath("/settings/families");
+  revalidateTabbedSections();
 }
 
 function parseFullName(raw: string): string | null {

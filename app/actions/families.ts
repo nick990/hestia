@@ -6,13 +6,14 @@ import type {
 } from "@/lib/families/types";
 import { requireAdmin } from "@/lib/auth/member";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { revalidateTabbedSections } from "@/lib/revalidate-tabbed";
 import { revalidatePath } from "next/cache";
 
 type ActionResult = { ok: true } | { ok: false; error: string };
 
 function revalidateFamilies() {
   revalidatePath("/settings/families");
-  revalidatePath("/cashflow");
+  revalidateTabbedSections();
 }
 
 function parseFamilyName(raw: string): string | null {

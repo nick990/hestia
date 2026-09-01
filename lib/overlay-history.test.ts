@@ -71,9 +71,7 @@ describe("shouldSkipHistoryPopForHref", () => {
   });
 
   it("salta il back se cambiano i query", () => {
-    expect(shouldSkipHistoryPopForHref("/?tab=notes", "/", "")).toBe(true);
-    expect(shouldSkipHistoryPopForHref("/?tab=notes", "/", "?tab=notes")).toBe(
-      false,
-    );
+    expect(shouldSkipHistoryPopForHref("/notes?x=1", "/notes", "")).toBe(true);
+    expect(shouldSkipHistoryPopForHref("/notes", "/notes", "")).toBe(false);
   });
 });

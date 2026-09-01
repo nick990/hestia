@@ -3,6 +3,7 @@ import {
   summarizeFilteredMovements,
   type AssigneeFiltersState,
 } from "@/lib/cashflow/assignee-filters";
+import { matchesCategoryPrefix } from "@/lib/categories/prefix-match";
 import type {
   MonthSummary,
   MonthSummaryEntry,
@@ -217,4 +218,53 @@ export async function listAllMovementsForRange(
   to: string,
 ): Promise<Movement[]> {
   return listRawMovementsForRange(from, to);
+}
+
+export async function listMovementsForCategoryPrefix(
+  prefix: string,
+): Promise<Movement[]> {
+  const supabase = await createClient();
+
+  const { data: categories, error: categoriesError } = await supabase
+    .from("movement_categories")
+    .select("id, name");
+
+  if (categoriesError) {
+    throw new Error(categoriesError.message);
+  }
+
+  const categoryIds = (categories ?? [])
+    .filter((category) => matchesCategoryPrefix(category.name, prefix))
+    .map((category) => category.id);
+
+  if (categoryIds.length === 0) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from("movements")
+    .select(
+      "id, type, amount, occurred_on, description, created_at, category_id, created_by, assignee_kind, assignee_user_id, is_private, movement_categories(name)",
+    )
+    .in("category_id", categoryIds)
+    .order("occurred_on", { ascending: false })
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const rows = (data ?? []) as MovementRow[];
+  const userIds = [
+    ...new Set(
+      rows.flatMap((row) =>
+        [row.created_by, row.assignee_user_id].filter(
+          (id): id is string => Boolean(id),
+        ),
+      ),
+    ),
+  ];
+  const profiles = await loadProfileNames(supabase, userIds);
+
+  return rows.map((row) => mapMovement(row, profiles));
 }

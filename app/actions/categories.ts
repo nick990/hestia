@@ -3,15 +3,63 @@
 import { requireAdmin } from "@/lib/auth/member";
 import { parseCategoryName } from "@/lib/categories/name";
 import { missingCategoryPrefixes } from "@/lib/categories/prefixes";
+import {
+  applyCategoryPrefixRename,
+  matchesCategoryPrefix,
+} from "@/lib/categories/prefix-match";
 import { planPrefixRename } from "@/lib/categories/rename";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { revalidateTabbedSections } from "@/lib/revalidate-tabbed";
 import { revalidatePath } from "next/cache";
 
 type ActionResult = { ok: true } | { ok: false; error: string };
 
 function revalidateCategoryPaths() {
   revalidatePath("/settings/categories");
-  revalidatePath("/cashflow");
+  revalidateTabbedSections();
+}
+
+async function syncFeaturedAfterPrefixRename(
+  fromPrefix: string,
+  toPrefix: string,
+): Promise<void> {
+  const admin = createAdminClient();
+  const { data, error } = await admin
+    .from("family_featured_settings")
+    .select("family_id, category_name")
+    .not("category_name", "is", null);
+
+  if (error || !data) {
+    return;
+  }
+
+  for (const row of data) {
+    if (
+      !row.category_name ||
+      !matchesCategoryPrefix(row.category_name, fromPrefix)
+    ) {
+      continue;
+    }
+
+    const nextName = applyCategoryPrefixRename(
+      row.category_name,
+      fromPrefix,
+      toPrefix,
+    );
+
+    await admin
+      .from("family_featured_settings")
+      .update({ category_name: nextName })
+      .eq("family_id", row.family_id);
+  }
+}
+
+async function clearFeaturedIfCategoryDeleted(name: string): Promise<void> {
+  const admin = createAdminClient();
+  await admin
+    .from("family_featured_settings")
+    .update({ category_name: null })
+    .eq("category_name", name);
 }
 
 function parseName(raw: string): string | null {
@@ -106,6 +154,8 @@ async function applyPrefixRename(
     }
   }
 
+  await syncFeaturedAfterPrefixRename(fromPrefix, toPrefix);
+
   revalidateCategoryPaths();
   return { ok: true };
 }
@@ -163,6 +213,20 @@ export async function deleteCategory(
 
   const admin = createAdminClient();
 
+  const { data: current, error: currentError } = await admin
+    .from("movement_categories")
+    .select("id, name")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (currentError) {
+    return { ok: false, error: currentError.message };
+  }
+
+  if (!current) {
+    return { ok: false, error: "Categoria non trovata." };
+  }
+
   const { count, error: countError } = await admin
     .from("movements")
     .select("id", { count: "exact", head: true })
@@ -214,6 +278,8 @@ export async function deleteCategory(
   if (deleteError) {
     return { ok: false, error: deleteError.message };
   }
+
+  await clearFeaturedIfCategoryDeleted(current.name);
 
   revalidateCategoryPaths();
   return { ok: true };

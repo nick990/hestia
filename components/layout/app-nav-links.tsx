@@ -3,62 +3,34 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { SettingsIcon } from "lucide-react";
 
 export const navItems = [
-  { href: "/", label: "Home", adminOnly: false },
-  { href: "/cashflow", label: "Cashflow", adminOnly: false },
-  { href: "/notes", label: "Notes", adminOnly: false },
   { href: "/settings", label: "Impostazioni", adminOnly: false },
 ] as const;
 
 export function isNavItemActive(href: string, pathname: string): boolean {
-  if (href === "/") {
-    return pathname === "/";
-  }
-
-  if (href === "/cashflow") {
-    return pathname === "/cashflow" || pathname.startsWith("/cashflow/");
-  }
-
-  if (href === "/notes") {
-    return pathname === "/notes" || pathname.startsWith("/notes/");
-  }
-
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-type AppNavLinksProps = {
-  isAdmin: boolean;
-  className?: string;
-};
-
-export function AppNavLinks({ isAdmin, className }: AppNavLinksProps) {
+export function AppNavSettingsLink({ className }: { className?: string }) {
   const pathname = usePathname();
+  const active = isNavItemActive("/settings", pathname);
 
   return (
-    <nav className={cn("flex items-center gap-1", className)}>
-      {navItems.map((item) => {
-        if (item.adminOnly && !isAdmin) {
-          return null;
-        }
-
-        const active = isNavItemActive(item.href, pathname);
-
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={cn(
-              "rounded-lg px-3 py-1.5 text-sm transition-colors",
-              active
-                ? "bg-muted font-medium text-foreground"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground",
-            )}
-          >
-            {item.label}
-          </Link>
-        );
-      })}
-    </nav>
+    <Link
+      href="/settings"
+      aria-label="Impostazioni"
+      aria-current={active ? "page" : undefined}
+      className={cn(
+        "hidden size-8 shrink-0 items-center justify-center rounded-lg transition-colors sm:flex",
+        active
+          ? "bg-muted text-foreground"
+          : "text-muted-foreground hover:bg-muted hover:text-foreground",
+        className,
+      )}
+    >
+      <SettingsIcon className="size-4" />
+    </Link>
   );
 }

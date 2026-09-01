@@ -12,12 +12,16 @@ type HomeMovementsProps = {
   movements: Movement[];
   hasFamily: boolean;
   onSelect: (movement: Movement) => void;
+  emptyTitle?: string;
+  emptyHint?: string;
 };
 
 export function HomeMovements({
   movements,
   hasFamily,
   onSelect,
+  emptyTitle = "Nessun movimento in questo mese.",
+  emptyHint = "Tocca + in basso a destra per registrare una spesa o un'entrata.",
 }: HomeMovementsProps) {
   return (
     <section className="flex min-h-0 flex-col gap-2">
@@ -25,12 +29,8 @@ export function HomeMovements({
 
       {movements.length === 0 ? (
         <div className="rounded-lg border border-dashed bg-muted/20 px-4 py-8 text-center">
-          <p className="text-sm text-muted-foreground">
-            Nessun movimento in questo mese.
-          </p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Tocca + in basso a destra per registrare una spesa o un&apos;entrata.
-          </p>
+          <p className="text-sm text-muted-foreground">{emptyTitle}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{emptyHint}</p>
         </div>
       ) : (
         <div className="max-h-[min(40dvh,18rem)] overflow-y-auto overscroll-contain rounded-lg border">
@@ -54,11 +54,11 @@ export function HomeMovements({
                         {normalizeCategoryDisplay(movement.category_name)}
                       </p>
                       {hasDescription ? (
-                        <p className="truncate text-[10px] leading-4 text-muted-foreground">
+                        <p className="truncate text-xs leading-4 text-muted-foreground">
                           {description}
                         </p>
                       ) : null}
-                      <p className="flex min-w-0 items-center gap-1 text-[10px] leading-4 text-muted-foreground">
+                      <p className="flex min-w-0 items-center gap-1 text-xs leading-4 text-muted-foreground">
                         <span>{formatOccurredOn(movement.occurred_on)}</span>
                         {hasFamily ? (
                           <>
@@ -84,7 +84,7 @@ export function HomeMovements({
                       {hasFamily && movement.is_private ? (
                         <Badge
                           variant="outline"
-                          className="h-3.5 px-1 text-[9px] leading-none"
+                          className="h-4 px-1 text-xs leading-none"
                         >
                           Privato
                         </Badge>

@@ -1,4 +1,5 @@
 import { CategoriesManager } from "@/components/settings/categories-manager";
+import { FeaturedCategorySettingsBlock } from "@/components/settings/featured-category-settings";
 import {
   Card,
   CardContent,
@@ -7,12 +8,21 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { getCurrentMember } from "@/lib/auth/member";
-import { listCategoriesWithCounts } from "@/lib/categories/queries";
+import { listCategoryOptions, listCategoriesWithCounts } from "@/lib/categories/queries";
+import { getFeaturedCategorySettings } from "@/lib/featured/queries";
+import { getCurrentUserFamily } from "@/lib/families/queries";
 
 export default async function CategoriesSettingsPage() {
   const member = await getCurrentMember();
   const canEdit = member?.role === "admin" && !member.disabled_at;
-  const categories = await listCategoriesWithCounts();
+  const [categories, categoryOptions, family, featuredSettings] =
+    await Promise.all([
+      listCategoriesWithCounts(),
+      listCategoryOptions(),
+      getCurrentUserFamily(),
+      getFeaturedCategorySettings(),
+    ]);
+  const hasFamily = family !== null;
 
   return (
     <Card>
@@ -25,6 +35,11 @@ export default async function CategoriesSettingsPage() {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        <FeaturedCategorySettingsBlock
+          hasFamily={hasFamily}
+          settings={featuredSettings}
+          categories={categoryOptions}
+        />
         <CategoriesManager categories={categories} canEdit={canEdit} />
       </CardContent>
     </Card>

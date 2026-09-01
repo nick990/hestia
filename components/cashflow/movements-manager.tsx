@@ -7,26 +7,27 @@ import { DateRangeFilter } from "@/components/cashflow/date-range-filter";
 import { DeleteMovementDialog } from "@/components/cashflow/delete-movement-dialog";
 import { MovementFormDialog } from "@/components/cashflow/movement-form-dialog";
 import { MovementsTable } from "@/components/cashflow/movements-table";
-import { HomeMovements } from "@/components/home/home-movements";
+import {
+  TabbedNavLink,
+  useTabNavigation,
+} from "@/components/layout/tab-navigation";
 import {
   PeriodSummaryCards,
   type FilterSummaryState,
 } from "@/components/cashflow/period-summary-cards";
 import { YearSummaryBar } from "@/components/cashflow/year-summary-bar";
 import { Button } from "@/components/ui/button";
-import { useMinMd } from "@/hooks/use-min-md";
 import {
   applyAssigneeFilters,
   buildYearSummaryFromMovements,
   summarizeFilteredMovements,
 } from "@/lib/cashflow/assignee-filters";
-import { sortMovementsNewestFirst } from "@/lib/cashflow/sort-movements";
+import { buildCashflowHref } from "@/lib/cashflow/routes";
 import type { MovementCategoryOption } from "@/lib/categories/types";
 import type { Movement } from "@/lib/cashflow/types";
 import type { FamilyMemberOption } from "@/lib/families/types";
-import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
+import { useCallback, useMemo, useState, useTransition } from "react";
 import { BarChart3, PlusIcon } from "lucide-react";
 import { toast } from "sonner";
 
@@ -56,9 +57,8 @@ export function MovementsManager({
   categories,
 }: MovementsManagerProps) {
   const router = useRouter();
-  const minMd = useMinMd();
+  const { isPending, navigate } = useTabNavigation();
   const [pending, startTransition] = useTransition();
-  const [navigating, startNavigation] = useTransition();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingMovement, setEditingMovement] = useState<Movement | null>(null);
   const [movementToDelete, setMovementToDelete] = useState<Movement | null>(null);
@@ -92,23 +92,6 @@ export function MovementsManager({
     [movements],
   );
 
-  const listMovements = useMemo(
-    () => sortMovementsNewestFirst(movements),
-    [movements],
-  );
-
-  useEffect(() => {
-    if (minMd) {
-      return;
-    }
-
-    setFilteredMovements(listMovements);
-    setFilterSummary({
-      active: false,
-      summary: summarizeFilteredMovements(listMovements),
-    });
-  }, [minMd, listMovements]);
-
   const yearSummary = useMemo(() => {
     const filteredYear = hasFamily && hydrated
       ? applyAssigneeFilters(yearMovements, filters, currentUserId)
@@ -134,11 +117,9 @@ export function MovementsManager({
 
   const handleNavigate = useCallback(
     (href: string) => {
-      startNavigation(() => {
-        router.push(href);
-      });
+      navigate(href);
     },
-    [router],
+    [navigate],
   );
 
   function openCreateDialog() {
@@ -180,26 +161,21 @@ export function MovementsManager({
     });
   }
 
-  const contentClassName = cn(
-    "transition-opacity duration-200 motion-reduce:transition-none",
-    navigating && "pointer-events-none opacity-60",
-  );
-
   return (
-    <div className="space-y-8 pb-20 sm:pb-0" aria-busy={navigating}>
+    <div className="space-y-8 pb-20 sm:pb-0">
       <section className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <DateRangeFilter
             from={from}
             to={to}
             year={year}
-            pending={navigating}
+            pending={isPending}
             onNavigate={handleNavigate}
           />
           <Button
             type="button"
             className="hidden shrink-0 sm:inline-flex"
-            disabled={navigating}
+            disabled={isPending}
             onClick={openCreateDialog}
           >
             Aggiungi movimento
@@ -215,16 +191,14 @@ export function MovementsManager({
           />
         ) : null}
 
-        <div className={contentClassName}>
-          <PeriodSummaryCards summary={summary} filterSummary={filterSummary} />
-        </div>
+        <PeriodSummaryCards summary={summary} filterSummary={filterSummary} />
       </section>
 
       <YearSummaryBar
         yearSummary={yearSummary}
         rangeFrom={from}
         rangeTo={to}
-        pending={navigating}
+        pending={isPending}
         onNavigate={handleNavigate}
       />
 
@@ -234,7 +208,7 @@ export function MovementsManager({
           <Button
             type="button"
             variant="outline"
-            disabled={navigating || (minMd ? filteredMovements.length === 0 : listMovements.length === 0)}
+            disabled={isPending || filteredMovements.length === 0}
             onClick={() => setSankeyOpen(true)}
           >
             <BarChart3 className="size-4" />
@@ -242,29 +216,28 @@ export function MovementsManager({
           </Button>
         </div>
 
-        <div className={contentClassName}>
-          {minMd ? (
-            <MovementsTable
-              movements={movements}
-              from={from}
-              to={to}
-              hasFamily={hasFamily}
-              pending={pending || navigating}
-              onEdit={openEditDialog}
-              onDelete={setMovementToDelete}
-              onCreate={openCreateDialog}
-              onFilterSummaryChange={handleFilterSummaryChange}
-              onFilteredMovementsChange={handleFilteredMovementsChange}
-            />
-          ) : (
-            <HomeMovements
-              movements={listMovements}
-              hasFamily={hasFamily}
-              onSelect={openEditDialog}
-            />
-          )}
-        </div>
+        <MovementsTable
+          movements={movements}
+          from={from}
+          to={to}
+          hasFamily={hasFamily}
+          pending={pending || isPending}
+          onEdit={openEditDialog}
+          onDelete={setMovementToDelete}
+          onCreate={openCreateDialog}
+          onFilterSummaryChange={handleFilterSummaryChange}
+          onFilteredMovementsChange={handleFilteredMovementsChange}
+        />
       </section>
+
+      <p className="text-center">
+        <TabbedNavLink
+          href={buildCashflowHref({ from, to })}
+          className="text-sm text-muted-foreground underline-offset-4 hover:underline"
+        >
+          Vista semplificata
+        </TabbedNavLink>
+      </p>
 
       <Button
         type="button"
@@ -300,10 +273,10 @@ export function MovementsManager({
       <CashflowSankeyDialog
         open={sankeyOpen}
         onOpenChange={setSankeyOpen}
-        movements={minMd ? filteredMovements : listMovements}
+        movements={filteredMovements}
         from={from}
         to={to}
-        filtersActive={minMd ? filterSummary.active : false}
+        filtersActive={filterSummary.active}
       />
     </div>
   );

@@ -12,7 +12,7 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 1. Apri `/login` in incognito.
 2. Clic **Accedi con Google** con un account **presente** in `members`.
 3. Atteso: redirect a `/`.
-4. Apri `/` → home con tab Cashflow e Notes (nessun redirect).
+4. Apri `/` → home vuota («Hestia»), tab bar visibile, nessuna tab selezionata.
 5. Clic **Esci** → redirect a `/login`; `/cashflow` reindirizza di nuovo a `/login`.
 
 ## Login non autorizzato
@@ -28,7 +28,9 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 
 ## Nav e Impostazioni
 
-- [ ] Nav: **Home**, **Cashflow**, **Notes** e **Impostazioni**.
+- [ ] Header desktop: logo a sinistra; a destra ingranaggio Impostazioni, nome account, **Esci**.
+- [ ] Mobile hamburger: **Impostazioni**, Esci — niente Cashflow/Notes.
+- [ ] Tab bar su `/`, `/cashflow`, `/notes`, `/evidenza`; **assente** in Impostazioni.
 - [ ] User: Impostazioni → sidebar **Account** + **Categorie**; `/settings/users` → redirect `/settings/categories`.
 - [ ] Admin: sidebar **Account** + **Categorie** + **Utenti** + **Famiglie**; `/users` → redirect `/settings/users`.
 
@@ -194,23 +196,32 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 ## Overlay (Indietro del browser)
 
 - [ ] Telefono: apri una nota, Indietro la chiude e resti sulla bacheca. Apri Elimina sopra la nota: il primo Indietro chiude la conferma, il secondo la nota.
-- [ ] Menu hamburger: Indietro chiude il menu, resti sulla pagina. Tap su Cashflow / Notes / Impostazioni apre la pagina e chiude il menu.
+- [ ] Menu hamburger: Indietro chiude il menu. Tap su Impostazioni apre la pagina e chiude il menu.
 - [ ] Aggiungi movimento (home o Cashflow): Indietro chiude il form. Sankey uguale.
 - [ ] Telefono: nel form, apri il picker categoria → Indietro chiude il picker, non il form.
 - [ ] Chiudi / Esc / tap fuori toglie il gradino di history: un altro Indietro esce dalla pagina, non riapre la finestra.
 
-## Home (tab)
+## Navigazione tab
 
-- [ ] Telefono: `/` mostra riga tab Cashflow (terracotta) e Notes (umber) sotto l’header; Cashflow è selezionato.
-- [ ] Tap su un tab: il tab diventa subito selezionato, icona a spinner, vista in attesa; a caricamento finito compare il contenuto.
-- [ ] Tab Notes → bacheca note, senza h1 «Notes»; Indietro torna a Cashflow; refresh su `/?tab=notes` resta su Notes.
-- [ ] Su Notes, `from`/`to` restano in URL; tornare a Cashflow mostra lo stesso mese.
-- [ ] Cambio mese sul tab Cashflow non perde la lista; FAB + solo su Cashflow.
-- [ ] Menu → Notes apre `/notes` **senza** riga tab; menu → Cashflow apre `/cashflow` completa.
-- [ ] Desktop: `/` mostra guscio tab (Cashflow + Notes); nav **Home** attiva; nessun redirect a `/cashflow`.
-- [ ] Desktop: nav **Cashflow** → `/cashflow` con tabella completa.
-- [ ] Mobile: menu **Cashflow** → `/cashflow` con **lista** movimenti (non tabella).
-- [ ] Mobile `/cashflow`: tap movimento → modifica; Sankey e riepilogo annuale OK.
+- [ ] `/` — «Hestia» centrata, tab bar, nessuna tab evidenziata.
+- [ ] Tab **Cashflow** → `/cashflow` (vista compatta: mese, totali, lista, FAB).
+- [ ] Link **Vista avanzata** in fondo → `/cashflow/avanzato` con stessi `from`/`to`.
+- [ ] `/cashflow/avanzato` — tabella, filtri colonna, Sankey anche su mobile; link **Vista semplificata** → `/cashflow` con stessi `from`/`to`.
+- [ ] Tab **Notes** → `/notes`; tab **In evidenza** → `/evidenza`.
+- [ ] Impostazioni → nessuna tab bar; tornando a `/cashflow` la tab bar riappare.
+- [ ] `/dashboard` → `/`.
+
+## In evidenza
+
+- [ ] Tab **In evidenza** → `/evidenza`.
+- [ ] Senza famiglia: empty state «La categoria in evidenza è condivisa in famiglia».
+- [ ] Con famiglia, senza configurazione: empty state + link Impostazioni.
+- [ ] Impostazioni → Categorie: blocco **Categoria in evidenza** (select + budget opzionale); qualsiasi membro famiglia può salvare.
+- [ ] Imposta categoria `vacanze` + limite; partner vede stesso totale in `/evidenza`.
+- [ ] Movimento `vacanze.hotel` incluso nel totale e nella lista; `casa.mutuo` escluso.
+- [ ] FAB + in In evidenza: form con categoria bloccata nel ramo (solo radice e sotto-categorie).
+- [ ] Budget: con spesa 1.000 € e limite 1.500 € mostra «500,00 € rimasti»; oltre limite in rosso.
+- [ ] Rinomina radice in evidenza → settings aggiornate; elimina categoria in evidenza → settings azzerate.
 
 ## Callback
 

@@ -33,7 +33,7 @@ export function YearSummaryBar({
 
   function navigate(params: { from: string; to: string; year: number }) {
     const searchParams = new URLSearchParams(buildCashflowSearchParams(params));
-    onNavigate(`/cashflow?${searchParams.toString()}`);
+    onNavigate(`/cashflow/avanzato?${searchParams.toString()}`);
   }
 
   function shiftYear(delta: number) {

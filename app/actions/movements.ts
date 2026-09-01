@@ -6,14 +6,13 @@ import {
   isPrivateChangeAllowed,
 } from "@/lib/cashflow/movement-visibility";
 import { getCurrentUserFamily } from "@/lib/families/queries";
+import { revalidateTabbedSections } from "@/lib/revalidate-tabbed";
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
 
 type ActionResult = { ok: true } | { ok: false; error: string };
 
 function revalidateCashflow() {
-  revalidatePath("/cashflow");
-  revalidatePath("/");
+  revalidateTabbedSections();
 }
 
 function parseAmount(raw: string): number | null {

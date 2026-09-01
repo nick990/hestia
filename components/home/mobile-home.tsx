@@ -9,28 +9,33 @@ import {
   PeriodSummaryCards,
   type FilterSummaryState,
 } from "@/components/cashflow/period-summary-cards";
-import { useHomeNav } from "@/components/home/home-nav-context";
 import { HomeMovements } from "@/components/home/home-movements";
+import {
+  TabbedNavLink,
+  useTabNavigation,
+} from "@/components/layout/tab-navigation";
 import { Button } from "@/components/ui/button";
 import {
   applyAssigneeFilters,
   summarizeFilteredMovements,
 } from "@/lib/cashflow/assignee-filters";
 import { shiftMonthRange } from "@/lib/cashflow/date-range";
+import {
+  buildCashflowAdvancedHref,
+  buildCashflowHref,
+} from "@/lib/cashflow/routes";
 import { sortMovementsNewestFirst } from "@/lib/cashflow/sort-movements";
 import type { MovementCategoryOption } from "@/lib/categories/types";
 import type { Movement } from "@/lib/cashflow/types";
 import type { FamilyMemberOption } from "@/lib/families/types";
 import { formatMonthYearLabel } from "@/lib/cashflow/month";
-import { buildHomeHref } from "@/lib/home/tab";
-import { cn } from "@/lib/utils";
 import { ChevronLeftIcon, ChevronRightIcon, PlusIcon } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useMemo, useOptimistic, useState, useTransition } from "react";
+import { useMemo, useState } from "react";
 
 type MobileHomeProps = {
   monthKey: string;
   from: string;
+  to: string;
   allMovements: Movement[];
   hasFamily: boolean;
   currentUserId: string;
@@ -47,6 +52,7 @@ const EMPTY_FILTER_SUMMARY: FilterSummaryState = {
 export function MobileHome({
   monthKey,
   from,
+  to,
   allMovements,
   hasFamily,
   currentUserId,
@@ -54,10 +60,7 @@ export function MobileHome({
   familyMembers,
   categories,
 }: MobileHomeProps) {
-  const router = useRouter();
-  const { setRange, beginNav, isCurrentNav } = useHomeNav();
-  const [navigating, startNavigation] = useTransition();
-  const [visibleMonthKey, setVisibleMonthKey] = useOptimistic(monthKey);
+  const { isPending, navigate } = useTabNavigation();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingMovement, setEditingMovement] = useState<Movement | null>(null);
   const { filters, updateFilters, hydrated } = useAssigneeFilters(
@@ -100,59 +103,33 @@ export function MobileHome({
 
   function shiftMonth(delta: number) {
     const next = shiftMonthRange(from, delta);
-    const generation = beginNav();
-    setRange({ from: next.from, to: next.to });
-
-    startNavigation(() => {
-      if (!isCurrentNav(generation)) {
-        return;
-      }
-
-      setVisibleMonthKey(next.from.slice(0, 7));
-      router.push(
-        buildHomeHref({
-          tab: "cashflow",
-          from: next.from,
-          to: next.to,
-        }),
-      );
-    });
+    navigate(buildCashflowHref({ from: next.from, to: next.to }));
   }
 
   return (
-    <div
-      className="flex h-full min-h-0 flex-col gap-4 p-6 pb-24"
-      aria-busy={navigating}
-    >
+    <div className="flex h-full min-h-0 flex-col gap-4 p-6 pb-24">
       <header className="flex items-center justify-between gap-2">
         <Button
           type="button"
           variant="ghost"
           size="icon-sm"
           aria-label="Mese precedente"
-          disabled={navigating}
+          disabled={isPending}
           onClick={() => shiftMonth(-1)}
         >
           <ChevronLeftIcon />
         </Button>
         <div className="min-w-0 text-center">
           <h1 className="truncate text-xl font-semibold tracking-tight">
-            {formatMonthYearLabel(visibleMonthKey)}
+            {formatMonthYearLabel(monthKey)}
           </h1>
-          <p
-            role="status"
-            aria-live="polite"
-            className={cn("text-xs text-muted-foreground", !navigating && "sr-only")}
-          >
-            {navigating ? "Aggiornamento…" : ""}
-          </p>
         </div>
         <Button
           type="button"
           variant="ghost"
           size="icon-sm"
           aria-label="Mese successivo"
-          disabled={navigating}
+          disabled={isPending}
           onClick={() => shiftMonth(1)}
         >
           <ChevronRightIcon />
@@ -168,12 +145,7 @@ export function MobileHome({
         />
       ) : null}
 
-      <div
-        className={cn(
-          "flex min-h-0 flex-col gap-4 transition-opacity duration-200 motion-reduce:transition-none",
-          navigating && "pointer-events-none opacity-60",
-        )}
-      >
+      <div className="flex min-h-0 flex-col gap-4">
         <PeriodSummaryCards
           summary={summary}
           filterSummary={EMPTY_FILTER_SUMMARY}
@@ -186,6 +158,19 @@ export function MobileHome({
           onSelect={openEditDialog}
         />
       </div>
+
+      <p className="text-center">
+        <TabbedNavLink
+          href={buildCashflowAdvancedHref({
+            from,
+            to,
+            year: Number(from.slice(0, 4)),
+          })}
+          className="text-sm text-muted-foreground underline-offset-4 hover:underline"
+        >
+          Vista avanzata
+        </TabbedNavLink>
+      </p>
 
       <Button
         type="button"

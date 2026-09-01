@@ -46,6 +46,7 @@ type MovementFormDialogProps = {
   currentUserId: string;
   familyMembers: FamilyMemberOption[];
   categories: MovementCategoryOption[];
+  lockedCategoryPrefix?: string;
 };
 
 function createDefaults(
@@ -53,6 +54,8 @@ function createDefaults(
   defaultOccurredOn: string,
   hasFamily: boolean,
   currentUserId: string,
+  categories: MovementCategoryOption[],
+  lockedCategoryPrefix?: string,
 ) {
   if (editingMovement) {
     return {
@@ -67,12 +70,21 @@ function createDefaults(
     };
   }
 
+  let categoryId = "none";
+
+  if (lockedCategoryPrefix) {
+    const root = categories.find(
+      (category) => category.name === lockedCategoryPrefix,
+    );
+    categoryId = root?.id ?? "none";
+  }
+
   return {
     type: "expense" as MovementType,
     amount: "",
     occurredOn: defaultOccurredOn,
     description: "",
-    categoryId: "none",
+    categoryId,
     isFamily: hasFamily,
     assigneeUserId: currentUserId,
     isPrivate: false,
@@ -88,6 +100,7 @@ export function MovementFormDialog({
   currentUserId,
   familyMembers,
   categories,
+  lockedCategoryPrefix,
 }: MovementFormDialogProps) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -124,6 +137,8 @@ export function MovementFormDialog({
       defaultOccurredOn,
       hasFamily,
       currentUserId,
+      categories,
+      lockedCategoryPrefix,
     );
 
     setType(defaults.type);
@@ -134,7 +149,7 @@ export function MovementFormDialog({
     setIsFamily(defaults.isFamily);
     setAssigneeUserId(defaults.assigneeUserId);
     setIsPrivate(defaults.isPrivate);
-  }, [open, editingMovement, defaultOccurredOn, hasFamily, currentUserId]);
+  }, [open, editingMovement, defaultOccurredOn, hasFamily, currentUserId, categories, lockedCategoryPrefix]);
 
   function handleTypeChange(nextType: MovementType) {
     setType(nextType);
@@ -294,6 +309,7 @@ export function MovementFormDialog({
               categories={categories}
               value={categoryId}
               onChange={setCategoryId}
+              lockedCategoryPrefix={lockedCategoryPrefix}
             />
           </div>
           <div className="space-y-2">
