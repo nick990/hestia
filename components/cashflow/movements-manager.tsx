@@ -7,23 +7,26 @@ import { DateRangeFilter } from "@/components/cashflow/date-range-filter";
 import { DeleteMovementDialog } from "@/components/cashflow/delete-movement-dialog";
 import { MovementFormDialog } from "@/components/cashflow/movement-form-dialog";
 import { MovementsTable } from "@/components/cashflow/movements-table";
+import { HomeMovements } from "@/components/home/home-movements";
 import {
   PeriodSummaryCards,
   type FilterSummaryState,
 } from "@/components/cashflow/period-summary-cards";
 import { YearSummaryBar } from "@/components/cashflow/year-summary-bar";
 import { Button } from "@/components/ui/button";
+import { useMinMd } from "@/hooks/use-min-md";
 import {
   applyAssigneeFilters,
   buildYearSummaryFromMovements,
   summarizeFilteredMovements,
 } from "@/lib/cashflow/assignee-filters";
+import { sortMovementsNewestFirst } from "@/lib/cashflow/sort-movements";
 import type { MovementCategoryOption } from "@/lib/categories/types";
 import type { Movement } from "@/lib/cashflow/types";
 import type { FamilyMemberOption } from "@/lib/families/types";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
-import { useCallback, useMemo, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { BarChart3, PlusIcon } from "lucide-react";
 import { toast } from "sonner";
 
@@ -53,6 +56,7 @@ export function MovementsManager({
   categories,
 }: MovementsManagerProps) {
   const router = useRouter();
+  const minMd = useMinMd();
   const [pending, startTransition] = useTransition();
   const [navigating, startNavigation] = useTransition();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -87,6 +91,23 @@ export function MovementsManager({
     () => summarizeFilteredMovements(movements),
     [movements],
   );
+
+  const listMovements = useMemo(
+    () => sortMovementsNewestFirst(movements),
+    [movements],
+  );
+
+  useEffect(() => {
+    if (minMd) {
+      return;
+    }
+
+    setFilteredMovements(listMovements);
+    setFilterSummary({
+      active: false,
+      summary: summarizeFilteredMovements(listMovements),
+    });
+  }, [minMd, listMovements]);
 
   const yearSummary = useMemo(() => {
     const filteredYear = hasFamily && hydrated
@@ -213,7 +234,7 @@ export function MovementsManager({
           <Button
             type="button"
             variant="outline"
-            disabled={navigating || filteredMovements.length === 0}
+            disabled={navigating || (minMd ? filteredMovements.length === 0 : listMovements.length === 0)}
             onClick={() => setSankeyOpen(true)}
           >
             <BarChart3 className="size-4" />
@@ -222,18 +243,26 @@ export function MovementsManager({
         </div>
 
         <div className={contentClassName}>
-          <MovementsTable
-            movements={movements}
-            from={from}
-            to={to}
-            hasFamily={hasFamily}
-            pending={pending || navigating}
-            onEdit={openEditDialog}
-            onDelete={setMovementToDelete}
-            onCreate={openCreateDialog}
-            onFilterSummaryChange={handleFilterSummaryChange}
-            onFilteredMovementsChange={handleFilteredMovementsChange}
-          />
+          {minMd ? (
+            <MovementsTable
+              movements={movements}
+              from={from}
+              to={to}
+              hasFamily={hasFamily}
+              pending={pending || navigating}
+              onEdit={openEditDialog}
+              onDelete={setMovementToDelete}
+              onCreate={openCreateDialog}
+              onFilterSummaryChange={handleFilterSummaryChange}
+              onFilteredMovementsChange={handleFilteredMovementsChange}
+            />
+          ) : (
+            <HomeMovements
+              movements={listMovements}
+              hasFamily={hasFamily}
+              onSelect={openEditDialog}
+            />
+          )}
         </div>
       </section>
 
@@ -271,10 +300,10 @@ export function MovementsManager({
       <CashflowSankeyDialog
         open={sankeyOpen}
         onOpenChange={setSankeyOpen}
-        movements={filteredMovements}
+        movements={minMd ? filteredMovements : listMovements}
         from={from}
         to={to}
-        filtersActive={filterSummary.active}
+        filtersActive={minMd ? filterSummary.active : false}
       />
     </div>
   );
