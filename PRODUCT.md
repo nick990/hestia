@@ -10,7 +10,7 @@ Coppie e coinquilini che gestiscono le spese domestiche insieme. Usano Hestia da
 
 ## Product Purpose
 
-Hestia è uno strumento privato per tracciare entrate e uscite personali e condivise. Oggi la sezione centrale è **Cashflow**; in futuro arriveranno altre aree, ciascuna con il proprio compito. Su desktop la home può coincidere con Cashflow. Su mobile la home deve offrire un riepilogo del mese corrente e un percorso rapido per registrare un nuovo movimento. Successo = chiarezza sui flussi di denaro, registrazione senza attrito, fiducia tra i membri della famiglia quando i dati sono condivisi.
+Hestia è uno strumento privato per tracciare entrate e uscite personali e condivise. Oggi la sezione centrale è **Cashflow**; in futuro arriveranno altre aree, ciascuna con il proprio compito. La **home** (`/`) offre un riepilogo del mese con tab Cashflow e Notes su tutti i device. La pagina **Cashflow** (`/cashflow`) è la vista completa (tabella, riepilogo annuale, Sankey). Su mobile, registrare un movimento deve restare a un tap (FAB +). Successo = chiarezza sui flussi di denaro, registrazione senza attrito, fiducia tra i membri della famiglia quando i dati sono condivisi.
 
 ## Brand Personality
 

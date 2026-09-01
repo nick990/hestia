@@ -11,8 +11,8 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 
 1. Apri `/login` in incognito.
 2. Clic **Accedi con Google** con un account **presente** in `members`.
-3. Atteso: redirect a `/cashflow`.
-4. Apri `/` → redirect a `/cashflow`.
+3. Atteso: redirect a `/`.
+4. Apri `/` → home con tab Cashflow e Notes (nessun redirect).
 5. Clic **Esci** → redirect a `/login`; `/cashflow` reindirizza di nuovo a `/login`.
 
 ## Login non autorizzato
@@ -23,12 +23,12 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 ## Middleware
 
 - [ ] Visita `/cashflow` senza sessione → redirect `/login?next=/cashflow`.
-- [ ] Dopo login, visita `/login` → redirect `/cashflow`.
-- [ ] Visita `/dashboard` → redirect `/cashflow`.
+- [ ] Dopo login, visita `/login` → redirect `/`.
+- [ ] Visita `/dashboard` → redirect `/`.
 
 ## Nav e Impostazioni
 
-- [ ] Nav: **Cashflow**, **Notes** e **Impostazioni** (nessuna Dashboard).
+- [ ] Nav: **Home**, **Cashflow**, **Notes** e **Impostazioni**.
 - [ ] User: Impostazioni → sidebar **Account** + **Categorie**; `/settings/users` → redirect `/settings/categories`.
 - [ ] Admin: sidebar **Account** + **Categorie** + **Utenti** + **Famiglie**; `/users` → redirect `/settings/users`.
 
@@ -199,7 +199,7 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 - [ ] Telefono: nel form, apri il picker categoria → Indietro chiude il picker, non il form.
 - [ ] Chiudi / Esc / tap fuori toglie il gradino di history: un altro Indietro esce dalla pagina, non riapre la finestra.
 
-## Home mobile (tab)
+## Home (tab)
 
 - [ ] Telefono: `/` mostra riga tab Cashflow (terracotta) e Notes (umber) sotto l’header; Cashflow è selezionato.
 - [ ] Tap su un tab: il tab diventa subito selezionato, icona a spinner, vista in attesa; a caricamento finito compare il contenuto.
@@ -207,7 +207,10 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 - [ ] Su Notes, `from`/`to` restano in URL; tornare a Cashflow mostra lo stesso mese.
 - [ ] Cambio mese sul tab Cashflow non perde la lista; FAB + solo su Cashflow.
 - [ ] Menu → Notes apre `/notes` **senza** riga tab; menu → Cashflow apre `/cashflow` completa.
-- [ ] Desktop: `/` reindirizza a `/cashflow`; nessuna riga tab.
+- [ ] Desktop: `/` mostra guscio tab (Cashflow + Notes); nav **Home** attiva; nessun redirect a `/cashflow`.
+- [ ] Desktop: nav **Cashflow** → `/cashflow` con tabella completa.
+- [ ] Mobile: menu **Cashflow** → `/cashflow` con **lista** movimenti (non tabella).
+- [ ] Mobile `/cashflow`: tap movimento → modifica; Sankey e riepilogo annuale OK.
 
 ## Callback
 
