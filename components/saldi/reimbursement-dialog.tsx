@@ -19,37 +19,61 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { reimbursementFormDefaults } from "@/lib/saldi/presentation";
 import type { FamilySaldiMember } from "@/lib/saldi/types";
 import { useEffect, useMemo, useState } from "react";
 
+export type ReimbursementSubmitInput = {
+  fromUserId: string;
+  toUserId: string;
+  amount: string;
+  occurredOn: string;
+};
+
 type ReimbursementDialogProps = {
   open: boolean;
+  mode: "create" | "edit";
   members: FamilySaldiMember[];
-  defaultFromUserId: string;
-  defaultToUserId: string;
-  defaultAmount: number | null;
-  pending: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSubmit: (input: {
+  today: string;
+  createDefaults: {
     fromUserId: string;
     toUserId: string;
-    amount: string;
-  }) => void;
+    amount: number | null;
+  };
+  editing: {
+    fromUserId: string;
+    toUserId: string;
+    amount: number;
+    occurredOn: string;
+  } | null;
+  pending: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSubmit: (input: ReimbursementSubmitInput) => void;
+  onDelete?: () => void;
 };
 
 export function ReimbursementDialog({
   open,
+  mode,
   members,
-  defaultFromUserId,
-  defaultToUserId,
-  defaultAmount,
+  today,
+  createDefaults,
+  editing,
   pending,
   onOpenChange,
   onSubmit,
+  onDelete,
 }: ReimbursementDialogProps) {
-  const [fromUserId, setFromUserId] = useState(defaultFromUserId);
-  const [toUserId, setToUserId] = useState(defaultToUserId);
+  const defaults = reimbursementFormDefaults({
+    mode,
+    today,
+    createDefaults,
+    editing,
+  });
+  const [fromUserId, setFromUserId] = useState(defaults.fromUserId);
+  const [toUserId, setToUserId] = useState(defaults.toUserId);
   const [amount, setAmount] = useState("");
+  const [occurredOn, setOccurredOn] = useState(defaults.occurredOn);
 
   const items = useMemo(
     () =>
@@ -65,19 +89,27 @@ export function ReimbursementDialog({
       return;
     }
 
+    const next = reimbursementFormDefaults({
+      mode,
+      today,
+      createDefaults,
+      editing,
+    });
+
     // eslint-disable-next-line react-hooks/set-state-in-effect -- reset form when the dialog opens
-    setFromUserId(defaultFromUserId);
-    setToUserId(defaultToUserId);
-    setAmount(
-      defaultAmount === null ? "" : String(defaultAmount).replace(".", ","),
-    );
-  }, [open, defaultFromUserId, defaultToUserId, defaultAmount]);
+    setFromUserId(next.fromUserId);
+    setToUserId(next.toUserId);
+    setAmount(next.amount === null ? "" : String(next.amount).replace(".", ","));
+    setOccurredOn(next.occurredOn);
+  }, [open, mode, today, createDefaults, editing]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Registra rimborso</DialogTitle>
+          <DialogTitle>
+            {mode === "edit" ? "Modifica rimborso" : "Registra rimborso"}
+          </DialogTitle>
           <DialogDescription>
             Segna un passaggio di soldi tra membri. Non diventa un movimento in
             Cashflow.
@@ -87,9 +119,19 @@ export function ReimbursementDialog({
           className="space-y-4"
           onSubmit={(event) => {
             event.preventDefault();
-            onSubmit({ fromUserId, toUserId, amount });
+            onSubmit({ fromUserId, toUserId, amount, occurredOn });
           }}
         >
+          <div className="space-y-2">
+            <Label htmlFor="reimburse-date">Data</Label>
+            <Input
+              id="reimburse-date"
+              type="date"
+              required
+              value={occurredOn}
+              onChange={(event) => setOccurredOn(event.target.value)}
+            />
+          </div>
           <div className="space-y-2">
             <Label htmlFor="reimburse-from">Chi ha dato</Label>
             <Select
@@ -150,11 +192,26 @@ export function ReimbursementDialog({
             />
           </div>
           <DialogFooter>
-            <DialogClose render={<Button type="button" variant="outline" />}>
-              Annulla
-            </DialogClose>
+            {mode === "edit" && onDelete ? (
+              <Button
+                type="button"
+                variant="destructive"
+                disabled={pending}
+                onClick={onDelete}
+              >
+                Elimina
+              </Button>
+            ) : (
+              <DialogClose render={<Button type="button" variant="outline" />}>
+                Annulla
+              </DialogClose>
+            )}
             <Button type="submit" disabled={pending}>
-              {pending ? "Salvataggio…" : "Registra"}
+              {pending
+                ? "Salvataggio…"
+                : mode === "edit"
+                  ? "Salva"
+                  : "Registra"}
             </Button>
           </DialogFooter>
         </form>

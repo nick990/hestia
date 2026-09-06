@@ -93,12 +93,10 @@ export function SaldiPage({ currentUserId, data }: SaldiPageProps) {
     fromUserId: string;
     toUserId: string;
     amount: string;
+    occurredOn: string;
   }) {
     startTransition(async () => {
-      const result = await createReimbursement({
-        ...input,
-        occurredOn: getTodayIsoDate(),
-      });
+      const result = await createReimbursement(input);
 
       if (!result.ok) {
         toast.error(result.error);
@@ -175,10 +173,11 @@ export function SaldiPage({ currentUserId, data }: SaldiPageProps) {
 
       <ReimbursementDialog
         open={reimburseOpen}
+        mode="create"
         members={data.currentMembers}
-        defaultFromUserId={defaults.fromUserId}
-        defaultToUserId={defaults.toUserId}
-        defaultAmount={defaults.amount}
+        today={getTodayIsoDate()}
+        createDefaults={defaults}
+        editing={null}
         pending={pending}
         onOpenChange={setReimburseOpen}
         onSubmit={handleCreate}
