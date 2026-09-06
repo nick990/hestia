@@ -17,6 +17,10 @@ Se non hai niente da dare né da ricevere: «Sei in pari». Qualcun altro in fam
 
 Sotto, il netto di ciascuno: positivo = gli devono, negativo = deve. Tu sei il primo; poi gli altri per nome. Chi è uscito dalla famiglia compare solo se il suo netto non è zero.
 
+Sotto **Registra rimborso** c'è un'unica lista: uscite ripartite e rimborsi, mescolati, i più recenti in cima. Le prime 20 righe; scorrendo in fondo se ne caricano altre 20. I netti in alto non dipendono da quante righe hai caricato.
+
+Tocca una ripartizione per aprire il movimento (stessa form di Cashflow). Tocca un rimborso per modificarlo.
+
 ## Ripartisci spesa
 
 Quando registri o modifichi un’**uscita** (non privata), nel form c’è la sezione **Ripartizione**. Il toggle **Ripartisci spesa** è spento di default: spento = quella spesa non entra nei Saldi.
@@ -35,7 +39,7 @@ Su un’entrata o su un’uscita privata la sezione non c’è. Se spunti Privat
 
 **Registra rimborso** segna che qualcuno ha dato soldi a qualcun altro per pareggiare. Non è un movimento: non finisce in Cashflow, nei totali o nel Sankey.
 
-Sotto i saldi vedi la lista **Rimborsi**. Puoi eliminare una riga e rifarla; non si modifica.
+Puoi scegliere la data (di default oggi), chi ha dato, chi ha ricevuto e l'importo. In modifica: **Modifica rimborso**, con Elimina nel dialog (c'è una conferma). I netti cambiano solo se cambi da, a o importo; la data sposta solo la riga nella lista.
 
 ## Esempio
 

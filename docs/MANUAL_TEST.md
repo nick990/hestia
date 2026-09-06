@@ -217,9 +217,14 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 - [ ] Con famiglia: tab tra Cashflow e Notes.
 - [ ] Uscita privata: niente Ripartizione nel form.
 - [ ] Uscita famiglia 80 €, Ripartisci spesa, Nic paga, parti uguali, entrambi → Nic vede «Sara ti deve 40,00 €»; netti +40 / −40.
-- [ ] Lista Cashflow invariata (nessun badge).
-- [ ] Registra rimborso 40 € Sara→Nic → Sei in pari; riga in Rimborsi; movimenti Cashflow stesso conteggio.
-- [ ] Elimina rimborso → saldo torna.
+- [ ] Lista Cashflow: sotto l’importo, «Pagato da …» in piccolo (niente badge di ripartizione).
+- [ ] Tab Saldi: sotto Registra rimborso, **una** lista senza titoli Ripartizioni/Rimborsi.
+- [ ] Con più di 20 righe: se ne vedono 20; scroll in fondo → le altre; i netti restano uguali.
+- [ ] Click ripartizione → form movimento con Ripartisci spesa acceso.
+- [ ] Click rimborso → Modifica rimborso (data, da, a, importo). Cambio sola data: riga si sposta, netti invariati.
+- [ ] Elimina rimborso solo dal dialog modifica, con conferma → saldo torna.
+- [ ] Registra rimborso 40 € Sara→Nic, data=oggi → Sei in pari; riga in lista; movimenti Cashflow stesso conteggio.
+- [ ] Lista vuota: nessun placeholder; restano netti e Registra rimborso.
 - [ ] Spegnere Ripartisci spesa in modifica → saldi come senza quella spesa.
 - [ ] Tre membri: in alto Nic non vede una riga solo Sara↔Marco.
 
