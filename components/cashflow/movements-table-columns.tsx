@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   formatOccurredOn,
+  formatPayerLine,
   formatSignedAmount,
 } from "@/lib/cashflow/format";
 import {
@@ -184,16 +185,27 @@ export function createMovementColumns({
           />
         </div>
       ),
-      cell: ({ row }) => (
-        <span
-          className={cn(
-            "text-right font-medium whitespace-nowrap",
-            row.original.type === "income" ? "text-income" : "text-destructive",
-          )}
-        >
-          {formatSignedAmount(row.original.type, row.original.amount)}
-        </span>
-      ),
+      cell: ({ row }) => {
+        const payerLine = formatPayerLine(row.original.payer_name);
+
+        return (
+          <div className="flex flex-col items-end">
+            <span
+              className={cn(
+                "text-right font-medium whitespace-nowrap",
+                row.original.type === "income"
+                  ? "text-income"
+                  : "text-destructive",
+              )}
+            >
+              {formatSignedAmount(row.original.type, row.original.amount)}
+            </span>
+            {hasFamily && payerLine ? (
+              <span className="text-xs text-muted-foreground">{payerLine}</span>
+            ) : null}
+          </div>
+        );
+      },
     },
     {
       id: "actions",

@@ -2,6 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { assigneeDisplayName } from "@/lib/cashflow/assignee-filters";
 import {
   formatOccurredOn,
+  formatPayerLine,
   formatSignedAmount,
 } from "@/lib/cashflow/format";
 import { normalizeCategoryDisplay, normalizeDescriptionDisplay } from "@/lib/cashflow/table-filter";
@@ -40,6 +41,7 @@ export function HomeMovements({
                 movement.description,
               );
               const hasDescription = description !== "—";
+              const payerLine = formatPayerLine(movement.payer_name);
 
               return (
                 <li key={movement.id}>
@@ -81,6 +83,11 @@ export function HomeMovements({
                       >
                         {formatSignedAmount(movement.type, movement.amount)}
                       </p>
+                      {hasFamily && payerLine ? (
+                        <p className="text-xs leading-4 text-muted-foreground">
+                          {payerLine}
+                        </p>
+                      ) : null}
                       {hasFamily && movement.is_private ? (
                         <Badge
                           variant="outline"

@@ -30,3 +30,13 @@ export function formatSignedAmount(type: MovementType, amount: number): string {
   const formatted = formatEuro(amount);
   return type === "income" ? `+${formatted}` : `${MINUS}${formatDecimalIt(amount, 2)} €`;
 }
+
+export function formatPayerLine(name: string | null | undefined): string | null {
+  const trimmed = name?.trim();
+
+  if (!trimmed) {
+    return null;
+  }
+
+  return `Pagato da ${trimmed}`;
+}

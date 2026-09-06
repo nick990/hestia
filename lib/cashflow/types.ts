@@ -17,6 +17,7 @@ export type Movement = {
   is_private: boolean;
   creator_name: string | null;
   assignee_name: string | null;
+  payer_name?: string | null;
 };
 
 export type MonthSummary = {
