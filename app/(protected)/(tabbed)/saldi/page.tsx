@@ -1,4 +1,6 @@
+import { SaldiPage } from "@/components/saldi/saldi-page";
 import { getCurrentUserFamily } from "@/lib/families/queries";
+import { listFamilySaldiData } from "@/lib/saldi/queries";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
@@ -18,9 +20,11 @@ export default async function SaldiRoutePage() {
     redirect("/");
   }
 
-  return (
-    <div className="p-4">
-      <h1 className="text-lg font-medium">Saldi</h1>
-    </div>
-  );
+  const data = await listFamilySaldiData();
+
+  if (!data) {
+    redirect("/");
+  }
+
+  return <SaldiPage currentUserId={user.id} data={data} />;
 }
