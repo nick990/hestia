@@ -1,6 +1,6 @@
 # Cashflow
 
-[Manuale](index.md) · [Notes](notes.md)
+[Manuale](index.md) · [Saldi](saldi.md) · [Notes](notes.md)
 
 Nella pagina **Cashflow** registri i **movimenti**: un’**entrata** o un’**uscita**. Lo stipendio, il mutuo, la spesa al supermercato, un regalo.
 
@@ -28,6 +28,8 @@ Dal pulsante **Aggiungi movimento** (sul telefono anche il pulsante + in basso).
 Di solito è di casa: in **Assegnatario** è già selezionato **Di famiglia**.  
 Se invece è personale, scegli un membro dalla stessa lista (di solito te stesso).  
 Solo se l’assegnatario sei tu puoi marcare **Privato**. Se è **Di famiglia**, la casella resta visibile ma spenta.
+
+Se sei in famiglia, sotto trovi **Ripartizione**. Accendi **Ripartisci spesa** per dire chi ha pagato e come spezzarla tra i membri. Non è obbligatorio; i totali di Cashflow restano l’importo intero. I conti tra di voi stanno in [Saldi](saldi.md). Su un’uscita privata la sezione non c’è.
 
 **Se stai registrando un’entrata**
 
@@ -63,15 +65,16 @@ Chi li ha inseriti la prima volta non cambia, anche se un altro membro li aggior
 | Un regalo che preferisci tenere per te     | Uscita personale tua, privata                                              |
 | Un rimborso che arriva sul “conto di casa” | Entrata, di famiglia                                                       |
 | Una spesa che vuoi contare sul partner     | Uscita personale, assegnata al partner (non privata)                       |
+| Spesa al supermercato pagata da te, da metà | Uscita di famiglia + Ripartisci spesa (parti uguali)                      |
 
 ## Cosa Hestia non fa
 
-Non calcola chi deve soldi a chi.  
-Non divide da sola le spese di famiglia “a metà” o “in tre”.  
-Non gestisce ancora movimenti che si ripetono ogni mese, allegati o altre valute.
+Non gestisce ancora movimenti che si ripetono ogni mese, allegati o altre valute.  
+Chi deve a chi sta in [Saldi](saldi.md), non nei totali di questa pagina.
 
 ## Dove li trovi
 
 - **Cashflow** (`/cashflow`) — mese in corso, totali, lista movimenti, pulsante + per aggiungerne uno.
 - **Vista avanzata** (`/cashflow/avanzato`) — tabella completa, filtri, mesi dell’anno, grafico Sankey. Link **Vista semplificata** in fondo per tornare a `/cashflow`.
+- **Saldi** (`/saldi`) — chi deve a chi, se sei in una famiglia.
 - **Notes** e **In evidenza** — tab accanto a Cashflow nella riga sotto l’header.

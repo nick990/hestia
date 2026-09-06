@@ -30,7 +30,7 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 
 - [ ] Header desktop: logo a sinistra; a destra ingranaggio Impostazioni, nome account, **Esci**.
 - [ ] Mobile hamburger: **Impostazioni**, Esci — niente Cashflow/Notes.
-- [ ] Tab bar su `/`, `/cashflow`, `/notes`, `/evidenza`; **assente** in Impostazioni.
+- [ ] Tab bar su `/`, `/cashflow`, `/notes`, `/evidenza`; con famiglia anche `/saldi`; **assente** in Impostazioni.
 - [ ] User: Impostazioni → sidebar **Account** + **Categorie**; `/settings/users` → redirect `/settings/categories`.
 - [ ] Admin: sidebar **Account** + **Categorie** + **Utenti** + **Famiglie**; `/users` → redirect `/settings/users`.
 
@@ -210,6 +210,18 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 - [ ] Tab **Notes** → `/notes`; tab **In evidenza** → `/evidenza`.
 - [ ] Impostazioni → nessuna tab bar; tornando a `/cashflow` la tab bar riappare.
 - [ ] `/dashboard` → `/`.
+
+## Saldi
+
+- [ ] Senza famiglia: tab Saldi assente; `/saldi` → `/`.
+- [ ] Con famiglia: tab tra Cashflow e Notes.
+- [ ] Uscita privata: niente Ripartizione nel form.
+- [ ] Uscita famiglia 80 €, Ripartisci spesa, Nic paga, parti uguali, entrambi → Nic vede «Sara ti deve 40,00 €»; netti +40 / −40.
+- [ ] Lista Cashflow invariata (nessun badge).
+- [ ] Registra rimborso 40 € Sara→Nic → Sei in pari; riga in Rimborsi; movimenti Cashflow stesso conteggio.
+- [ ] Elimina rimborso → saldo torna.
+- [ ] Spegnere Ripartisci spesa in modifica → saldi come senza quella spesa.
+- [ ] Tre membri: in alto Nic non vede una riga solo Sara↔Marco.
 
 ## In evidenza
 

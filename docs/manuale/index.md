@@ -1,13 +1,14 @@
 # Manuale Hestia
 
-Hestia serve a tenere traccia delle entrate e delle uscite di casa: le tue, quelle del partner o dei coinquilini, e quelle che condividete. Tiene anche **appunti** personali e di famiglia.
+Hestia serve a tenere traccia delle entrate e delle uscite di casa: le tue, quelle del partner o dei coinquilini, e quelle che condividete. Tiene i **saldi** tra di voi e anche **appunti** personali e di famiglia.
 
 Questo manuale spiega come usarla, senza dettagli da sviluppatori.
 
-**Home** (`/`, menu in alto) è una pagina neutra con il nome Hestia. La navigazione principale è la **riga tab** sotto l’header: **Cashflow**, **Notes**, **In evidenza**.
+**Home** (`/`, menu in alto) è una pagina neutra con il nome Hestia. La navigazione principale è la **riga tab** sotto l’header: **Cashflow**, **Saldi**, **Notes**, **In evidenza**.
 
 - **Cashflow** (`/cashflow`) — riepilogo del mese, lista movimenti, nuovo movimento
 - **Vista avanzata** (`/cashflow/avanzato`) — tabella completa, filtri, Sankey (link in fondo alla vista standard; da lì puoi tornare alla vista semplificata)
+- **Saldi** (`/saldi`) — chi deve a chi (solo se sei in una famiglia)
 - **Notes** (`/notes`) — bacheca appunti
 - **In evidenza** (`/evidenza`) — categoria di famiglia con limite di spesa opzionale
 
@@ -16,6 +17,7 @@ Nel menu in alto: il logo **Hestia** porta alla home; su desktop l’ingranaggio
 ## Sezioni
 
 - [Cashflow](cashflow.md) — entrate e uscite, personali o di famiglia
+- [Saldi](saldi.md) — chi ha pagato, come si spezza, rimborsi
 - [Notes](notes.md) — appunti e checklist, personali o di famiglia
 
 ## In arrivo

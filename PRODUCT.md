@@ -10,7 +10,7 @@ Coppie e coinquilini che gestiscono le spese domestiche insieme. Usano Hestia da
 
 ## Product Purpose
 
-Hestia è uno strumento privato per tracciare entrate e uscite personali e condivise. Oggi la sezione centrale è **Cashflow**; in futuro arriveranno altre aree, ciascuna con il proprio compito. La navigazione principale è la **riga tab** (Cashflow, Notes, In evidenza); la **home** (`/`) è una pagina neutra. **Cashflow** (`/cashflow`) è la vista compatta del mese; **vista avanzata** (`/cashflow/avanzato`) aggiunge tabella, riepilogo annuale e Sankey. Su mobile, registrare un movimento deve restare a un tap (FAB +). Successo = chiarezza sui flussi di denaro, registrazione senza attrito, fiducia tra i membri della famiglia quando i dati sono condivisi.
+Hestia è uno strumento privato per tracciare entrate e uscite personali e condivise. Oggi le sezioni centrali sono **Cashflow** e **Saldi**; in futuro arriveranno altre aree, ciascuna con il proprio compito. La navigazione principale è la **riga tab** (Cashflow, Saldi, Notes, In evidenza); la **home** (`/`) è una pagina neutra. **Cashflow** (`/cashflow`) è la vista compatta del mese; **vista avanzata** (`/cashflow/avanzato`) aggiunge tabella, riepilogo annuale e Sankey. **Saldi** (`/saldi`) dice chi deve a chi, se sei in una famiglia. Su mobile, registrare un movimento deve restare a un tap (FAB +). Successo = chiarezza sui flussi di denaro, registrazione senza attrito, fiducia tra i membri della famiglia quando i dati sono condivisi.
 
 ## Brand Personality
 
@@ -32,7 +32,7 @@ Riferimento positivo (pratico, orientato all'azione): Splitwise e app domestiche
 2. **Azione prima del report** — Su mobile, registrare un movimento deve essere più vicino di un tap che aprire un form lungo; il riepilogo serve, ma non blocca l'azione.
 3. **Chiarezza sui flussi** — Totali, filtri e visualizzazioni (es. Sankey) devono rispondere subito a "dove va il denaro?", senza rumore visivo.
 4. **Trasparenza condivisa** — Quando i dati sono di famiglia, lo stato (personale vs condiviso, chi vede cosa) deve essere ovvio, non nascosto in menu.
-5. **Cresce per sezioni** — Ogni nuova area ha un compito chiaro; la shell e la navigazione restano coerenti mentre il prodotto si espande oltre Cashflow.
+5. **Cresce per sezioni** — Ogni nuova area ha un compito chiaro; la shell e la navigazione restano coerenti mentre il prodotto si espande.
 
 ## Accessibility & Inclusion
 
