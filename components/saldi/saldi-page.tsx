@@ -3,11 +3,21 @@
 import {
   createReimbursement,
   deleteReimbursement,
+  updateReimbursement,
 } from "@/app/actions/reimbursements";
+import {
+  loadSaldiActivityPage,
+  loadSaldiMovement,
+} from "@/app/actions/saldi-activity";
+import { MovementFormDialog } from "@/components/cashflow/movement-form-dialog";
 import { DeleteReimbursementDialog } from "@/components/saldi/delete-reimbursement-dialog";
 import { ReimbursementDialog } from "@/components/saldi/reimbursement-dialog";
+import { SaldiActivityList } from "@/components/saldi/saldi-activity-list";
 import { Button } from "@/components/ui/button";
+import type { MovementCategoryOption } from "@/lib/categories/types";
+import { getTodayIsoDate } from "@/lib/cashflow/date-range";
 import { formatEuro } from "@/lib/cashflow/format";
+import type { Movement } from "@/lib/cashflow/types";
 import {
   computeNets,
   simplifyTransfers,
@@ -18,15 +28,21 @@ import {
   sortPersonNets,
   transferLine,
 } from "@/lib/saldi/presentation";
-import { getTodayIsoDate } from "@/lib/cashflow/date-range";
-import type { FamilySaldiNetsData } from "@/lib/saldi/types";
-import { useMemo, useState, useTransition } from "react";
+import type {
+  FamilySaldiNetsData,
+  SaldiActivityItem,
+} from "@/lib/saldi/types";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 type SaldiPageProps = {
   currentUserId: string;
   data: FamilySaldiNetsData;
+  initialActivity: SaldiActivityItem[];
+  initialHasMore: boolean;
+  categories: MovementCategoryOption[];
+  defaultOccurredOn: string;
 };
 
 function formatNet(net: number): string {
@@ -37,17 +53,52 @@ function formatNet(net: number): string {
   return formatEuro(net);
 }
 
-export function SaldiPage({ currentUserId, data }: SaldiPageProps) {
+export function SaldiPage({
+  currentUserId,
+  data,
+  initialActivity,
+  initialHasMore,
+  categories,
+  defaultOccurredOn,
+}: SaldiPageProps) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [reimburseOpen, setReimburseOpen] = useState(false);
+  const [reimburseMode, setReimburseMode] = useState<"create" | "edit">("create");
+  const [editingReimbursement, setEditingReimbursement] = useState<
+    Extract<SaldiActivityItem, { kind: "reimbursement" }> | null
+  >(null);
   const [deleting, setDeleting] = useState<{ id: string; amount: number } | null>(
     null,
+  );
+  const [editingMovement, setEditingMovement] = useState<Movement | null>(null);
+  const [movementOpen, setMovementOpen] = useState(false);
+  const [extraItems, setExtraItems] = useState<SaldiActivityItem[]>([]);
+  const [hasMore, setHasMore] = useState(initialHasMore);
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  useEffect(() => {
+    setExtraItems([]);
+    setHasMore(initialHasMore);
+  }, [initialActivity, initialHasMore]);
+
+  const items = useMemo(
+    () => [...initialActivity, ...extraItems],
+    [initialActivity, extraItems],
   );
 
   const nameById = useMemo(
     () => new Map(Object.entries(data.nameById)),
     [data.nameById],
+  );
+
+  const familyMembers = useMemo(
+    () =>
+      data.currentMembers.map((member) => ({
+        user_id: member.userId,
+        display_name: member.name,
+      })),
+    [data.currentMembers],
   );
 
   const { mine, people, defaults } = useMemo(() => {
@@ -89,6 +140,11 @@ export function SaldiPage({ currentUserId, data }: SaldiPageProps) {
     };
   }, [currentUserId, data]);
 
+  function refreshLists() {
+    setExtraItems([]);
+    router.refresh();
+  }
+
   function handleCreate(input: {
     fromUserId: string;
     toUserId: string;
@@ -105,7 +161,34 @@ export function SaldiPage({ currentUserId, data }: SaldiPageProps) {
 
       toast.success("Rimborso registrato.");
       setReimburseOpen(false);
-      router.refresh();
+      refreshLists();
+    });
+  }
+
+  function handleUpdate(input: {
+    fromUserId: string;
+    toUserId: string;
+    amount: string;
+    occurredOn: string;
+  }) {
+    if (!editingReimbursement) {
+      return;
+    }
+
+    const id = editingReimbursement.id;
+
+    startTransition(async () => {
+      const result = await updateReimbursement({ id, ...input });
+
+      if (!result.ok) {
+        toast.error(result.error);
+        return;
+      }
+
+      toast.success("Rimborso aggiornato.");
+      setReimburseOpen(false);
+      setEditingReimbursement(null);
+      refreshLists();
     });
   }
 
@@ -126,8 +209,41 @@ export function SaldiPage({ currentUserId, data }: SaldiPageProps) {
 
       toast.success("Rimborso eliminato.");
       setDeleting(null);
-      router.refresh();
+      setReimburseOpen(false);
+      setEditingReimbursement(null);
+      refreshLists();
     });
+  }
+
+  async function handleOpenSplit(id: string) {
+    const movement = await loadSaldiMovement(id);
+
+    if (!movement) {
+      toast.error("Non trovo questo movimento.");
+      return;
+    }
+
+    setEditingMovement(movement);
+    setMovementOpen(true);
+  }
+
+  async function handleLoadMore() {
+    if (loadingMore || !hasMore) {
+      return;
+    }
+
+    setLoadingMore(true);
+    const result = await loadSaldiActivityPage(items.length);
+
+    if (!result.ok) {
+      toast.error(result.error);
+      setLoadingMore(false);
+      return;
+    }
+
+    setExtraItems((current) => [...current, ...result.items]);
+    setHasMore(result.hasMore);
+    setLoadingMore(false);
   }
 
   return (
@@ -165,27 +281,84 @@ export function SaldiPage({ currentUserId, data }: SaldiPageProps) {
 
       {data.currentMembers.length >= 2 ? (
         <div>
-          <Button type="button" onClick={() => setReimburseOpen(true)}>
+          <Button
+            type="button"
+            onClick={() => {
+              setReimburseMode("create");
+              setEditingReimbursement(null);
+              setReimburseOpen(true);
+            }}
+          >
             Registra rimborso
           </Button>
         </div>
       ) : null}
 
+      <SaldiActivityList
+        items={items}
+        nameById={data.nameById}
+        hasMore={hasMore}
+        loadingMore={loadingMore}
+        onLoadMore={() => {
+          void handleLoadMore();
+        }}
+        onOpenSplit={(id) => {
+          void handleOpenSplit(id);
+        }}
+        onOpenReimbursement={(item) => {
+          setReimburseMode("edit");
+          setEditingReimbursement(item);
+          setReimburseOpen(true);
+        }}
+      />
+
       <ReimbursementDialog
         open={reimburseOpen}
-        mode="create"
+        mode={reimburseMode}
         members={data.currentMembers}
         today={getTodayIsoDate()}
         createDefaults={defaults}
-        editing={null}
+        editing={
+          editingReimbursement
+            ? {
+                fromUserId: editingReimbursement.fromUserId,
+                toUserId: editingReimbursement.toUserId,
+                amount: editingReimbursement.amount,
+                occurredOn: editingReimbursement.occurredOn,
+              }
+            : null
+        }
         pending={pending}
-        onOpenChange={setReimburseOpen}
-        onSubmit={handleCreate}
+        onOpenChange={(open) => {
+          setReimburseOpen(open);
+          if (!open) {
+            setEditingReimbursement(null);
+            setReimburseMode("create");
+          }
+        }}
+        onSubmit={reimburseMode === "edit" ? handleUpdate : handleCreate}
+        onDelete={
+          editingReimbursement
+            ? () =>
+                setDeleting({
+                  id: editingReimbursement.id,
+                  amount: editingReimbursement.amount,
+                })
+            : undefined
+        }
       />
       <DeleteReimbursementDialog
         reimbursement={deleting}
-        fromName="—"
-        toName="—"
+        fromName={
+          editingReimbursement
+            ? (data.nameById[editingReimbursement.fromUserId] ?? "—")
+            : "—"
+        }
+        toName={
+          editingReimbursement
+            ? (data.nameById[editingReimbursement.toUserId] ?? "—")
+            : "—"
+        }
         pending={pending}
         onOpenChange={(open) => {
           if (!open) {
@@ -193,6 +366,22 @@ export function SaldiPage({ currentUserId, data }: SaldiPageProps) {
           }
         }}
         onConfirm={handleDelete}
+      />
+      <MovementFormDialog
+        open={movementOpen}
+        onOpenChange={(open) => {
+          setMovementOpen(open);
+          if (!open) {
+            setEditingMovement(null);
+            refreshLists();
+          }
+        }}
+        editingMovement={editingMovement}
+        defaultOccurredOn={defaultOccurredOn}
+        hasFamily
+        currentUserId={currentUserId}
+        familyMembers={familyMembers}
+        categories={categories}
       />
     </main>
   );
