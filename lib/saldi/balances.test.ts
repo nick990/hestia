@@ -94,6 +94,31 @@ describe("computeNets", () => {
     expect(nets.get(NIC) ?? 0).toBe(0);
     expect(nets.get(SARA) ?? 0).toBe(0);
   });
+
+  it("i netti usano tutti i numeri, non il sottoinsieme della lista", () => {
+    const allExpenses = [
+      {
+        payerUserId: NIC,
+        movementAmount: 80,
+        shares: [
+          { userId: NIC, amount: 40 },
+          { userId: SARA, amount: 40 },
+        ],
+      },
+      {
+        payerUserId: SARA,
+        movementAmount: 20,
+        shares: [
+          { userId: NIC, amount: 10 },
+          { userId: SARA, amount: 10 },
+        ],
+      },
+    ];
+    const listSubset = [allExpenses[0]];
+
+    expect(computeNets(allExpenses, []).get(NIC)).toBe(30);
+    expect(computeNets(listSubset, []).get(NIC)).toBe(40);
+  });
 });
 
 describe("simplifyTransfers", () => {
