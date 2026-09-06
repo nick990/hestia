@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   defaultReimbursement,
+  reimbursementFormDefaults,
+  reimbursementLine,
   sortPersonNets,
   transferLine,
 } from "@/lib/saldi/presentation";
@@ -69,5 +71,52 @@ describe("defaultReimbursement", () => {
     expect(
       defaultReimbursement([], "nic", ["marco", "nic", "sara"]),
     ).toEqual({ fromUserId: "nic", toUserId: "marco", amount: null });
+  });
+});
+
+describe("reimbursementLine", () => {
+  it("Nome ha rimborsato X € a Nome", () => {
+    expect(reimbursementLine("Sara", 40, "Nic")).toBe(
+      "Sara ha rimborsato 40,00 € a Nic",
+    );
+  });
+});
+
+describe("reimbursementFormDefaults", () => {
+  it("in creazione usa oggi e i default R24", () => {
+    expect(
+      reimbursementFormDefaults({
+        mode: "create",
+        today: "2026-09-06",
+        createDefaults: { fromUserId: "nic", toUserId: "sara", amount: 25 },
+        editing: null,
+      }),
+    ).toEqual({
+      fromUserId: "nic",
+      toUserId: "sara",
+      amount: 25,
+      occurredOn: "2026-09-06",
+    });
+  });
+
+  it("in modifica usa da/a/importo/data della riga", () => {
+    expect(
+      reimbursementFormDefaults({
+        mode: "edit",
+        today: "2026-09-06",
+        createDefaults: { fromUserId: "nic", toUserId: "sara", amount: 25 },
+        editing: {
+          fromUserId: "sara",
+          toUserId: "nic",
+          amount: 12.5,
+          occurredOn: "2026-08-01",
+        },
+      }),
+    ).toEqual({
+      fromUserId: "sara",
+      toUserId: "nic",
+      amount: 12.5,
+      occurredOn: "2026-08-01",
+    });
   });
 });

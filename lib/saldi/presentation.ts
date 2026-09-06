@@ -76,3 +76,48 @@ export function defaultReimbursement(
     amount: null,
   };
 }
+
+export function reimbursementLine(
+  fromName: string,
+  amount: number,
+  toName: string,
+): string {
+  return `${fromName} ha rimborsato ${formatEuro(amount)} a ${toName}`;
+}
+
+export function reimbursementFormDefaults(input: {
+  mode: "create" | "edit";
+  today: string;
+  createDefaults: {
+    fromUserId: string;
+    toUserId: string;
+    amount: number | null;
+  };
+  editing: {
+    fromUserId: string;
+    toUserId: string;
+    amount: number;
+    occurredOn: string;
+  } | null;
+}): {
+  fromUserId: string;
+  toUserId: string;
+  amount: number | null;
+  occurredOn: string;
+} {
+  if (input.mode === "edit" && input.editing) {
+    return {
+      fromUserId: input.editing.fromUserId,
+      toUserId: input.editing.toUserId,
+      amount: input.editing.amount,
+      occurredOn: input.editing.occurredOn,
+    };
+  }
+
+  return {
+    fromUserId: input.createDefaults.fromUserId,
+    toUserId: input.createDefaults.toUserId,
+    amount: input.createDefaults.amount,
+    occurredOn: input.today,
+  };
+}
