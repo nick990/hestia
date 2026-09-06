@@ -16,6 +16,10 @@ describe("resolveAppTab", () => {
     expect(resolveAppTab("/evidenza")).toBe("evidenza");
   });
 
+  it("saldi", () => {
+    expect(resolveAppTab("/saldi")).toBe("saldi");
+  });
+
   it("null fuori dalle sezioni tab", () => {
     expect(resolveAppTab("/settings/categories")).toBe(null);
   });

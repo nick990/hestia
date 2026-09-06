@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import {
   LoaderCircleIcon,
   ParasolIcon,
+  ScaleIcon,
   StickyNoteIcon,
   WalletIcon,
 } from "lucide-react";
@@ -18,6 +19,15 @@ const items = [
     icon: WalletIcon,
     colorClass: "text-primary",
     selectedClass: "bg-primary/15 text-primary",
+  },
+  {
+    id: "saldi" as const,
+    href: "/saldi",
+    label: "Saldi",
+    icon: ScaleIcon,
+    colorClass: "text-home-tab-saldi",
+    selectedClass: "bg-home-tab-saldi/15 text-home-tab-saldi",
+    requiresFamily: true,
   },
   {
     id: "notes" as const,
@@ -37,8 +47,11 @@ const items = [
   },
 ];
 
-export function AppTabBar() {
+export function AppTabBar({ hasFamily }: { hasFamily: boolean }) {
   const { isPending, displayTab, selectTab } = useTabNavigation();
+  const visibleItems = items.filter(
+    (item) => !("requiresFamily" in item && item.requiresFamily) || hasFamily,
+  );
 
   return (
     <nav
@@ -50,7 +63,7 @@ export function AppTabBar() {
       )}
       inert={isPending ? true : undefined}
     >
-      {items.map((item) => {
+      {visibleItems.map((item) => {
         const selected = displayTab === item.id;
         const loading = isPending && selected;
         const Icon = item.icon;

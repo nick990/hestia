@@ -3,16 +3,19 @@ import {
   TabNavigationProvider,
   TabbedMain,
 } from "@/components/layout/tab-navigation";
+import { getCurrentUserFamily } from "@/lib/families/queries";
 
-export default function TabbedLayout({
+export default async function TabbedLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const family = await getCurrentUserFamily();
+
   return (
     <TabNavigationProvider>
       <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col">
-        <AppTabBar />
+        <AppTabBar hasFamily={family !== null} />
         <TabbedMain>{children}</TabbedMain>
       </div>
     </TabNavigationProvider>
