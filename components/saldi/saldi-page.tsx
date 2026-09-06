@@ -7,7 +7,7 @@ import {
 import { DeleteReimbursementDialog } from "@/components/saldi/delete-reimbursement-dialog";
 import { ReimbursementDialog } from "@/components/saldi/reimbursement-dialog";
 import { Button } from "@/components/ui/button";
-import { formatEuro, formatOccurredOn } from "@/lib/cashflow/format";
+import { formatEuro } from "@/lib/cashflow/format";
 import {
   computeNets,
   simplifyTransfers,
@@ -18,14 +18,14 @@ import {
   sortPersonNets,
   transferLine,
 } from "@/lib/saldi/presentation";
-import type { FamilySaldiData, FamilySaldiReimbursement } from "@/lib/saldi/types";
+import type { FamilySaldiNetsData } from "@/lib/saldi/types";
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 type SaldiPageProps = {
   currentUserId: string;
-  data: FamilySaldiData;
+  data: FamilySaldiNetsData;
 };
 
 function formatNet(net: number): string {
@@ -40,7 +40,7 @@ export function SaldiPage({ currentUserId, data }: SaldiPageProps) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [reimburseOpen, setReimburseOpen] = useState(false);
-  const [deleting, setDeleting] = useState<FamilySaldiReimbursement | null>(
+  const [deleting, setDeleting] = useState<{ id: string; amount: number } | null>(
     null,
   );
 
@@ -169,45 +169,6 @@ export function SaldiPage({ currentUserId, data }: SaldiPageProps) {
         </div>
       ) : null}
 
-      <section className="space-y-3">
-        <h2 className="text-sm font-medium">Rimborsi</h2>
-        {data.reimbursements.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Nessun rimborso.</p>
-        ) : (
-          <ul className="space-y-3">
-            {data.reimbursements.map((row) => {
-              const fromName = data.nameById[row.fromUserId] ?? "—";
-              const toName = data.nameById[row.toUserId] ?? "—";
-
-              return (
-                <li
-                  key={row.id}
-                  className="flex items-start justify-between gap-3"
-                >
-                  <div>
-                    <p>
-                      {fromName} ha rimborsato {formatEuro(row.amount)} a{" "}
-                      {toName}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatOccurredOn(row.createdAt.slice(0, 10))}
-                    </p>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setDeleting(row)}
-                  >
-                    Elimina
-                  </Button>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </section>
-
       <ReimbursementDialog
         open={reimburseOpen}
         members={data.currentMembers}
@@ -220,8 +181,8 @@ export function SaldiPage({ currentUserId, data }: SaldiPageProps) {
       />
       <DeleteReimbursementDialog
         reimbursement={deleting}
-        fromName={deleting ? (data.nameById[deleting.fromUserId] ?? "—") : "—"}
-        toName={deleting ? (data.nameById[deleting.toUserId] ?? "—") : "—"}
+        fromName="—"
+        toName="—"
         pending={pending}
         onOpenChange={(open) => {
           if (!open) {

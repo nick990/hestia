@@ -10,10 +10,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { formatEuro } from "@/lib/cashflow/format";
-import type { FamilySaldiReimbursement } from "@/lib/saldi/types";
+
+type DeletingReimbursement = {
+  id: string;
+  amount: number;
+};
 
 type DeleteReimbursementDialogProps = {
-  reimbursement: FamilySaldiReimbursement | null;
+  reimbursement: DeletingReimbursement | null;
   fromName: string;
   toName: string;
   pending: boolean;

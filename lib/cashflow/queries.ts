@@ -44,6 +44,7 @@ function displayName(profile: ProfileRow | undefined): string | null {
 function mapMovement(
   row: MovementRow,
   profiles: Map<string, ProfileRow>,
+  payerNameByMovementId: Map<string, string>,
 ): Movement {
   const categoryRelation = row.movement_categories;
   const categoryName = Array.isArray(categoryRelation)
@@ -73,6 +74,7 @@ function mapMovement(
       row.assignee_kind === "family"
         ? "Famiglia"
         : displayName(assigneeProfile),
+    payer_name: payerNameByMovementId.get(row.id) ?? null,
   };
 }
 
@@ -94,6 +96,45 @@ async function loadProfileNames(
   }
 
   return new Map((data ?? []).map((profile: ProfileRow) => [profile.id, profile]));
+}
+
+async function loadPayerNamesByMovementId(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  movementIds: string[],
+): Promise<Map<string, string>> {
+  if (movementIds.length === 0) {
+    return new Map();
+  }
+
+  const { data, error } = await supabase
+    .from("movement_payments")
+    .select("movement_id, payer_user_id")
+    .in("movement_id", movementIds);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const rows = data ?? [];
+  const payerIds = [
+    ...new Set(
+      rows
+        .map((row) => row.payer_user_id as string | null)
+        .filter((id): id is string => Boolean(id)),
+    ),
+  ];
+  const profiles = await loadProfileNames(supabase, payerIds);
+  const names = new Map<string, string>();
+
+  for (const row of rows) {
+    const name = displayName(profiles.get(row.payer_user_id as string));
+
+    if (name) {
+      names.set(row.movement_id as string, name);
+    }
+  }
+
+  return names;
 }
 
 function emptyMonthSummary(month: number, year: number): MonthSummaryEntry {
@@ -137,9 +178,15 @@ async function listRawMovementsForRange(
       ),
     ),
   ];
-  const profiles = await loadProfileNames(supabase, userIds);
+  const [profiles, payerNames] = await Promise.all([
+    loadProfileNames(supabase, userIds),
+    loadPayerNamesByMovementId(
+      supabase,
+      rows.map((row) => row.id),
+    ),
+  ]);
 
-  return rows.map((row) => mapMovement(row, profiles));
+  return rows.map((row) => mapMovement(row, profiles, payerNames));
 }
 
 export async function listMovementsForRange(
@@ -264,7 +311,45 @@ export async function listMovementsForCategoryPrefix(
       ),
     ),
   ];
-  const profiles = await loadProfileNames(supabase, userIds);
+  const [profiles, payerNames] = await Promise.all([
+    loadProfileNames(supabase, userIds),
+    loadPayerNamesByMovementId(
+      supabase,
+      rows.map((row) => row.id),
+    ),
+  ]);
 
-  return rows.map((row) => mapMovement(row, profiles));
+  return rows.map((row) => mapMovement(row, profiles, payerNames));
+}
+
+export async function getMovementById(id: string): Promise<Movement | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("movements")
+    .select(
+      "id, type, amount, occurred_on, description, created_at, category_id, created_by, assignee_kind, assignee_user_id, is_private, movement_categories(name)",
+    )
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  const row = data as MovementRow;
+  const [profiles, payerNames] = await Promise.all([
+    loadProfileNames(
+      supabase,
+      [row.created_by, row.assignee_user_id].filter(
+        (userId): userId is string => Boolean(userId),
+      ),
+    ),
+    loadPayerNamesByMovementId(supabase, [row.id]),
+  ]);
+
+  return mapMovement(row, profiles, payerNames);
 }

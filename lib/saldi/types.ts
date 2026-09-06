@@ -38,33 +38,23 @@ export type MovementSplitView = {
   shares: MaterializedShare[];
 };
 
-export type FamilySaldiReimbursement = {
-  id: string;
-  fromUserId: string;
-  toUserId: string;
-  amount: number;
-  createdAt: string;
-};
-
 export type FamilySaldiMember = {
   userId: string;
   name: string;
 };
 
-export type FamilySaldiExpense = {
-  movementId: string;
-  payerUserId: string;
-  movementAmount: number;
-  shares: MaterializedShare[];
-  occurredOn: string;
-  description: string;
-  categoryName: string | null;
-};
-
-export type FamilySaldiData = {
+export type FamilySaldiNetsData = {
   familyId: string;
-  expenses: FamilySaldiExpense[];
-  reimbursements: FamilySaldiReimbursement[];
+  expenses: {
+    payerUserId: string;
+    movementAmount: number;
+    shares: MaterializedShare[];
+  }[];
+  reimbursements: {
+    fromUserId: string;
+    toUserId: string;
+    amount: number;
+  }[];
   currentMembers: FamilySaldiMember[];
   nameById: Record<string, string>;
 };
