@@ -5,8 +5,10 @@ import {
   deleteMovement,
   updateMovement,
 } from "@/app/actions/movements";
+import { loadMovementSplit } from "@/app/actions/movement-split";
 import { CategoryPicker } from "@/components/cashflow/category-picker";
 import { DeleteMovementDialog } from "@/components/cashflow/delete-movement-dialog";
+import { MovementSplitFields } from "@/components/cashflow/movement-split-fields";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -30,12 +32,24 @@ import {
 import type { MovementCategoryOption } from "@/lib/categories/types";
 import type { Movement, MovementType } from "@/lib/cashflow/types";
 import type { FamilyMemberOption } from "@/lib/families/types";
+import type { MovementSplitInput, SplitMode } from "@/lib/saldi/types";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 const FAMILY_ASSIGNEE_VALUE = "family";
+
+function parseMovementAmount(raw: string): number | null {
+  const normalized = raw.trim().replace(",", ".");
+  const value = Number(normalized);
+
+  if (!Number.isFinite(value) || value <= 0) {
+    return null;
+  }
+
+  return Math.round(value * 100) / 100;
+}
 
 type MovementFormDialogProps = {
   open: boolean;
@@ -113,6 +127,13 @@ export function MovementFormDialog({
   const [isFamily, setIsFamily] = useState(true);
   const [assigneeUserId, setAssigneeUserId] = useState(currentUserId);
   const [isPrivate, setIsPrivate] = useState(false);
+  const [splitEnabled, setSplitEnabled] = useState(false);
+  const [payerUserId, setPayerUserId] = useState(currentUserId);
+  const [splitMode, setSplitMode] = useState<SplitMode>("equal");
+  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
+  const [amountByUserId, setAmountByUserId] = useState<Record<string, string>>(
+    {},
+  );
 
   const assigneeSelectItems = useMemo(
     () => [
@@ -149,10 +170,51 @@ export function MovementFormDialog({
     setIsFamily(defaults.isFamily);
     setAssigneeUserId(defaults.assigneeUserId);
     setIsPrivate(defaults.isPrivate);
-  }, [open, editingMovement, defaultOccurredOn, hasFamily, currentUserId, categories, lockedCategoryPrefix]);
+    setSplitEnabled(false);
+    setSplitMode("equal");
+    setSelectedMemberIds(familyMembers.map((member) => member.user_id));
+    setAmountByUserId({});
+    setPayerUserId(
+      defaults.isFamily ? currentUserId : defaults.assigneeUserId,
+    );
+
+    if (!editingMovement) {
+      return;
+    }
+
+    let cancelled = false;
+
+    void loadMovementSplit(editingMovement.id).then((split) => {
+      if (cancelled || !split) {
+        return;
+      }
+
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate ripartizione when editing
+      setSplitEnabled(true);
+      setPayerUserId(split.payerUserId);
+      setSplitMode(split.splitMode);
+      setSelectedMemberIds(split.shares.map((share) => share.userId));
+      setAmountByUserId(
+        Object.fromEntries(
+          split.shares.map((share) => [
+            share.userId,
+            String(share.amount).replace(".", ","),
+          ]),
+        ),
+      );
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open, editingMovement, defaultOccurredOn, hasFamily, currentUserId, categories, lockedCategoryPrefix, familyMembers]);
 
   function handleTypeChange(nextType: MovementType) {
     setType(nextType);
+
+    if (nextType === "income") {
+      setSplitEnabled(false);
+    }
 
     if (editingMovement) {
       return;
@@ -189,6 +251,31 @@ export function MovementFormDialog({
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
+    const showSplit = hasFamily && type === "expense" && !isPrivate;
+
+    if (showSplit && splitEnabled && selectedMemberIds.length === 0) {
+      toast.error("Ripartisci spesa richiede almeno un membro.");
+      return;
+    }
+
+    const split: MovementSplitInput =
+      showSplit && splitEnabled
+        ? {
+            enabled: true,
+            payerUserId,
+            splitMode,
+            shares: selectedMemberIds.map((userId) => ({
+              userId,
+              amount:
+                splitMode === "amount"
+                  ? Number(
+                      amountByUserId[userId]?.trim().replace(",", ".") || "NaN",
+                    )
+                  : undefined,
+            })),
+          }
+        : { enabled: false };
+
     startTransition(async () => {
       const payload = {
         type,
@@ -199,6 +286,7 @@ export function MovementFormDialog({
         isFamily: hasFamily ? isFamily : false,
         assigneeUserId: hasFamily && !isFamily ? assigneeUserId : currentUserId,
         isPrivate: !isFamily && assigneeUserId === currentUserId && isPrivate,
+        split,
       };
 
       const result = editingMovement
@@ -241,6 +329,8 @@ export function MovementFormDialog({
   }
 
   const canSetPrivate = !isFamily && assigneeUserId === currentUserId;
+  const showSplitSection = hasFamily && type === "expense" && !isPrivate;
+  const parsedAmount = parseMovementAmount(amount);
 
   return (
     <>
@@ -354,8 +444,15 @@ export function MovementFormDialog({
                 <Checkbox
                   id="movement-private"
                   checked={isPrivate}
-                  disabled={!canSetPrivate}
-                  onCheckedChange={(checked) => setIsPrivate(checked === true)}
+                  disabled={!canSetPrivate || splitEnabled}
+                  onCheckedChange={(checked) => {
+                    const next = checked === true;
+                    setIsPrivate(next);
+
+                    if (next) {
+                      setSplitEnabled(false);
+                    }
+                  }}
                 />
                 <Label htmlFor="movement-private" className="font-normal">
                   Privato
@@ -374,6 +471,63 @@ export function MovementFormDialog({
               </Label>
             </div>
           )}
+          {showSplitSection ? (
+            <div className="space-y-3 border-t pt-3">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-sm font-medium">Ripartizione</span>
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="split-enabled"
+                    checked={splitEnabled}
+                    onCheckedChange={(checked) => {
+                      const next = checked === true;
+                      setSplitEnabled(next);
+
+                      if (next) {
+                        setPayerUserId(
+                          isFamily ? currentUserId : assigneeUserId,
+                        );
+                        setSplitMode("equal");
+                        setSelectedMemberIds(
+                          familyMembers.map((member) => member.user_id),
+                        );
+                      }
+                    }}
+                  />
+                  <Label htmlFor="split-enabled" className="font-normal">
+                    Ripartisci spesa
+                  </Label>
+                </div>
+              </div>
+              {splitEnabled ? (
+                <MovementSplitFields
+                  familyMembers={familyMembers}
+                  payerUserId={payerUserId}
+                  onPayerChange={setPayerUserId}
+                  splitMode={splitMode}
+                  onSplitModeChange={setSplitMode}
+                  selectedMemberIds={selectedMemberIds}
+                  onToggleMember={(userId, checked) => {
+                    setSelectedMemberIds((current) =>
+                      familyMembers
+                        .map((member) => member.user_id)
+                        .filter((id) =>
+                          id === userId ? checked : current.includes(id),
+                        ),
+                    );
+                  }}
+                  amountByUserId={amountByUserId}
+                  onAmountChange={(userId, value) => {
+                    setAmountByUserId((current) => ({
+                      ...current,
+                      [userId]: value,
+                    }));
+                  }}
+                  movementAmount={parsedAmount}
+                />
+              ) : null}
+            </div>
+          ) : null}
           <DialogFooter>
             {editingMovement ? (
               <>
