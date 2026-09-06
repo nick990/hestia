@@ -18,6 +18,7 @@ import {
   sortPersonNets,
   transferLine,
 } from "@/lib/saldi/presentation";
+import { getTodayIsoDate } from "@/lib/cashflow/date-range";
 import type { FamilySaldiNetsData } from "@/lib/saldi/types";
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
@@ -94,7 +95,10 @@ export function SaldiPage({ currentUserId, data }: SaldiPageProps) {
     amount: string;
   }) {
     startTransition(async () => {
-      const result = await createReimbursement(input);
+      const result = await createReimbursement({
+        ...input,
+        occurredOn: getTodayIsoDate(),
+      });
 
       if (!result.ok) {
         toast.error(result.error);
