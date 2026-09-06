@@ -17,6 +17,14 @@ function isValidIsoDate(value: string): boolean {
   );
 }
 
+export function parseIsoDate(raw: string): string | null {
+  if (!isValidIsoDate(raw)) {
+    return null;
+  }
+
+  return raw;
+}
+
 export function getCurrentMonthBounds(): DateRange {
   const monthKey = getCurrentMonthKey();
   const { start, end } = monthDateBounds(monthKey);

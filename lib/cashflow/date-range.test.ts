@@ -5,8 +5,21 @@ import {
   isFullMonthRange,
   monthBoundsForYearMonth,
   parseDateRangeParams,
+  parseIsoDate,
   parseYearParam,
 } from "@/lib/cashflow/date-range";
+
+describe("parseIsoDate", () => {
+  it("accetta una data calendario", () => {
+    expect(parseIsoDate("2026-09-06")).toBe("2026-09-06");
+  });
+
+  it("rifiuta formato o giorno inesistente", () => {
+    expect(parseIsoDate("06/09/2026")).toBeNull();
+    expect(parseIsoDate("2026-02-31")).toBeNull();
+    expect(parseIsoDate("")).toBeNull();
+  });
+});
 
 describe("parseDateRangeParams", () => {
   it("defaults to current month when params missing", () => {
