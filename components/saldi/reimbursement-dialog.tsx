@@ -105,7 +105,7 @@ export function ReimbursementDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent initialFocus={false}>
         <DialogHeader>
           <DialogTitle>
             {mode === "edit" ? "Modifica rimborso" : "Registra rimborso"}

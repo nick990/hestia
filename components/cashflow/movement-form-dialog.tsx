@@ -334,8 +334,8 @@ export function MovementFormDialog({
   return (
     <>
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
+      <DialogContent initialFocus={false}>
+        <DialogHeader className="pr-8">
           <DialogTitle>
             {editingMovement ? "Modifica movimento" : "Aggiungi movimento"}
           </DialogTitle>
