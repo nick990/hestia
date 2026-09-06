@@ -5,7 +5,12 @@ import {
   canSetPrivate,
   isPrivateChangeAllowed,
 } from "@/lib/cashflow/movement-visibility";
-import { getCurrentUserFamily } from "@/lib/families/queries";
+import {
+  getCurrentUserFamily,
+  listFamilyMembersForViewer,
+} from "@/lib/families/queries";
+import { persistSplitForMovement } from "@/lib/saldi/persist-db";
+import type { MovementSplitInput } from "@/lib/saldi/types";
 import { revalidateTabbedSections } from "@/lib/revalidate-tabbed";
 import { createClient } from "@/lib/supabase/server";
 
@@ -160,6 +165,11 @@ async function resolveAssignee(
   };
 }
 
+async function currentMemberIds(): Promise<string[]> {
+  const members = await listFamilyMembersForViewer();
+  return members.map((member) => member.user_id);
+}
+
 export async function createMovement(input: {
   type: string;
   amount: string;
@@ -169,6 +179,7 @@ export async function createMovement(input: {
   isFamily?: boolean;
   assigneeUserId?: string;
   isPrivate?: boolean;
+  split?: MovementSplitInput;
 }): Promise<ActionResult> {
   const supabase = await createClient();
   const {
@@ -223,20 +234,39 @@ export async function createMovement(input: {
 
   const { assignee_kind, assignee_user_id, is_private } = assigneeResult;
 
-  const { error } = await supabase.from("movements").insert({
-    created_by: user.id,
+  const { data: inserted, error } = await supabase
+    .from("movements")
+    .insert({
+      created_by: user.id,
+      type,
+      amount,
+      occurred_on,
+      description,
+      category_id,
+      assignee_kind,
+      assignee_user_id,
+      is_private,
+    })
+    .select("id")
+    .single();
+
+  if (error || !inserted) {
+    return { ok: false, error: error?.message ?? "Movimento non salvato." };
+  }
+
+  const splitResult = await persistSplitForMovement(supabase, {
+    movementId: inserted.id,
+    familyId: family?.family_id ?? null,
     type,
+    isPrivate: is_private,
     amount,
-    occurred_on,
-    description,
-    category_id,
-    assignee_kind,
-    assignee_user_id,
-    is_private,
+    split: input.split,
+    currentMemberIds: await currentMemberIds(),
   });
 
-  if (error) {
-    return { ok: false, error: error.message };
+  if (!splitResult.ok) {
+    await supabase.from("movements").delete().eq("id", inserted.id);
+    return splitResult;
   }
 
   revalidateCashflow();
@@ -254,6 +284,7 @@ export async function updateMovement(
     isFamily?: boolean;
     assigneeUserId?: string;
     isPrivate?: boolean;
+    split?: MovementSplitInput;
   },
 ): Promise<ActionResult> {
   const supabase = await createClient();
@@ -354,6 +385,21 @@ export async function updateMovement(
 
   if (error) {
     return { ok: false, error: error.message };
+  }
+
+  const family = await getCurrentUserFamily();
+  const splitResult = await persistSplitForMovement(supabase, {
+    movementId: id,
+    familyId: family?.family_id ?? null,
+    type,
+    isPrivate: nextAssignee.is_private,
+    amount,
+    split: input.split,
+    currentMemberIds: await currentMemberIds(),
+  });
+
+  if (!splitResult.ok) {
+    return splitResult;
   }
 
   revalidateCashflow();

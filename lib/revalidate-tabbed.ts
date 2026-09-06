@@ -5,4 +5,5 @@ export function revalidateTabbedSections() {
   revalidatePath("/cashflow/avanzato");
   revalidatePath("/notes");
   revalidatePath("/evidenza");
+  revalidatePath("/saldi");
 }
