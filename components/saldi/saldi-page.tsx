@@ -13,6 +13,7 @@ import { MovementFormDialog } from "@/components/cashflow/movement-form-dialog";
 import { DeleteReimbursementDialog } from "@/components/saldi/delete-reimbursement-dialog";
 import { ReimbursementDialog } from "@/components/saldi/reimbursement-dialog";
 import { SaldiActivityList } from "@/components/saldi/saldi-activity-list";
+import { TransferLine } from "@/components/saldi/transfer-line";
 import { Button } from "@/components/ui/button";
 import type { MovementCategoryOption } from "@/lib/categories/types";
 import { getTodayIsoDate } from "@/lib/cashflow/date-range";
@@ -26,7 +27,6 @@ import {
 import {
   defaultReimbursement,
   sortPersonNets,
-  transferLine,
 } from "@/lib/saldi/presentation";
 import type {
   FamilySaldiNetsData,
@@ -258,26 +258,32 @@ export function SaldiPage({
                 key={`${transfer.fromUserId}-${transfer.toUserId}-${transfer.amount}`}
                 className="text-base"
               >
-                {transferLine(transfer, currentUserId, nameById)}
+                <TransferLine
+                  transfer={transfer}
+                  currentUserId={currentUserId}
+                  nameById={nameById}
+                />
               </li>
             ))}
           </ul>
         )}
       </section>
 
-      <section className="space-y-2">
-        <ul className="space-y-1">
-          {people.map((person) => (
-            <li
-              key={person.userId}
-              className="flex items-baseline justify-between gap-3"
-            >
-              <span>{person.name}</span>
-              <span className="tabular-nums">{formatNet(person.net)}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
+      {data.currentMembers.length >= 3 ? (
+        <section className="space-y-2">
+          <ul className="space-y-1">
+            {people.map((person) => (
+              <li
+                key={person.userId}
+                className="flex items-baseline justify-between gap-3"
+              >
+                <span>{person.name}</span>
+                <span className="tabular-nums">{formatNet(person.net)}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       {data.currentMembers.length >= 2 ? (
         <div>
