@@ -350,7 +350,7 @@ export async function listSaldiActivity(
   }
 
   const paymentRows = (paymentsResult.data ?? []) as ActivityPaymentRow[];
-  const splits: SaldiActivityItem[] = [];
+  const splits: Extract<SaldiActivityItem, { kind: "split" }>[] = [];
   const payerByMovementId = new Map<string, string>();
 
   for (const row of paymentRows) {
