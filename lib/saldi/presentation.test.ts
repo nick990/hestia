@@ -113,6 +113,29 @@ describe("defaultReimbursement", () => {
     ).toEqual({ fromUserId: "nic", toUserId: "sara", amount: 25 });
   });
 
+  it("precompila quando sei creditore verso il trasferimento più alto", () => {
+    expect(
+      defaultReimbursement(
+        [{ fromUserId: "sara", toUserId: "nic", amount: 567.11 }],
+        "nic",
+        ["marco", "nic", "sara"],
+      ),
+    ).toEqual({ fromUserId: "sara", toUserId: "nic", amount: 567.11 });
+  });
+
+  it("sceglie il trasferimento con importo più alto tra debito e credito", () => {
+    expect(
+      defaultReimbursement(
+        [
+          { fromUserId: "nic", toUserId: "marco", amount: 10 },
+          { fromUserId: "sara", toUserId: "nic", amount: 25 },
+        ],
+        "nic",
+        ["marco", "nic", "sara"],
+      ),
+    ).toEqual({ fromUserId: "sara", toUserId: "nic", amount: 25 });
+  });
+
   it("se non devi niente, altro membro per nome e importo vuoto", () => {
     expect(
       defaultReimbursement([], "nic", ["marco", "nic", "sara"]),

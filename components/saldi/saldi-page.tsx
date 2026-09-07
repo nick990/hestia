@@ -133,7 +133,7 @@ export function SaldiPage({
       mine: mineTransfers,
       people: peopleNets,
       defaults: defaultReimbursement(
-        mineTransfers.filter((transfer) => transfer.fromUserId === currentUserId),
+        mineTransfers,
         currentUserId,
         memberIdsByName,
       ),

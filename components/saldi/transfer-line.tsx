@@ -20,7 +20,7 @@ export function TransferLine({
       {parts.before}
       <span
         className={cn(
-          "tabular-nums",
+          "whitespace-nowrap tabular-nums",
           parts.tone === "debit" ? "text-destructive" : "text-income",
         )}
       >

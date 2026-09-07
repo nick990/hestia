@@ -73,14 +73,18 @@ export function sortPersonNets(
 }
 
 export function defaultReimbursement(
-  myDebitTransfers: Transfer[],
+  myTransfers: Transfer[],
   currentUserId: string,
   currentMemberIdsByName: string[],
 ): { fromUserId: string; toUserId: string; amount: number | null } {
   let best: Transfer | null = null;
 
-  for (const transfer of myDebitTransfers) {
-    if (transfer.fromUserId !== currentUserId) {
+  for (const transfer of myTransfers) {
+    const involvesUser =
+      transfer.fromUserId === currentUserId ||
+      transfer.toUserId === currentUserId;
+
+    if (!involvesUser) {
       continue;
     }
 
@@ -90,9 +94,17 @@ export function defaultReimbursement(
   }
 
   if (best) {
+    if (best.fromUserId === currentUserId) {
+      return {
+        fromUserId: currentUserId,
+        toUserId: best.toUserId,
+        amount: best.amount,
+      };
+    }
+
     return {
-      fromUserId: currentUserId,
-      toUserId: best.toUserId,
+      fromUserId: best.fromUserId,
+      toUserId: currentUserId,
       amount: best.amount,
     };
   }
