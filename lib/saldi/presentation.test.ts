@@ -5,6 +5,7 @@ import {
   reimbursementLine,
   sortPersonNets,
   transferLine,
+  transferLineParts,
 } from "@/lib/saldi/presentation";
 import type { PersonNet } from "@/lib/saldi/types";
 
@@ -32,6 +33,51 @@ describe("transferLine", () => {
         names,
       ),
     ).toBe("Sara ti deve 20,00 €");
+  });
+});
+
+describe("transferLineParts", () => {
+  const names = new Map([
+    ["nic", "Nic"],
+    ["sara", "Sara"],
+  ]);
+
+  it("debitore: segmenti e tone debit", () => {
+    expect(
+      transferLineParts(
+        { fromUserId: "nic", toUserId: "sara", amount: 20 },
+        "nic",
+        names,
+      ),
+    ).toEqual({
+      before: "Devi pagare ",
+      amount: "20,00 €",
+      after: " a Sara",
+      tone: "debit",
+    });
+  });
+
+  it("creditore: segmenti e tone credit", () => {
+    expect(
+      transferLineParts(
+        { fromUserId: "sara", toUserId: "nic", amount: 20 },
+        "nic",
+        names,
+      ),
+    ).toEqual({
+      before: "Sara ti deve ",
+      amount: "20,00 €",
+      after: "",
+      tone: "credit",
+    });
+  });
+
+  it("concatenazione uguale a transferLine", () => {
+    const transfer = { fromUserId: "nic", toUserId: "sara", amount: 567.11 };
+    const parts = transferLineParts(transfer, "nic", names);
+    expect(`${parts.before}${parts.amount}${parts.after}`).toBe(
+      transferLine(transfer, "nic", names),
+    );
   });
 });
 

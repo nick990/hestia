@@ -2,18 +2,48 @@ import { formatEuro } from "@/lib/cashflow/format";
 import { ZERO_THRESHOLD } from "@/lib/saldi/balances";
 import type { PersonNet, Transfer } from "@/lib/saldi/types";
 
+export type TransferLineTone = "debit" | "credit";
+
+export type TransferLineParts = {
+  before: string;
+  amount: string;
+  after: string;
+  tone: TransferLineTone;
+};
+
+export function transferLineParts(
+  transfer: Transfer,
+  currentUserId: string,
+  nameById: Map<string, string>,
+): TransferLineParts {
+  const amount = formatEuro(transfer.amount);
+
+  if (transfer.fromUserId === currentUserId) {
+    const name = nameById.get(transfer.toUserId) ?? "—";
+    return {
+      before: "Devi pagare ",
+      amount,
+      after: ` a ${name}`,
+      tone: "debit",
+    };
+  }
+
+  const name = nameById.get(transfer.fromUserId) ?? "—";
+  return {
+    before: `${name} ti deve `,
+    amount,
+    after: "",
+    tone: "credit",
+  };
+}
+
 export function transferLine(
   transfer: Transfer,
   currentUserId: string,
   nameById: Map<string, string>,
 ): string {
-  if (transfer.fromUserId === currentUserId) {
-    const name = nameById.get(transfer.toUserId) ?? "—";
-    return `Devi pagare ${formatEuro(transfer.amount)} a ${name}`;
-  }
-
-  const name = nameById.get(transfer.fromUserId) ?? "—";
-  return `${name} ti deve ${formatEuro(transfer.amount)}`;
+  const parts = transferLineParts(transfer, currentUserId, nameById);
+  return `${parts.before}${parts.amount}${parts.after}`;
 }
 
 export function sortPersonNets(
