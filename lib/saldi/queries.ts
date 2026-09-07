@@ -5,6 +5,8 @@ import {
 import {
   ACTIVITY_PAGE_SIZE,
   compareSaldiActivityDesc,
+  isReimbursementVisibleInActivity,
+  isSplitVisibleInActivity,
   mergeSaldiActivity,
 } from "@/lib/saldi/activity";
 import type {
@@ -52,6 +54,7 @@ type ActivityPaymentRow = {
   movement_id: string;
   payer_user_id: string;
   movements: ActivityMovement | ActivityMovement[] | null;
+  movement_payment_shares: { user_id: string }[] | null;
 };
 
 type ActivityReimbursementRow = {
@@ -261,18 +264,28 @@ export async function listSaldiActivity(
 
   const take = offset + ACTIVITY_PAGE_SIZE + 1;
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { items: [], hasMore: false };
+  }
+
+  const currentUserId = user.id;
 
   const [paymentsResult, reimbursementsResult] = await Promise.all([
     supabase
       .from("movement_payments")
       .select(
-        "movement_id, payer_user_id, movements(amount, type, is_private, occurred_on, created_at, description, movement_categories(name))",
+        "movement_id, payer_user_id, movements(amount, type, is_private, occurred_on, created_at, description, movement_categories(name)), movement_payment_shares(user_id)",
       )
       .eq("family_id", family.family_id),
     supabase
       .from("reimbursements")
       .select("id, from_user_id, to_user_id, amount, occurred_on, created_at")
       .eq("family_id", family.family_id)
+      .or(`from_user_id.eq.${currentUserId},to_user_id.eq.${currentUserId}`)
       .order("occurred_on", { ascending: false })
       .order("created_at", { ascending: false })
       .order("id", { ascending: false })
@@ -295,6 +308,20 @@ export async function listSaldiActivity(
     const movement = unwrapRelation(row.movements);
 
     if (!isUsableExpense(movement)) {
+      continue;
+    }
+
+    const shareUserIds = (row.movement_payment_shares ?? []).map(
+      (share) => share.user_id,
+    );
+
+    if (
+      !isSplitVisibleInActivity(
+        row.payer_user_id,
+        shareUserIds,
+        currentUserId,
+      )
+    ) {
       continue;
     }
 
@@ -328,15 +355,23 @@ export async function listSaldiActivity(
 
   const reimbursements: SaldiActivityItem[] = (
     (reimbursementsResult.data ?? []) as ActivityReimbursementRow[]
-  ).map((row) => ({
-    kind: "reimbursement",
-    id: row.id,
-    occurredOn: row.occurred_on,
-    createdAt: row.created_at,
-    amount: Number(row.amount),
-    fromUserId: row.from_user_id,
-    toUserId: row.to_user_id,
-  }));
+  )
+    .filter((row) =>
+      isReimbursementVisibleInActivity(
+        row.from_user_id,
+        row.to_user_id,
+        currentUserId,
+      ),
+    )
+    .map((row) => ({
+      kind: "reimbursement",
+      id: row.id,
+      occurredOn: row.occurred_on,
+      createdAt: row.created_at,
+      amount: Number(row.amount),
+      fromUserId: row.from_user_id,
+      toUserId: row.to_user_id,
+    }));
 
   return mergeSaldiActivity(splitsWithPayer, reimbursements, offset);
 }

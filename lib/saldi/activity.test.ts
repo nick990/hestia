@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   ACTIVITY_PAGE_SIZE,
+  isReimbursementVisibleInActivity,
+  isSplitVisibleInActivity,
   mergeSaldiActivity,
 } from "@/lib/saldi/activity";
 import type { SaldiActivityItem } from "@/lib/saldi/types";
@@ -37,6 +39,41 @@ function reimburse(
     toUserId: "nic",
   };
 }
+
+describe("isSplitVisibleInActivity", () => {
+  const NIC = "nic";
+  const SARA = "sara";
+  const MARCO = "marco";
+
+  it("nasconde solo pagante spuntato", () => {
+    expect(isSplitVisibleInActivity(NIC, [NIC], NIC)).toBe(false);
+  });
+
+  it("mostra ripartizione tra due che include l'utente", () => {
+    expect(isSplitVisibleInActivity(NIC, [NIC, SARA], NIC)).toBe(true);
+  });
+
+  it("mostra pagante non spuntato se coinvolge l'utente", () => {
+    expect(isSplitVisibleInActivity(NIC, [SARA], NIC)).toBe(true);
+  });
+
+  it("nasconde ripartizione tra altri", () => {
+    expect(isSplitVisibleInActivity(MARCO, [MARCO, SARA], NIC)).toBe(false);
+  });
+});
+
+describe("isReimbursementVisibleInActivity", () => {
+  it("mostra se l'utente dà o riceve", () => {
+    expect(isReimbursementVisibleInActivity("nic", "sara", "nic")).toBe(true);
+    expect(isReimbursementVisibleInActivity("sara", "nic", "nic")).toBe(true);
+  });
+
+  it("nasconde se l'utente non c'entra", () => {
+    expect(isReimbursementVisibleInActivity("marco", "sara", "nic")).toBe(
+      false,
+    );
+  });
+});
 
 describe("mergeSaldiActivity", () => {
   it("stesso giorno: rimborso prima se created_at è più recente", () => {

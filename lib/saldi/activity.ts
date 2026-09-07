@@ -2,6 +2,28 @@ import type { SaldiActivityItem } from "@/lib/saldi/types";
 
 export const ACTIVITY_PAGE_SIZE = 20;
 
+export function isSplitVisibleInActivity(
+  payerUserId: string,
+  shareUserIds: string[],
+  currentUserId: string,
+): boolean {
+  const involved = new Set([payerUserId, ...shareUserIds]);
+
+  if (involved.size < 2) {
+    return false;
+  }
+
+  return involved.has(currentUserId);
+}
+
+export function isReimbursementVisibleInActivity(
+  fromUserId: string,
+  toUserId: string,
+  currentUserId: string,
+): boolean {
+  return fromUserId === currentUserId || toUserId === currentUserId;
+}
+
 export function compareSaldiActivityDesc(
   a: Pick<SaldiActivityItem, "occurredOn" | "createdAt" | "id">,
   b: Pick<SaldiActivityItem, "occurredOn" | "createdAt" | "id">,

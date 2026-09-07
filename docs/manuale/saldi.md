@@ -19,6 +19,8 @@ Sotto, il netto di ciascuno: positivo = gli devono, negativo = deve. Tu sei il p
 
 Sotto **Registra rimborso** c'è un'unica lista: uscite ripartite e rimborsi, mescolati, i più recenti in cima. Le prime 20 righe; scorrendo in fondo se ne caricano altre 20. I netti in alto non dipendono da quante righe hai caricato.
 
+In lista compaiono solo i movimenti tra almeno due persone in cui sei coinvolto. Le altre — ad esempio un caffè offerto registrato solo a tuo nome, o una ripartizione tra altri due — restano in Cashflow e contano comunque nei netti se rilevanti.
+
 Tocca una ripartizione per aprire il movimento (stessa form di Cashflow). Tocca un rimborso per modificarlo.
 
 ## Ripartisci spesa

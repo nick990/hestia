@@ -294,23 +294,29 @@ export function SaldiPage({
         </div>
       ) : null}
 
-      <SaldiActivityList
-        items={items}
-        nameById={data.nameById}
-        hasMore={hasMore}
-        loadingMore={loadingMore}
-        onLoadMore={() => {
-          void handleLoadMore();
-        }}
-        onOpenSplit={(id) => {
-          void handleOpenSplit(id);
-        }}
-        onOpenReimbursement={(item) => {
-          setReimburseMode("edit");
-          setEditingReimbursement(item);
-          setReimburseOpen(true);
-        }}
-      />
+      <section className="space-y-2">
+        <SaldiActivityList
+          items={items}
+          nameById={data.nameById}
+          hasMore={hasMore}
+          loadingMore={loadingMore}
+          onLoadMore={() => {
+            void handleLoadMore();
+          }}
+          onOpenSplit={(id) => {
+            void handleOpenSplit(id);
+          }}
+          onOpenReimbursement={(item) => {
+            setReimburseMode("edit");
+            setEditingReimbursement(item);
+            setReimburseOpen(true);
+          }}
+        />
+        <p className="text-xs leading-5 text-muted-foreground">
+          In lista compaiono solo i movimenti tra almeno due persone in cui sei
+          coinvolto.
+        </p>
+      </section>
 
       <ReimbursementDialog
         open={reimburseOpen}
