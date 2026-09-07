@@ -10,12 +10,12 @@ Senza famiglia la tab **Saldi** non c’è. Se apri `/saldi` torni alla home.
 
 In alto, solo i trasferimenti che ti riguardano, già semplificati (anche in tre o più persone):
 
-- «Devi pagare 20,00 € a Marco»
-- «Sara ti deve 10,00 €»
+- «Devi pagare 20,00 € a Marco» — l’importo in **rosso**
+- «Sara ti deve 10,00 €» — l’importo in **verde**
 
 Se non hai niente da dare né da ricevere: «Sei in pari». Qualcun altro in famiglia può avere ancora un saldo tra di loro.
 
-Sotto, il netto di ciascuno: positivo = gli devono, negativo = deve. Tu sei il primo; poi gli altri per nome. Chi è uscito dalla famiglia compare solo se il suo netto non è zero.
+In famiglia da **due** persone il messaggio in alto basta: non compare il resoconto con il netto di ciascuno. Da **tre** membri in su, sotto vedi anche il netto di ogni persona (positivo = gli devono, negativo = deve). Tu sei il primo; poi gli altri per nome. Chi è uscito dalla famiglia compare solo se il suo netto non è zero.
 
 Sotto **Registra rimborso** c'è un'unica lista: uscite ripartite e rimborsi, mescolati, i più recenti in cima. Le prime 20 righe; scorrendo in fondo se ne caricano altre 20. I netti in alto non dipendono da quante righe hai caricato.
 
