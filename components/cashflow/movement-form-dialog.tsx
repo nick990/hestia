@@ -15,7 +15,6 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -469,16 +468,21 @@ export function MovementFormDialog({
   return (
     <>
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent initialFocus={false}>
-        <DialogHeader className="pr-8">
+      <DialogContent
+        initialFocus={false}
+        className="flex max-h-[calc(100dvh-2rem)] flex-col gap-0 overflow-hidden p-0"
+      >
+        <DialogHeader className="shrink-0 border-b bg-popover px-4 py-3 pr-10">
           <DialogTitle>
             {editingMovement ? "Modifica movimento" : "Aggiungi movimento"}
           </DialogTitle>
-          <DialogDescription>
-            Registra un&apos;entrata o un&apos;uscita per il periodo selezionato.
-          </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form
+          onSubmit={handleSubmit}
+          className="flex min-h-0 flex-1 flex-col"
+        >
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4">
+            <div className="space-y-4">
           <div className="flex gap-2">
             <Button
               type="button"
@@ -701,23 +705,19 @@ export function MovementFormDialog({
               ) : null}
             </div>
           ) : null}
-          <DialogFooter>
+            </div>
+          </div>
+          <DialogFooter className="mx-0 mb-0 shrink-0">
             {editingMovement ? (
-              <>
-                <Button
-                  type="button"
-                  variant="destructive"
-                  className="w-full sm:hidden"
-                  disabled={pending}
-                  onClick={() => setConfirmingDelete(true)}
-                >
-                  Elimina
-                </Button>
-                <div
-                  role="separator"
-                  className="-mx-4 h-px bg-border sm:hidden"
-                />
-              </>
+              <Button
+                type="button"
+                variant="destructive"
+                className="w-full sm:mr-auto sm:w-auto"
+                disabled={pending}
+                onClick={() => setConfirmingDelete(true)}
+              >
+                Elimina
+              </Button>
             ) : null}
             <DialogClose render={<Button type="button" variant="outline" />}>
               Annulla
