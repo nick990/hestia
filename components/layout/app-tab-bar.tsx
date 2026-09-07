@@ -21,15 +21,6 @@ const items = [
     selectedClass: "bg-primary/15 text-primary",
   },
   {
-    id: "saldi" as const,
-    href: "/saldi",
-    label: "Saldi",
-    icon: ScaleIcon,
-    colorClass: "text-home-tab-saldi",
-    selectedClass: "bg-home-tab-saldi/15 text-home-tab-saldi",
-    requiresFamily: true,
-  },
-  {
     id: "notes" as const,
     href: "/notes",
     label: "Notes",
@@ -45,6 +36,15 @@ const items = [
     colorClass: "text-home-tab-evidenza",
     selectedClass: "bg-home-tab-evidenza/15 text-home-tab-evidenza",
   },
+  {
+    id: "saldi" as const,
+    href: "/saldi",
+    label: "Saldi",
+    icon: ScaleIcon,
+    colorClass: "text-home-tab-saldi",
+    selectedClass: "bg-home-tab-saldi/15 text-home-tab-saldi",
+    requiresFamily: true,
+  },
 ];
 
 export function AppTabBar({ hasFamily }: { hasFamily: boolean }) {
@@ -58,7 +58,7 @@ export function AppTabBar({ hasFamily }: { hasFamily: boolean }) {
       aria-label="Sezioni principali"
       aria-busy={isPending}
       className={cn(
-        "sticky top-0 z-20 flex justify-center gap-1 border-b bg-background px-3 py-1",
+        "sticky top-0 z-20 flex border-b bg-background px-1 py-1",
         isPending && "pointer-events-none select-none",
       )}
       inert={isPending ? true : undefined}
@@ -78,7 +78,7 @@ export function AppTabBar({ hasFamily }: { hasFamily: boolean }) {
             aria-disabled={isPending || undefined}
             tabIndex={isPending ? -1 : undefined}
             className={cn(
-              "flex min-h-9 items-center gap-1.5 rounded-lg px-2.5 outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+              "flex min-h-9 min-w-0 flex-1 flex-col items-center justify-center gap-0 px-1 outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
               isPending && "cursor-wait",
             )}
             onClick={(event) => {
@@ -98,19 +98,19 @@ export function AppTabBar({ hasFamily }: { hasFamily: boolean }) {
           >
             <span
               className={cn(
-                "flex size-7 items-center justify-center rounded-full transition-colors duration-150 motion-reduce:transition-none",
+                "flex size-6 shrink-0 items-center justify-center rounded-full transition-colors duration-150 motion-reduce:transition-none",
                 selected ? item.selectedClass : item.colorClass,
               )}
             >
               {loading ? (
-                <LoaderCircleIcon className="size-3.5 animate-spin motion-reduce:animate-none" />
+                <LoaderCircleIcon className="size-3 animate-spin motion-reduce:animate-none" />
               ) : (
-                <Icon className="size-3.5" />
+                <Icon className="size-3" />
               )}
             </span>
             <span
               className={cn(
-                "text-xs font-medium",
+                "max-w-full truncate text-xs leading-none font-medium whitespace-nowrap",
                 selected ? "text-foreground" : "text-muted-foreground",
               )}
             >
