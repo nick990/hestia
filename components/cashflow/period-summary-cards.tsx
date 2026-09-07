@@ -32,7 +32,8 @@ function FilteredTotalLine({
       )}
       aria-hidden={!active}
     >
-      Filtrato: {formatEuro(amount)}
+      Filtrato:{" "}
+      <span className="whitespace-nowrap tabular-nums">{formatEuro(amount)}</span>
     </p>
   );
 }
@@ -49,13 +50,13 @@ export function PeriodSummaryCards({
       <div className="grid grid-cols-3 gap-2">
         <div className="rounded-lg border border-income/15 bg-income-muted px-2.5 py-2.5">
           <p className="text-xs text-muted-foreground">Entrate</p>
-          <p className="text-base font-semibold text-income tabular-nums">
+          <p className="text-base font-semibold whitespace-nowrap text-income tabular-nums">
             {formatEuro(summary.totalIncome)}
           </p>
         </div>
         <div className="rounded-lg border border-destructive/15 bg-expense-muted px-2.5 py-2.5">
           <p className="text-xs text-muted-foreground">Uscite</p>
-          <p className="text-base font-semibold text-destructive tabular-nums">
+          <p className="text-base font-semibold whitespace-nowrap text-destructive tabular-nums">
             {formatEuro(summary.totalExpense)}
           </p>
         </div>
@@ -63,7 +64,7 @@ export function PeriodSummaryCards({
           <p className="text-xs text-muted-foreground">Netto</p>
           <p
             className={cn(
-              "text-base font-semibold tabular-nums",
+              "text-base font-semibold whitespace-nowrap tabular-nums",
               summary.net >= 0 ? "text-income" : "text-destructive",
             )}
           >
@@ -78,7 +79,7 @@ export function PeriodSummaryCards({
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
       <div className="rounded-lg border border-income/15 bg-income-muted p-4">
         <p className="text-sm text-muted-foreground">Entrate</p>
-        <p className="text-lg font-semibold text-income">
+        <p className="text-lg font-semibold whitespace-nowrap text-income tabular-nums">
           {formatEuro(summary.totalIncome)}
         </p>
         <FilteredTotalLine
@@ -89,7 +90,7 @@ export function PeriodSummaryCards({
       </div>
       <div className="rounded-lg border border-destructive/15 bg-expense-muted p-4">
         <p className="text-sm text-muted-foreground">Uscite</p>
-        <p className="text-lg font-semibold text-destructive">
+        <p className="text-lg font-semibold whitespace-nowrap text-destructive tabular-nums">
           {formatEuro(summary.totalExpense)}
         </p>
         <FilteredTotalLine
@@ -102,7 +103,7 @@ export function PeriodSummaryCards({
         <p className="text-sm text-muted-foreground">Netto</p>
         <p
           className={cn(
-            "text-lg font-semibold",
+            "text-lg font-semibold whitespace-nowrap tabular-nums",
             summary.net >= 0 ? "text-income" : "text-destructive",
           )}
         >
