@@ -108,7 +108,7 @@ async function loadPayerNamesByMovementId(
 
   const { data, error } = await supabase
     .from("movement_payments")
-    .select("movement_id, payer_user_id")
+    .select("movement_id, payer_kind, payer_user_id")
     .in("movement_id", movementIds);
 
   if (error) {
@@ -127,6 +127,11 @@ async function loadPayerNamesByMovementId(
   const names = new Map<string, string>();
 
   for (const row of rows) {
+    if (row.payer_kind === "family") {
+      names.set(row.movement_id as string, "Famiglia");
+      continue;
+    }
+
     const name = displayName(profiles.get(row.payer_user_id as string));
 
     if (name) {

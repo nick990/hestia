@@ -51,7 +51,10 @@ export async function persistSplitForMovement(
 
   const memberSet = new Set(input.currentMemberIds);
 
-  if (!memberSet.has(resolved.payerUserId)) {
+  if (
+    resolved.payerKind === "member" &&
+    (!resolved.payerUserId || !memberSet.has(resolved.payerUserId))
+  ) {
     return { ok: false, error: "Chi ha pagato non è valido." };
   }
 
@@ -78,6 +81,7 @@ export async function persistSplitForMovement(
       .from("movement_payments")
       .update({
         family_id: input.familyId,
+        payer_kind: resolved.payerKind,
         payer_user_id: resolved.payerUserId,
         split_mode: resolved.splitMode,
       })
@@ -101,6 +105,7 @@ export async function persistSplitForMovement(
       .insert({
         movement_id: input.movementId,
         family_id: input.familyId,
+        payer_kind: resolved.payerKind,
         payer_user_id: resolved.payerUserId,
         split_mode: resolved.splitMode,
       })
@@ -114,18 +119,20 @@ export async function persistSplitForMovement(
     paymentId = inserted.id as string;
   }
 
-  const { error: sharesError } = await supabase
-    .from("movement_payment_shares")
-    .insert(
-      resolved.shares.map((share) => ({
-        payment_id: paymentId,
-        user_id: share.userId,
-        amount: share.amount,
-      })),
-    );
+  if (resolved.shares.length > 0) {
+    const { error: sharesError } = await supabase
+      .from("movement_payment_shares")
+      .insert(
+        resolved.shares.map((share) => ({
+          payment_id: paymentId,
+          user_id: share.userId,
+          amount: share.amount,
+        })),
+      );
 
-  if (sharesError) {
-    return { ok: false, error: sharesError.message };
+    if (sharesError) {
+      return { ok: false, error: sharesError.message };
+    }
   }
 
   return { ok: true };

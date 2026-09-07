@@ -216,16 +216,21 @@ Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), mi
 - [ ] Senza famiglia: tab Saldi assente; `/saldi` → `/`.
 - [ ] Con famiglia: tab tra Cashflow e Notes.
 - [ ] Uscita privata: niente Ripartizione nel form.
-- [ ] Uscita famiglia 80 €, Ripartisci spesa, Nic paga, parti uguali, entrambi → Nic vede «Sara ti deve 40,00 €»; netti +40 / −40.
-- [ ] Lista Cashflow: sotto l’importo, «Pagato da …» in piccolo (niente badge di ripartizione).
+- [ ] Uscita famiglia: default pagante **Famiglia**, toggle Ripartisci disabilitato; netti invariati; Cashflow «Pagato da Famiglia».
+- [ ] Uscita assegnata a membro, toggle spento: Cashflow «Pagato da …»; netti zero per quella spesa.
+- [ ] Uscita famiglia 80 €, Ripartisci spesa acceso, Nic paga, parti uguali, entrambi → Nic vede «Sara ti deve 40,00 €»; netti +40 / −40.
+- [ ] Lista Cashflow: sotto l’importo, «Pagato da …» o «Pagato da Famiglia».
+- [ ] Creazione: cambio assegnatario aggiorna pagante finché non tocchi pagante o ripartizione.
+- [ ] Modifica: cambio assegnatario **non** muove pagante.
+- [ ] Entrata o privato: nessun pagamento salvato.
 - [ ] Tab Saldi: sotto Registra rimborso, **una** lista senza titoli Ripartizioni/Rimborsi.
 - [ ] Con più di 20 righe: se ne vedono 20; scroll in fondo → le altre; i netti restano uguali.
-- [ ] Click ripartizione → form movimento con Ripartisci spesa acceso.
+- [ ] Click ripartizione custom → form con Ripartisci spesa acceso.
 - [ ] Click rimborso → Modifica rimborso (data, da, a, importo). Cambio sola data: riga si sposta, netti invariati.
 - [ ] Elimina rimborso solo dal dialog modifica, con conferma → saldo torna.
 - [ ] Registra rimborso 40 € Sara→Nic, data=oggi → Sei in pari; riga in lista; movimenti Cashflow stesso conteggio.
 - [ ] Lista vuota: nessun placeholder; restano netti e Registra rimborso.
-- [ ] Spegnere Ripartisci spesa in modifica → saldi come senza quella spesa.
+- [ ] Spegnere Ripartisci spesa in modifica → ripartizione 100% pagante; netti zero per quella spesa.
 - [ ] Tre membri: in alto Nic non vede una riga solo Sara↔Marco.
 
 ## In evidenza

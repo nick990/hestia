@@ -6,7 +6,11 @@ describe("formatPayerLine", () => {
     expect(formatPayerLine("Nic")).toBe("Pagato da Nic");
   });
 
-  it("null se non c'è ripartizione", () => {
+  it("mostra Pagato da Famiglia", () => {
+    expect(formatPayerLine("Famiglia")).toBe("Pagato da Famiglia");
+  });
+
+  it("null se non c'è pagante", () => {
     expect(formatPayerLine(null)).toBe(null);
     expect(formatPayerLine("  ")).toBe(null);
   });

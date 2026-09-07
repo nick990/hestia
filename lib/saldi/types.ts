@@ -1,15 +1,26 @@
 export type SplitMode = "equal" | "amount";
 
+export type PayerKind = "member" | "family";
+
 export type MovementSplitShareInput = {
   userId: string;
   amount?: number;
 };
 
 export type MovementSplitInput =
-  | { enabled: false }
   | {
-      enabled: true;
+      payerKind: "family";
+      customSplit: false;
+    }
+  | {
+      payerKind: "member";
       payerUserId: string;
+      customSplit: false;
+    }
+  | {
+      payerKind: "member";
+      payerUserId: string;
+      customSplit: true;
       splitMode: SplitMode;
       shares: MovementSplitShareInput[];
     };
@@ -33,9 +44,11 @@ export type PersonNet = {
 };
 
 export type MovementSplitView = {
-  payerUserId: string;
+  payerKind: PayerKind;
+  payerUserId: string | null;
   splitMode: SplitMode;
   shares: MaterializedShare[];
+  customSplit: boolean;
 };
 
 export type FamilySaldiMember = {

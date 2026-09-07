@@ -25,17 +25,15 @@ Tocca una ripartizione per aprire il movimento (stessa form di Cashflow). Tocca 
 
 ## Ripartisci spesa
 
-Quando registri o modifichi un’**uscita** (non privata), nel form c’è la sezione **Ripartizione**. Il toggle **Ripartisci spesa** è spento di default: spento = quella spesa non entra nei Saldi.
+Quando registri o modifichi un’**uscita** (non privata), nel form c’è la sezione **Ripartizione** con **Chi ha pagato** sempre visibile.
 
-Da acceso:
+- Default pagante: l’**assegnatario** (membro), oppure **Famiglia** se il movimento è di famiglia.
+- **Famiglia** come pagante = conto di casa: non entra nei Saldi; la spunta **Ripartisci spesa** resta disabilitata.
+- Con pagante membro, la spunta **Ripartisci spesa** è spenta di default: la spesa resta ripartita al **100% sul pagante** (nessun debito tra voi). Accendila per spezzare la spesa tra più persone (parti uguali o per importo).
 
-- **Chi ha pagato** — di default l’assegnatario, oppure tu se il movimento è di famiglia.
-- **Parti uguali** o **Per importo**.
-- Spunte sui membri (tutti accesi all’inizio). Il pagante può non essere tra gli spuntati.
+I totali di Cashflow non cambiano. In Cashflow, sotto l’importo, compare «Pagato da …» (o «Pagato da Famiglia»).
 
-I totali di Cashflow non cambiano. In lista movimenti non compare chi ha pagato né come avete diviso.
-
-Su un’entrata o su un’uscita privata la sezione non c’è. Se spunti Privato o passi a entrata, la ripartizione si toglie al salvataggio.
+Su un’entrata o su un’uscita privata la sezione non c’è. Se spunti Privato o passi a entrata, il pagamento si toglie al salvataggio.
 
 ## Rimborsi
 

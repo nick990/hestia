@@ -29,7 +29,7 @@ Di solito è di casa: in **Assegnatario** è già selezionato **Di famiglia**.
 Se invece è personale, scegli un membro dalla stessa lista (di solito te stesso).  
 Solo se l’assegnatario sei tu puoi marcare **Privato**. Se è **Di famiglia**, la casella resta visibile ma spenta.
 
-Se sei in famiglia, sotto trovi **Ripartizione**. Accendi **Ripartisci spesa** per dire chi ha pagato e come spezzarla tra i membri. Non è obbligatorio; i totali di Cashflow restano l’importo intero. In lista, sotto l’importo, compare in piccolo «Pagato da …». I conti tra di voi stanno in [Saldi](saldi.md). Su un’uscita privata la sezione non c’è.
+Se sei in famiglia, sotto trovi **Ripartizione** con **Chi ha pagato** (membro o **Famiglia** = conto di casa). Di default la spesa è ripartita al 100% sul pagante; accendi **Ripartisci spesa** solo se vuoi dividerla tra più persone. In lista, sotto l’importo, compare «Pagato da …» (o «Pagato da Famiglia»). I conti tra di voi stanno in [Saldi](saldi.md). Su un’uscita privata la sezione non c’è.
 
 **Se stai registrando un’entrata**
 

@@ -4,13 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { formatEuro } from "@/lib/cashflow/format";
 import type { FamilyMemberOption } from "@/lib/families/types";
 import { splitEqual } from "@/lib/saldi/split";
@@ -19,8 +12,7 @@ import { cn } from "@/lib/utils";
 
 type MovementSplitFieldsProps = {
   familyMembers: FamilyMemberOption[];
-  payerUserId: string;
-  onPayerChange: (userId: string) => void;
+  disabled: boolean;
   splitMode: SplitMode;
   onSplitModeChange: (mode: SplitMode) => void;
   selectedMemberIds: string[];
@@ -28,12 +20,12 @@ type MovementSplitFieldsProps = {
   amountByUserId: Record<string, string>;
   onAmountChange: (userId: string, value: string) => void;
   movementAmount: number | null;
+  payerUserId: string;
 };
 
 export function MovementSplitFields({
   familyMembers,
-  payerUserId,
-  onPayerChange,
+  disabled,
   splitMode,
   onSplitModeChange,
   selectedMemberIds,
@@ -41,12 +33,8 @@ export function MovementSplitFields({
   amountByUserId,
   onAmountChange,
   movementAmount,
+  payerUserId,
 }: MovementSplitFieldsProps) {
-  const payerItems = familyMembers.map((member) => ({
-    value: member.user_id,
-    label: member.display_name,
-  }));
-
   const equalShares =
     splitMode === "equal" && movementAmount !== null && selectedMemberIds.length > 0
       ? splitEqual(movementAmount, selectedMemberIds, payerUserId)
@@ -55,35 +43,12 @@ export function MovementSplitFields({
   const equalByUser = new Map(equalShares.map((share) => [share.userId, share.amount]));
 
   return (
-    <div className="space-y-3">
-      <div className="space-y-2">
-        <Label htmlFor="split-payer">Chi ha pagato</Label>
-        <Select
-          modal={false}
-          value={payerUserId}
-          items={payerItems}
-          onValueChange={(value) => {
-            if (value) {
-              onPayerChange(value);
-            }
-          }}
-        >
-          <SelectTrigger id="split-payer" className="w-full">
-            <SelectValue placeholder="Seleziona chi ha pagato" />
-          </SelectTrigger>
-          <SelectContent>
-            {familyMembers.map((member) => (
-              <SelectItem key={member.user_id} value={member.user_id}>
-                {member.display_name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+    <div className={cn("space-y-3", disabled && "pointer-events-none opacity-50")}>
       <div className="flex gap-2">
         <Button
           type="button"
           variant="outline"
+          disabled={disabled}
           className={cn("flex-1", splitMode === "equal" && "border-primary/30 bg-primary/10")}
           onClick={() => onSplitModeChange("equal")}
         >
@@ -92,6 +57,7 @@ export function MovementSplitFields({
         <Button
           type="button"
           variant="outline"
+          disabled={disabled}
           className={cn("flex-1", splitMode === "amount" && "border-primary/30 bg-primary/10")}
           onClick={() => onSplitModeChange("amount")}
         >
@@ -108,6 +74,7 @@ export function MovementSplitFields({
               <Checkbox
                 id={`split-member-${member.user_id}`}
                 checked={checked}
+                disabled={disabled}
                 onCheckedChange={(value) =>
                   onToggleMember(member.user_id, value === true)
                 }
@@ -127,6 +94,7 @@ export function MovementSplitFields({
                 <Input
                   className="w-28"
                   inputMode="decimal"
+                  disabled={disabled}
                   value={amountByUserId[member.user_id] ?? ""}
                   onChange={(event) =>
                     onAmountChange(member.user_id, event.target.value)

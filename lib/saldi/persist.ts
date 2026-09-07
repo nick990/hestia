@@ -2,6 +2,7 @@ import { splitEqual } from "@/lib/saldi/split";
 import type {
   MaterializedShare,
   MovementSplitInput,
+  PayerKind,
   SplitMode,
 } from "@/lib/saldi/types";
 
@@ -9,7 +10,8 @@ export type SplitPersistResult =
   | { action: "delete" }
   | {
       action: "upsert";
-      payerUserId: string;
+      payerKind: PayerKind;
+      payerUserId: string | null;
       splitMode: SplitMode;
       shares: MaterializedShare[];
     }
@@ -22,8 +24,38 @@ type ResolveSplitPersistenceInput = {
   split: MovementSplitInput | undefined;
 };
 
+export type InferCustomSplitInput = {
+  payerKind: PayerKind;
+  payerUserId: string | null;
+  splitMode: SplitMode;
+  shares: MaterializedShare[];
+  movementAmount: number;
+};
+
 function cents(value: number): number {
   return Math.round(value * 100);
+}
+
+export function inferCustomSplit(input: InferCustomSplitInput): boolean {
+  if (input.payerKind === "family") {
+    return false;
+  }
+
+  if (input.shares.length !== 1) {
+    return true;
+  }
+
+  const [share] = input.shares;
+
+  if (!share || !input.payerUserId) {
+    return true;
+  }
+
+  if (share.userId !== input.payerUserId) {
+    return true;
+  }
+
+  return cents(share.amount) !== cents(input.movementAmount);
 }
 
 export function resolveSplitPersistence(
@@ -35,14 +67,33 @@ export function resolveSplitPersistence(
     input.type !== "expense" ||
     input.isPrivate ||
     input.amount <= 0 ||
-    !split ||
-    !split.enabled
+    !split
   ) {
     return { action: "delete" };
   }
 
+  if (split.payerKind === "family") {
+    return {
+      action: "upsert",
+      payerKind: "family",
+      payerUserId: null,
+      splitMode: "equal",
+      shares: [],
+    };
+  }
+
   if (!split.payerUserId) {
     return { action: "error", error: "Chi ha pagato non è valido." };
+  }
+
+  if (!split.customSplit) {
+    return {
+      action: "upsert",
+      payerKind: "member",
+      payerUserId: split.payerUserId,
+      splitMode: "equal",
+      shares: [{ userId: split.payerUserId, amount: input.amount }],
+    };
   }
 
   if (split.shares.length === 0) {
@@ -55,6 +106,7 @@ export function resolveSplitPersistence(
   if (split.splitMode === "equal") {
     return {
       action: "upsert",
+      payerKind: "member",
       payerUserId: split.payerUserId,
       splitMode: "equal",
       shares: splitEqual(
@@ -91,6 +143,7 @@ export function resolveSplitPersistence(
 
   return {
     action: "upsert",
+    payerKind: "member",
     payerUserId: split.payerUserId,
     splitMode: "amount",
     shares,

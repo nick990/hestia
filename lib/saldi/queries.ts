@@ -9,6 +9,7 @@ import {
   isSplitVisibleInActivity,
   mergeSaldiActivity,
 } from "@/lib/saldi/activity";
+import { inferCustomSplit } from "@/lib/saldi/persist";
 import type {
   FamilySaldiNetsData,
   MaterializedShare,
@@ -24,7 +25,8 @@ type ProfileRow = {
 };
 
 type NetPaymentRow = {
-  payer_user_id: string;
+  payer_kind: string;
+  payer_user_id: string | null;
   movements:
     | { amount: number | string; type: string; is_private: boolean }
     | { amount: number | string; type: string; is_private: boolean }[]
@@ -52,7 +54,8 @@ type ActivityMovement = {
 
 type ActivityPaymentRow = {
   movement_id: string;
-  payer_user_id: string;
+  payer_kind: string;
+  payer_user_id: string | null;
   movements: ActivityMovement | ActivityMovement[] | null;
   movement_payment_shares: { user_id: string }[] | null;
 };
@@ -137,7 +140,9 @@ export async function getMovementSplit(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("movement_payments")
-    .select("payer_user_id, split_mode, movement_payment_shares(user_id, amount)")
+    .select(
+      "payer_kind, payer_user_id, split_mode, movement_payment_shares(user_id, amount), movements(amount)",
+    )
     .eq("movement_id", movementId)
     .maybeSingle();
 
@@ -150,15 +155,27 @@ export async function getMovementSplit(
   }
 
   const row = data as {
-    payer_user_id: string;
+    payer_kind: "member" | "family";
+    payer_user_id: string | null;
     split_mode: "equal" | "amount";
     movement_payment_shares: { user_id: string; amount: number | string }[] | null;
+    movements: { amount: number | string } | { amount: number | string }[] | null;
   };
+  const movement = unwrapRelation(row.movements);
+  const shares = mapShares(row.movement_payment_shares);
 
   return {
+    payerKind: row.payer_kind,
     payerUserId: row.payer_user_id,
     splitMode: row.split_mode,
-    shares: mapShares(row.movement_payment_shares),
+    shares,
+    customSplit: inferCustomSplit({
+      payerKind: row.payer_kind,
+      payerUserId: row.payer_user_id,
+      splitMode: row.split_mode,
+      shares,
+      movementAmount: movement ? Number(movement.amount) : 0,
+    }),
   };
 }
 
@@ -175,7 +192,7 @@ export async function listFamilyNets(): Promise<FamilySaldiNetsData | null> {
       supabase
         .from("movement_payments")
         .select(
-          "payer_user_id, movements(amount, type, is_private), movement_payment_shares(user_id, amount)",
+          "payer_kind, payer_user_id, movements(amount, type, is_private), movement_payment_shares(user_id, amount)",
         )
         .eq("family_id", family.family_id),
       supabase
@@ -197,7 +214,11 @@ export async function listFamilyNets(): Promise<FamilySaldiNetsData | null> {
     (row) => {
       const movement = unwrapRelation(row.movements);
 
-      if (!isUsableExpense(movement)) {
+      if (!isUsableExpense(movement) || row.payer_kind === "family") {
+        return [];
+      }
+
+      if (!row.payer_user_id) {
         return [];
       }
 
@@ -278,7 +299,7 @@ export async function listSaldiActivity(
     supabase
       .from("movement_payments")
       .select(
-        "movement_id, payer_user_id, movements(amount, type, is_private, occurred_on, created_at, description, movement_categories(name)), movement_payment_shares(user_id)",
+        "movement_id, payer_kind, payer_user_id, movements(amount, type, is_private, occurred_on, created_at, description, movement_categories(name)), movement_payment_shares(user_id)",
       )
       .eq("family_id", family.family_id),
     supabase
@@ -307,7 +328,11 @@ export async function listSaldiActivity(
   for (const row of paymentRows) {
     const movement = unwrapRelation(row.movements);
 
-    if (!isUsableExpense(movement)) {
+    if (!isUsableExpense(movement) || row.payer_kind === "family") {
+      continue;
+    }
+
+    if (!row.payer_user_id) {
       continue;
     }
 

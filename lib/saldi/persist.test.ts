@@ -1,23 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { resolveSplitPersistence } from "@/lib/saldi/persist";
 
-const splitOn = {
-  enabled: true as const,
-  payerUserId: "nic",
-  splitMode: "equal" as const,
-  shares: [{ userId: "nic" }, { userId: "sara" }],
-};
-
 describe("resolveSplitPersistence", () => {
-  it("toggle spento o assente → delete", () => {
-    expect(
-      resolveSplitPersistence({
-        type: "expense",
-        isPrivate: false,
-        amount: 80,
-        split: { enabled: false },
-      }),
-    ).toEqual({ action: "delete" });
+  it("split assente → delete", () => {
     expect(
       resolveSplitPersistence({
         type: "expense",
@@ -28,13 +13,13 @@ describe("resolveSplitPersistence", () => {
     ).toEqual({ action: "delete" });
   });
 
-  it("entrata o privato → delete anche se toggle acceso", () => {
+  it("entrata o privato → delete", () => {
     expect(
       resolveSplitPersistence({
         type: "income",
         isPrivate: false,
         amount: 80,
-        split: splitOn,
+        split: { payerKind: "member", payerUserId: "nic", customSplit: false },
       }),
     ).toEqual({ action: "delete" });
     expect(
@@ -42,7 +27,7 @@ describe("resolveSplitPersistence", () => {
         type: "expense",
         isPrivate: true,
         amount: 80,
-        split: splitOn,
+        split: { payerKind: "member", payerUserId: "nic", customSplit: false },
       }),
     ).toEqual({ action: "delete" });
   });
@@ -53,20 +38,61 @@ describe("resolveSplitPersistence", () => {
         type: "expense",
         isPrivate: false,
         amount: 0,
-        split: splitOn,
+        split: { payerKind: "member", payerUserId: "nic", customSplit: false },
       }),
     ).toEqual({ action: "delete" });
   });
 
-  it("equal materializza le quote", () => {
+  it("membro, customSplit false → upsert 100% pagante", () => {
+    expect(
+      resolveSplitPersistence({
+        type: "expense",
+        isPrivate: false,
+        amount: 50,
+        split: { payerKind: "member", payerUserId: "nic", customSplit: false },
+      }),
+    ).toEqual({
+      action: "upsert",
+      payerKind: "member",
+      payerUserId: "nic",
+      splitMode: "equal",
+      shares: [{ userId: "nic", amount: 50 }],
+    });
+  });
+
+  it("famiglia pagante → upsert senza quote", () => {
+    expect(
+      resolveSplitPersistence({
+        type: "expense",
+        isPrivate: false,
+        amount: 80,
+        split: { payerKind: "family", customSplit: false },
+      }),
+    ).toEqual({
+      action: "upsert",
+      payerKind: "family",
+      payerUserId: null,
+      splitMode: "equal",
+      shares: [],
+    });
+  });
+
+  it("customSplit true → equal materializza le quote", () => {
     const result = resolveSplitPersistence({
       type: "expense",
       isPrivate: false,
       amount: 80,
-      split: splitOn,
+      split: {
+        payerKind: "member",
+        payerUserId: "nic",
+        customSplit: true,
+        splitMode: "equal",
+        shares: [{ userId: "nic" }, { userId: "sara" }],
+      },
     });
     expect(result).toEqual({
       action: "upsert",
+      payerKind: "member",
       payerUserId: "nic",
       splitMode: "equal",
       shares: [
@@ -82,8 +108,9 @@ describe("resolveSplitPersistence", () => {
       isPrivate: false,
       amount: 80,
       split: {
-        enabled: true,
+        payerKind: "member",
         payerUserId: "nic",
+        customSplit: true,
         splitMode: "amount",
         shares: [
           { userId: "nic", amount: 30 },
@@ -103,8 +130,9 @@ describe("resolveSplitPersistence", () => {
       isPrivate: false,
       amount: 80,
       split: {
-        enabled: true,
+        payerKind: "member",
         payerUserId: "nic",
+        customSplit: true,
         splitMode: "amount",
         shares: [
           { userId: "nic", amount: 30 },
@@ -115,14 +143,15 @@ describe("resolveSplitPersistence", () => {
     expect(result.action).toBe("upsert");
   });
 
-  it("nessun membro → error", () => {
+  it("customSplit true, nessun membro → error", () => {
     const result = resolveSplitPersistence({
       type: "expense",
       isPrivate: false,
       amount: 80,
       split: {
-        enabled: true,
+        payerKind: "member",
         payerUserId: "nic",
+        customSplit: true,
         splitMode: "equal",
         shares: [],
       },
