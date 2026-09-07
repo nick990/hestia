@@ -24,20 +24,41 @@ export function isReimbursementVisibleInActivity(
   return fromUserId === currentUserId || toUserId === currentUserId;
 }
 
+export function activitySortFields(
+  item: SaldiActivityItem,
+): { occurredOn: string; createdAt: string; id: string } {
+  if (item.kind === "split") {
+    return {
+      occurredOn: item.movement.occurred_on,
+      createdAt: item.createdAt,
+      id: item.movement.id,
+    };
+  }
+
+  return {
+    occurredOn: item.occurredOn,
+    createdAt: item.createdAt,
+    id: item.id,
+  };
+}
+
 export function compareSaldiActivityDesc(
-  a: Pick<SaldiActivityItem, "occurredOn" | "createdAt" | "id">,
-  b: Pick<SaldiActivityItem, "occurredOn" | "createdAt" | "id">,
+  a: SaldiActivityItem,
+  b: SaldiActivityItem,
 ): number {
-  if (a.occurredOn !== b.occurredOn) {
-    return a.occurredOn < b.occurredOn ? 1 : -1;
+  const left = activitySortFields(a);
+  const right = activitySortFields(b);
+
+  if (left.occurredOn !== right.occurredOn) {
+    return left.occurredOn < right.occurredOn ? 1 : -1;
   }
 
-  if (a.createdAt !== b.createdAt) {
-    return a.createdAt < b.createdAt ? 1 : -1;
+  if (left.createdAt !== right.createdAt) {
+    return left.createdAt < right.createdAt ? 1 : -1;
   }
 
-  if (a.id !== b.id) {
-    return a.id < b.id ? 1 : -1;
+  if (left.id !== right.id) {
+    return left.id < right.id ? 1 : -1;
   }
 
   return 0;

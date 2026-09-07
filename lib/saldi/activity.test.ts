@@ -1,11 +1,37 @@
 import { describe, expect, it } from "vitest";
 import {
   ACTIVITY_PAGE_SIZE,
+  activitySortFields,
   isReimbursementVisibleInActivity,
   isSplitVisibleInActivity,
   mergeSaldiActivity,
 } from "@/lib/saldi/activity";
+import type { Movement } from "@/lib/cashflow/types";
 import type { SaldiActivityItem } from "@/lib/saldi/types";
+
+function sampleMovement(
+  id: string,
+  occurredOn: string,
+  createdAt: string,
+): Movement {
+  return {
+    id,
+    type: "expense",
+    amount: 10,
+    occurred_on: occurredOn,
+    description: "",
+    created_at: createdAt,
+    category_id: null,
+    category_name: "Spesa",
+    created_by: "nic",
+    assignee_kind: "family",
+    assignee_user_id: null,
+    is_private: false,
+    creator_name: null,
+    assignee_name: "Famiglia",
+    payer_name: "Nic",
+  };
+}
 
 function split(
   id: string,
@@ -14,13 +40,8 @@ function split(
 ): SaldiActivityItem {
   return {
     kind: "split",
-    id,
-    occurredOn,
     createdAt,
-    amount: 10,
-    categoryName: "Spesa",
-    description: "",
-    payerName: "Nic",
+    movement: sampleMovement(id, occurredOn, createdAt),
   };
 }
 
@@ -83,7 +104,7 @@ describe("mergeSaldiActivity", () => {
       0,
     );
 
-    expect(items.map((row) => row.id)).toEqual(["r1", "m1"]);
+    expect(items.map((row) => activitySortFields(row).id)).toEqual(["r1", "m1"]);
   });
 
   it("prima pagina ha 20 righe globali, seconda senza id duplicati", () => {
@@ -106,7 +127,9 @@ describe("mergeSaldiActivity", () => {
     expect(second.items).toHaveLength(10);
     expect(second.hasMore).toBe(false);
 
-    const ids = [...first.items, ...second.items].map((row) => row.id);
+    const ids = [...first.items, ...second.items].map(
+      (row) => activitySortFields(row).id,
+    );
     expect(new Set(ids).size).toBe(30);
   });
 

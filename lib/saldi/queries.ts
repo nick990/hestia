@@ -16,6 +16,7 @@ import type {
   MovementSplitView,
   SaldiActivityItem,
 } from "@/lib/saldi/types";
+import type { AssigneeKind, Movement } from "@/lib/cashflow/types";
 import { createClient } from "@/lib/supabase/server";
 
 type ProfileRow = {
@@ -49,6 +50,8 @@ type ActivityMovement = {
   occurred_on: string;
   created_at: string;
   description: string;
+  assignee_kind: string;
+  assignee_user_id: string | null;
   movement_categories: { name: string } | { name: string }[] | null;
 };
 
@@ -132,6 +135,31 @@ function categoryNameOf(
   }
 
   return Array.isArray(relation) ? (relation[0]?.name ?? null) : relation.name;
+}
+
+function buildSplitActivityMovement(
+  movementId: string,
+  movement: ActivityMovement,
+  payerName: string | null,
+  assigneeName: string | null,
+): Movement {
+  return {
+    id: movementId,
+    type: "expense",
+    amount: Number(movement.amount),
+    occurred_on: movement.occurred_on,
+    description: movement.description,
+    created_at: movement.created_at,
+    category_id: null,
+    category_name: categoryNameOf(movement.movement_categories),
+    created_by: "",
+    assignee_kind: movement.assignee_kind as AssigneeKind,
+    assignee_user_id: movement.assignee_user_id,
+    is_private: false,
+    creator_name: null,
+    assignee_name: assigneeName,
+    payer_name: payerName,
+  };
 }
 
 export async function getMovementSplit(
@@ -299,7 +327,7 @@ export async function listSaldiActivity(
     supabase
       .from("movement_payments")
       .select(
-        "movement_id, payer_kind, payer_user_id, movements(amount, type, is_private, occurred_on, created_at, description, movement_categories(name)), movement_payment_shares(user_id)",
+        "movement_id, payer_kind, payer_user_id, movements(amount, type, is_private, occurred_on, created_at, description, assignee_kind, assignee_user_id, movement_categories(name)), movement_payment_shares(user_id)",
       )
       .eq("family_id", family.family_id),
     supabase
@@ -353,30 +381,48 @@ export async function listSaldiActivity(
     payerByMovementId.set(row.movement_id, row.payer_user_id);
     splits.push({
       kind: "split",
-      id: row.movement_id,
-      occurredOn: movement.occurred_on,
       createdAt: movement.created_at,
-      amount: Number(movement.amount),
-      categoryName: categoryNameOf(movement.movement_categories),
-      description: movement.description,
-      payerName: "",
+      movement: buildSplitActivityMovement(
+        row.movement_id,
+        movement,
+        null,
+        movement.assignee_kind === "family" ? "Famiglia" : null,
+      ),
     });
   }
 
   splits.sort(compareSaldiActivityDesc);
   const splitPage = splits.slice(0, take);
-  const payerNames = await loadProfileNames(
-    supabase,
-    [
-      ...new Set(
-        splitPage.map((row) => payerByMovementId.get(row.id) ?? ""),
+  const profileIds = [
+    ...new Set([
+      ...splitPage.map((row) => payerByMovementId.get(row.movement.id) ?? ""),
+      ...splitPage.flatMap((row) =>
+        row.movement.assignee_kind === "member" && row.movement.assignee_user_id
+          ? [row.movement.assignee_user_id]
+          : [],
       ),
-    ].filter(Boolean),
-  );
-  const splitsWithPayer = splitPage.map((row) => ({
-    ...row,
-    payerName: payerNames.get(payerByMovementId.get(row.id) ?? "") ?? "—",
-  }));
+    ]),
+  ].filter(Boolean);
+  const profileNames = await loadProfileNames(supabase, profileIds);
+  const splitsWithPayer = splitPage.map((row) => {
+    const payerUserId = payerByMovementId.get(row.movement.id);
+
+    return {
+      ...row,
+      movement: {
+        ...row.movement,
+        payer_name: payerUserId
+          ? (profileNames.get(payerUserId) ?? "—")
+          : null,
+        assignee_name:
+          row.movement.assignee_kind === "family"
+            ? "Famiglia"
+            : row.movement.assignee_user_id
+              ? (profileNames.get(row.movement.assignee_user_id) ?? "—")
+              : null,
+      },
+    };
+  });
 
   const reimbursements: SaldiActivityItem[] = (
     (reimbursementsResult.data ?? []) as ActivityReimbursementRow[]

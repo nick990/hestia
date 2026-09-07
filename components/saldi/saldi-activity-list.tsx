@@ -1,10 +1,7 @@
 "use client";
 
-import { formatEuro, formatOccurredOn, formatPayerLine } from "@/lib/cashflow/format";
-import {
-  normalizeCategoryDisplay,
-  normalizeDescriptionDisplay,
-} from "@/lib/cashflow/table-filter";
+import { MovementListRow } from "@/components/cashflow/movement-list-row";
+import { formatOccurredOn } from "@/lib/cashflow/format";
 import { reimbursementLine } from "@/lib/saldi/presentation";
 import type { SaldiActivityItem } from "@/lib/saldi/types";
 import { useEffect, useRef } from "react";
@@ -12,6 +9,7 @@ import { useEffect, useRef } from "react";
 type SaldiActivityListProps = {
   items: SaldiActivityItem[];
   nameById: Record<string, string>;
+  hasFamily: boolean;
   hasMore: boolean;
   loadingMore: boolean;
   onLoadMore: () => void;
@@ -20,42 +18,6 @@ type SaldiActivityListProps = {
     item: Extract<SaldiActivityItem, { kind: "reimbursement" }>,
   ) => void;
 };
-
-function SplitRow({
-  item,
-}: {
-  item: Extract<SaldiActivityItem, { kind: "split" }>;
-}) {
-  const description = normalizeDescriptionDisplay(item.description);
-  const hasDescription = description !== "—";
-  const payerLine = formatPayerLine(item.payerName);
-
-  return (
-    <div className="flex items-start justify-between gap-3 px-3 py-2">
-      <div className="min-w-0">
-        <p className="truncate text-sm font-medium">
-          {normalizeCategoryDisplay(item.categoryName)}
-        </p>
-        {hasDescription ? (
-          <p className="truncate text-xs leading-4 text-muted-foreground">
-            {description}
-          </p>
-        ) : null}
-        <p className="text-xs leading-4 text-muted-foreground">
-          {formatOccurredOn(item.occurredOn)}
-        </p>
-      </div>
-      <div className="flex shrink-0 flex-col items-end gap-0.5">
-        <p className="text-sm font-medium tabular-nums text-destructive">
-          {formatEuro(item.amount)}
-        </p>
-        {payerLine ? (
-          <p className="text-xs leading-4 text-muted-foreground">{payerLine}</p>
-        ) : null}
-      </div>
-    </div>
-  );
-}
 
 function ReimbursementRow({
   item,
@@ -83,6 +45,7 @@ function ReimbursementRow({
 export function SaldiActivityList({
   items,
   nameById,
+  hasFamily,
   hasMore,
   loadingMore,
   onLoadMore,
@@ -131,13 +94,13 @@ export function SaldiActivityList({
     <section>
       <ul className="divide-y rounded-lg border">
         {items.map((item) => (
-          <li key={`${item.kind}-${item.id}`}>
+          <li key={`${item.kind}-${item.kind === "split" ? item.movement.id : item.id}`}>
             <button
               type="button"
               className="block w-full text-left"
               onClick={() => {
                 if (item.kind === "split") {
-                  onOpenSplit(item.id);
+                  onOpenSplit(item.movement.id);
                   return;
                 }
 
@@ -145,7 +108,12 @@ export function SaldiActivityList({
               }}
             >
               {item.kind === "split" ? (
-                <SplitRow item={item} />
+                <div className="flex items-start justify-between gap-3 px-3 py-2">
+                  <MovementListRow
+                    movement={item.movement}
+                    hasFamily={hasFamily}
+                  />
+                </div>
               ) : (
                 <ReimbursementRow item={item} nameById={nameById} />
               )}

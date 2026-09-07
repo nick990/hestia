@@ -1,3 +1,5 @@
+import type { Movement } from "@/lib/cashflow/types";
+
 export type SplitMode = "equal" | "amount";
 
 export type PayerKind = "member" | "family";
@@ -75,13 +77,8 @@ export type FamilySaldiNetsData = {
 export type SaldiActivityItem =
   | {
       kind: "split";
-      id: string;
-      occurredOn: string;
+      movement: Movement;
       createdAt: string;
-      amount: number;
-      categoryName: string | null;
-      description: string;
-      payerName: string;
     }
   | {
       kind: "reimbursement";

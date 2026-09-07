@@ -298,6 +298,7 @@ export function SaldiPage({
         <SaldiActivityList
           items={items}
           nameById={data.nameById}
+          hasFamily
           hasMore={hasMore}
           loadingMore={loadingMore}
           onLoadMore={() => {
