@@ -53,38 +53,35 @@ export function SaldiActivityList({
   onOpenReimbursement,
 }: SaldiActivityListProps) {
   const sentinelRef = useRef<HTMLDivElement>(null);
-  const blockedRef = useRef(false);
+  const loadingMoreRef = useRef(loadingMore);
+  const onLoadMoreRef = useRef(onLoadMore);
+
+  loadingMoreRef.current = loadingMore;
+  onLoadMoreRef.current = onLoadMore;
 
   useEffect(() => {
     const node = sentinelRef.current;
 
-    if (!node) {
+    if (!node || !hasMore) {
       return;
     }
 
-    const observer = new IntersectionObserver((entries) => {
-      const entry = entries[0];
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
 
-      if (!entry) {
-        return;
-      }
+        if (!entry?.isIntersecting || loadingMoreRef.current) {
+          return;
+        }
 
-      if (!entry.isIntersecting) {
-        blockedRef.current = false;
-        return;
-      }
-
-      if (!hasMore || loadingMore || blockedRef.current) {
-        return;
-      }
-
-      blockedRef.current = true;
-      onLoadMore();
-    });
+        onLoadMoreRef.current();
+      },
+      { rootMargin: "120px" },
+    );
 
     observer.observe(node);
     return () => observer.disconnect();
-  }, [hasMore, loadingMore, onLoadMore]);
+  }, [hasMore, items.length]);
 
   if (items.length === 0) {
     return null;
@@ -94,7 +91,9 @@ export function SaldiActivityList({
     <section>
       <ul className="divide-y rounded-lg border">
         {items.map((item) => (
-          <li key={`${item.kind}-${item.kind === "split" ? item.movement.id : item.id}`}>
+          <li
+            key={`${item.kind}-${item.kind === "split" ? item.movement.id : item.id}`}
+          >
             <button
               type="button"
               className="block w-full text-left"

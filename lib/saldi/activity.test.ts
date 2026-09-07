@@ -133,6 +133,29 @@ describe("mergeSaldiActivity", () => {
     expect(new Set(ids).size).toBe(30);
   });
 
+  it("pagina con size custom senza duplicati fino alla fine", () => {
+    const splits = Array.from({ length: 7 }, (_, i) =>
+      split(`s${i}`, "2026-09-01", `2026-09-01T00:${String(i).padStart(2, "0")}:00.000Z`),
+    );
+
+    const pageSize = 3;
+    const pages = [0, 3, 6].map((offset) =>
+      mergeSaldiActivity(splits, [], offset, pageSize),
+    );
+
+    expect(pages[0]?.items).toHaveLength(3);
+    expect(pages[0]?.hasMore).toBe(true);
+    expect(pages[1]?.items).toHaveLength(3);
+    expect(pages[1]?.hasMore).toBe(true);
+    expect(pages[2]?.items).toHaveLength(1);
+    expect(pages[2]?.hasMore).toBe(false);
+
+    const ids = pages.flatMap((page) =>
+      page.items.map((row) => activitySortFields(row).id),
+    );
+    expect(ids).toEqual(["s6", "s5", "s4", "s3", "s2", "s1", "s0"]);
+  });
+
   it("hasMore false sull'ultima pagina", () => {
     const { hasMore } = mergeSaldiActivity(
       [split("m1", "2026-09-01", "2026-09-01T00:00:00.000Z")],

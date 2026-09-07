@@ -24,9 +24,11 @@ export function isReimbursementVisibleInActivity(
   return fromUserId === currentUserId || toUserId === currentUserId;
 }
 
-export function activitySortFields(
-  item: SaldiActivityItem,
-): { occurredOn: string; createdAt: string; id: string } {
+export function activitySortFields(item: SaldiActivityItem): {
+  occurredOn: string;
+  createdAt: string;
+  id: string;
+} {
   if (item.kind === "split") {
     return {
       occurredOn: item.movement.occurred_on,

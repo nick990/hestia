@@ -3,7 +3,6 @@ import {
   listFamilyMembersForViewer,
 } from "@/lib/families/queries";
 import {
-  ACTIVITY_PAGE_SIZE,
   compareSaldiActivityDesc,
   isReimbursementVisibleInActivity,
   isSplitVisibleInActivity,
@@ -311,7 +310,6 @@ export async function listSaldiActivity(
     return { items: [], hasMore: false };
   }
 
-  const take = offset + ACTIVITY_PAGE_SIZE + 1;
   const supabase = await createClient();
   const {
     data: { user },
@@ -337,8 +335,7 @@ export async function listSaldiActivity(
       .or(`from_user_id.eq.${currentUserId},to_user_id.eq.${currentUserId}`)
       .order("occurred_on", { ascending: false })
       .order("created_at", { ascending: false })
-      .order("id", { ascending: false })
-      .range(0, take - 1),
+      .order("id", { ascending: false }),
   ]);
 
   if (paymentsResult.error) {
@@ -392,11 +389,10 @@ export async function listSaldiActivity(
   }
 
   splits.sort(compareSaldiActivityDesc);
-  const splitPage = splits.slice(0, take);
   const profileIds = [
     ...new Set([
-      ...splitPage.map((row) => payerByMovementId.get(row.movement.id) ?? ""),
-      ...splitPage.flatMap((row) =>
+      ...splits.map((row) => payerByMovementId.get(row.movement.id) ?? ""),
+      ...splits.flatMap((row) =>
         row.movement.assignee_kind === "member" && row.movement.assignee_user_id
           ? [row.movement.assignee_user_id]
           : [],
@@ -404,7 +400,7 @@ export async function listSaldiActivity(
     ]),
   ].filter(Boolean);
   const profileNames = await loadProfileNames(supabase, profileIds);
-  const splitsWithPayer = splitPage.map((row) => {
+  const splitsWithPayer = splits.map((row) => {
     const payerUserId = payerByMovementId.get(row.movement.id);
 
     return {

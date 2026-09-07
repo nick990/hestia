@@ -24,15 +24,9 @@ import {
   simplifyTransfers,
   transfersForUser,
 } from "@/lib/saldi/balances";
-import {
-  defaultReimbursement,
-  sortPersonNets,
-} from "@/lib/saldi/presentation";
-import type {
-  FamilySaldiNetsData,
-  SaldiActivityItem,
-} from "@/lib/saldi/types";
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { defaultReimbursement, sortPersonNets } from "@/lib/saldi/presentation";
+import type { FamilySaldiNetsData, SaldiActivityItem } from "@/lib/saldi/types";
+import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -64,13 +58,17 @@ export function SaldiPage({
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [reimburseOpen, setReimburseOpen] = useState(false);
-  const [reimburseMode, setReimburseMode] = useState<"create" | "edit">("create");
-  const [editingReimbursement, setEditingReimbursement] = useState<
-    Extract<SaldiActivityItem, { kind: "reimbursement" }> | null
-  >(null);
-  const [deleting, setDeleting] = useState<{ id: string; amount: number } | null>(
-    null,
+  const [reimburseMode, setReimburseMode] = useState<"create" | "edit">(
+    "create",
   );
+  const [editingReimbursement, setEditingReimbursement] = useState<Extract<
+    SaldiActivityItem,
+    { kind: "reimbursement" }
+  > | null>(null);
+  const [deleting, setDeleting] = useState<{
+    id: string;
+    amount: number;
+  } | null>(null);
   const [editingMovement, setEditingMovement] = useState<Movement | null>(null);
   const [movementOpen, setMovementOpen] = useState(false);
   const [extraItems, setExtraItems] = useState<SaldiActivityItem[]>([]);
@@ -105,7 +103,9 @@ export function SaldiPage({
     const nets = computeNets(data.expenses, data.reimbursements);
     const allTransfers = simplifyTransfers(nets);
     const mineTransfers = transfersForUser(allTransfers, currentUserId);
-    const currentIds = new Set(data.currentMembers.map((member) => member.userId));
+    const currentIds = new Set(
+      data.currentMembers.map((member) => member.userId),
+    );
     const peopleNets = sortPersonNets(
       [
         ...data.currentMembers.map((member) => ({
@@ -227,7 +227,7 @@ export function SaldiPage({
     setMovementOpen(true);
   }
 
-  async function handleLoadMore() {
+  const handleLoadMore = useCallback(async () => {
     if (loadingMore || !hasMore) {
       return;
     }
@@ -244,7 +244,7 @@ export function SaldiPage({
     setExtraItems((current) => [...current, ...result.items]);
     setHasMore(result.hasMore);
     setLoadingMore(false);
-  }
+  }, [hasMore, items.length, loadingMore]);
 
   return (
     <main className="mx-auto flex w-full flex-1 flex-col gap-8 px-4 py-4 sm:px-6">
@@ -307,9 +307,7 @@ export function SaldiPage({
           hasFamily
           hasMore={hasMore}
           loadingMore={loadingMore}
-          onLoadMore={() => {
-            void handleLoadMore();
-          }}
+          onLoadMore={handleLoadMore}
           onOpenSplit={(id) => {
             void handleOpenSplit(id);
           }}
