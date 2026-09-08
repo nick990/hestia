@@ -1,4 +1,6 @@
+import { listMockAuthCandidates } from "@/app/actions/mock-auth";
 import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
+import { MockUserPicker } from "@/components/auth/mock-user-picker";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Card,
@@ -7,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { isMockAuthEnabled } from "@/lib/auth/env";
 import { AlertCircle } from "lucide-react";
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -15,6 +18,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   oauth_start_failed: "Impossibile avviare l'accesso con Google.",
   access_denied:
     "Accesso negato. Il tuo indirizzo email potrebbe non essere autorizzato.",
+  mock_auth_failed: "Accesso mock non riuscito.",
 };
 
 type LoginPageProps = {
@@ -27,13 +31,18 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     ? (ERROR_MESSAGES[error] ?? ERROR_MESSAGES.auth_callback_error)
     : null;
 
+  const mockEnabled = isMockAuthEnabled();
+  const mockCandidates = mockEnabled ? await listMockAuthCandidates() : null;
+
   return (
     <div className="flex min-h-full flex-1 items-center justify-center p-6">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">Hestia</CardTitle>
           <CardDescription>
-            Accedi con il tuo account Google autorizzato.
+            {mockEnabled
+              ? "Scegli un utente per entrare (ambiente di sviluppo)."
+              : "Accedi con il tuo account Google autorizzato."}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -49,7 +58,11 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               </AlertDescription>
             </Alert>
           ) : null}
-          <GoogleSignInButton />
+          {mockEnabled && mockCandidates ? (
+            <MockUserPicker candidates={mockCandidates} />
+          ) : (
+            <GoogleSignInButton />
+          )}
         </CardContent>
       </Card>
     </div>

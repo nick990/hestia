@@ -28,8 +28,10 @@ Oppure in locale:
 
 ```bash
 supabase start
-supabase db reset
+npm run db:reset
 ```
+
+Il comando `db:reset` applica migrazioni, seed SQL e crea gli utenti mock (`admin@hestia.dev`, `partner@hestia.dev`) con famiglia di test.
 
 Aggiungi un utente autorizzato:
 
@@ -108,4 +110,39 @@ In sviluppo locale è configurato in [`supabase/config.toml`](../supabase/config
 
 ## 6. Deploy (Vercel)
 
-Imposta le stesse variabili `NEXT_PUBLIC_*` su Vercel e aggiorna Site URL / Redirect URLs su Supabase con il dominio di produzione.
+Imposta variabili **per target** (production / preview / development). Vedi sezione 7 per la matrice completa.
+
+Produzione: `HESTIA_AUTH_MODE=oauth`, chiavi del progetto Supabase prod, Google OAuth attivo.
+
+Preview: `HESTIA_AUTH_MODE=mock`, chiavi del progetto **staging**, `MOCK_AUTH_PASSWORD` come secret.
+
+## 7. Ambienti (locale / preview / produzione)
+
+| Ambiente | DB Supabase | Auth |
+| -------- | ----------- | ---- |
+| Locale | `supabase start` (`127.0.0.1:54321`) | Mock — lista utenti da `members` |
+| Preview Vercel | Progetto **hestia-staging** (dedicato) | Mock |
+| Produzione | Progetto **hestia** (`ifxgeqsdrowcbbtmjowx`) | Google OAuth |
+
+### Variabili per target Vercel
+
+| Variabile | Production | Preview | Development |
+| --------- | ---------- | ------- | ----------- |
+| `HESTIA_AUTH_MODE` | `oauth` | `mock` | `mock` |
+| `MOCK_AUTH_PASSWORD` | — | secret | `dev123456` |
+| `NEXT_PUBLIC_SUPABASE_URL` | prod | staging | `http://127.0.0.1:54321` |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | prod | staging | da `supabase status` |
+| `SUPABASE_SERVICE_ROLE_KEY` | prod | staging | da `supabase status` |
+
+`HESTIA_AUTH_MODE` e `MOCK_AUTH_PASSWORD` sono solo server-side (mai `NEXT_PUBLIC_`).
+
+### Setup staging (una tantum)
+
+1. Crea progetto Supabase `hestia-staging` (regione `eu-central-1`).
+2. `supabase link --project-ref <staging-ref> && supabase db push`
+3. Configura hook `before-user-created` → `public.hook_restrict_signup_by_member_email` (opzionale).
+4. Disabilita Google OAuth nel dashboard staging.
+5. Imposta variabili preview su Vercel con le chiavi staging.
+6. Esegui seed: `MOCK_AUTH_PASSWORD=... node --env-file=.env.local scripts/seed-mock-users.mjs` (con env puntato a staging).
+
+Opzionale: abilita **Deployment Protection** sulle preview Vercel.

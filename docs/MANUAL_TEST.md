@@ -1,6 +1,18 @@
 # Checklist test manuali — MVP login e ruoli
 
-Prerequisiti: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), migrazioni applicate, almeno un admin in `members`, Google OAuth attivo, hook `hook_restrict_signup_by_member_email` attivo.
+Prerequisiti locale: `.env.local` con `HESTIA_AUTH_MODE=mock`, `MOCK_AUTH_PASSWORD`, keys da `supabase status`, `npm run db:reset` eseguito.
+
+Prerequisiti produzione: `.env.local` configurato (incluso `SUPABASE_SERVICE_ROLE_KEY`), migrazioni applicate, almeno un admin in `members`, Google OAuth attivo, hook `hook_restrict_signup_by_member_email` attivo.
+
+## Auth mock (locale / preview)
+
+- [ ] `npm run db:reset` → script stampa `admin@hestia.dev` e `partner@hestia.dev`.
+- [ ] `/login` mostra lista utenti mock, nessun pulsante Google.
+- [ ] Tap su Admin Dev → redirect `/`, sessione attiva.
+- [ ] Barra «Dev» in basso: switch a Partner senza logout manuale.
+- [ ] Movimento family creato come admin visibile dopo switch a partner.
+- [ ] Admin aggiunge utente in Impostazioni → Utenti → compare in lista login mock.
+- [ ] Con `HESTIA_AUTH_MODE=oauth` (o variabile assente): solo Google, switcher assente.
 
 ## Members (utenti autorizzati)
 
