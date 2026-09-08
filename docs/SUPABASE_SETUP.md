@@ -133,3 +133,13 @@ Variabili **per target** — vedi sezione 7.
 `HESTIA_AUTH_MODE` e `MOCK_AUTH_PASSWORD` sono solo server-side (mai `NEXT_PUBLIC_`).
 
 Opzionale: **Deployment Protection** sulle preview Vercel.
+
+### Sync variabili Vercel da file locali
+
+Dopo `npx vercel login` e `npx vercel link` nella root del repo:
+
+```bash
+npm run vercel:env
+```
+
+Legge `.env.local` → target **Preview**, `.env.production.local` → target **Production**. Poi redeploy.
