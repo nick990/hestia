@@ -2,6 +2,8 @@
 
 Prerequisiti locale: `.env.local` punta a **hestia-staging** (`HESTIA_AUTH_MODE=mock`, chiavi da [API Keys staging](https://supabase.com/dashboard/project/vjpimclbzdcnqcwlfghg/settings/api-keys)), `npm run seed:dev` eseguito almeno una volta.
 
+Prerequisiti preview Vercel: stesse env di `.env.local` (target **Preview**), vedi [SUPABASE_SETUP.md §7](SUPABASE_SETUP.md#7-matrice-ambienti). Dopo modifica env: redeploy Preview.
+
 Prerequisiti produzione (su Vercel): chiavi progetto **hestia**, `HESTIA_AUTH_MODE=oauth`, Google OAuth attivo, hook `hook_restrict_signup_by_member_email` attivo.
 
 ## Auth mock (locale / preview)

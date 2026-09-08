@@ -12,6 +12,8 @@ import {
 import { isMockAuthEnabled } from "@/lib/auth/env";
 import { AlertCircle } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 const ERROR_MESSAGES: Record<string, string> = {
   auth_callback_error:
     "Accesso non completato. Riprova o contatta l'amministratore.",

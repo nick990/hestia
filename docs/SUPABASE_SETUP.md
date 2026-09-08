@@ -120,26 +120,33 @@ Variabili **per target** — vedi sezione 7.
 | Preview Vercel | hestia-staging | Mock | Vercel → Preview |
 | Produzione | hestia | Google OAuth | Vercel → Production |
 
-### Variabili Vercel
+### Variabili Vercel (configurazione manuale)
 
-| Variabile | Production | Preview |
-| --------- | ---------- | ------- |
-| `HESTIA_AUTH_MODE` | `oauth` | `mock` |
-| `MOCK_AUTH_PASSWORD` | — | `dev123456` (o secret) |
-| `NEXT_PUBLIC_SUPABASE_URL` | `https://ifxgeqsdrowcbbtmjowx.supabase.co` | `https://vjpimclbzdcnqcwlfghg.supabase.co` |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | chiavi prod | chiavi staging |
-| `SUPABASE_SERVICE_ROLE_KEY` | chiavi prod | chiavi staging |
+Dashboard: [Vercel → hestia → Settings → Environment Variables](https://vercel.com/nick990s-projects/hestia/settings/environment-variables).
+
+**Preview e Production devono avere valori diversi.** Se una variabile è associata a entrambi i target con lo stesso valore (es. chiavi prod condivise), modifica l’entry esistente lasciando solo **Production**, poi crea una nuova entry con lo stesso nome solo per **Preview**.
+
+| Variabile | Target | Valore |
+| --------- | ------ | ------ |
+| `HESTIA_AUTH_MODE` | Production | `oauth` |
+| `HESTIA_AUTH_MODE` | Preview | `mock` |
+| `MOCK_AUTH_PASSWORD` | Preview | stesso valore di `.env.local` (es. `dev123456`) — **non** su Production |
+| `NEXT_PUBLIC_SUPABASE_URL` | Production | `https://ifxgeqsdrowcbbtmjowx.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_URL` | Preview | `https://vjpimclbzdcnqcwlfghg.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Production | publishable/anon da [API Keys prod](https://supabase.com/dashboard/project/ifxgeqsdrowcbbtmjowx/settings/api-keys) |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Preview | publishable/anon da [API Keys staging](https://supabase.com/dashboard/project/vjpimclbzdcnqcwlfghg/settings/api-keys) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Production | secret/service_role prod |
+| `SUPABASE_SERVICE_ROLE_KEY` | Preview | secret/service_role staging |
+
+Riferimento locale (non committare i valori reali):
+
+- Preview / dev: [`.env.local.example`](../.env.local.example) → `.env.local`
+- Production: [`.env.production.local.example`](../.env.production.local.example)
 
 `HESTIA_AUTH_MODE` e `MOCK_AUTH_PASSWORD` sono solo server-side (mai `NEXT_PUBLIC_`).
 
+In dashboard Vercel puoi salvare le variabili come **Config** (valore visibile dopo il salvataggio) invece di **Secret** (lucchetto, non più leggibile). Utile in dev/preview; in produzione preferisci **Secret** per `SUPABASE_SERVICE_ROLE_KEY`.
+
+Dopo ogni modifica alle env: **Redeploy** del deploy Preview (le variabili entrano in gioco al build, non sui deploy già live).
+
 Opzionale: **Deployment Protection** sulle preview Vercel.
-
-### Sync variabili Vercel da file locali
-
-Dopo `npx vercel login` e `npx vercel link` nella root del repo:
-
-```bash
-npm run vercel:env
-```
-
-Legge `.env.local` → target **Preview**, `.env.production.local` → target **Production**. Poi redeploy.

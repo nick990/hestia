@@ -50,7 +50,6 @@ Setup completo: [docs/SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md).
 | ------- | ----------- |
 | `npm run dev` | Server di sviluppo (DB staging) |
 | `npm run seed:dev` | Ricrea utenti mock su staging |
-| `npm run vercel:env` | Sincronizza env su Vercel (Preview + Production) |
 | `npm run build` | Build di produzione |
 | `npm run lint` | ESLint |
 | `npm test` | Vitest |
