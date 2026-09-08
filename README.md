@@ -8,20 +8,29 @@ Web app con accesso riservato via **Google OAuth** (produzione) o **auth mock** 
 - Tailwind CSS v4, shadcn/ui
 - Supabase Auth + Postgres (`@supabase/ssr`)
 
+## Database
+
+Due progetti Supabase:
+
+| Progetto | Uso |
+| -------- | --- |
+| **hestia-staging** | `npm run dev` locale + preview Vercel |
+| **hestia** | produzione Vercel |
+
 ## Avvio rapido
 
-1. Copia le variabili d'ambiente:
+1. Copia e configura le variabili d'ambiente:
 
    ```bash
    cp .env.local.example .env.local
    ```
 
-2. Avvia Supabase locale e reset DB con utenti mock:
+   Incolla le chiavi staging da [Dashboard → API Keys](https://supabase.com/dashboard/project/vjpimclbzdcnqcwlfghg/settings/api-keys) in `.env.local`.
+
+2. (Prima volta o reset utenti mock) Esegui il seed:
 
    ```bash
-   supabase start
-   # Aggiorna .env.local con URL e keys da `supabase status`
-   npm run db:reset
+   npm run seed:dev
    ```
 
 3. Avvia il dev server:
@@ -31,19 +40,21 @@ Web app con accesso riservato via **Google OAuth** (produzione) o **auth mock** 
    npm run dev
    ```
 
-Apri [http://localhost:3000](http://localhost:3000): in mock mode `/login` mostra la lista utenti (no Google).
+Apri [http://localhost:3000](http://localhost:3000): `/login` mostra la lista utenti mock (no Google).
 
-Per produzione e staging vedi [docs/SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md).
+Setup completo: [docs/SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md).
 
 ## Script
 
 | Comando | Descrizione |
 | ------- | ----------- |
-| `npm run dev` | Server di sviluppo |
-| `npm run db:reset` | Reset DB locale + seed utenti mock |
+| `npm run dev` | Server di sviluppo (DB staging) |
+| `npm run seed:dev` | Ricrea utenti mock su staging |
 | `npm run build` | Build di produzione |
 | `npm run lint` | ESLint |
 | `npm test` | Vitest |
+
+`npm run db:reset` resta disponibile solo se usi Supabase Docker locale (`supabase start`); con il setup standard non serve.
 
 ## Test manuali
 

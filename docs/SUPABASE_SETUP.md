@@ -1,56 +1,63 @@
 # Setup Supabase per Hestia
 
-## 1. Progetto Supabase
+## 1. Progetti Supabase (due DB)
 
-Progetto cloud **hestia** (ref: `ifxgeqsdrowcbbtmjowx`, regione `eu-central-1`) — **produzione**.
+| Progetto | Ref | Uso |
+| -------- | --- | --- |
+| **hestia** | `ifxgeqsdrowcbbtmjowx` | **Produzione** — Google OAuth, dati reali |
+| **hestia-staging** | `vjpimclbzdcnqcwlfghg` | **Dev locale + preview Vercel** — auth mock |
 
-Progetto cloud **hestia-staging** (ref: `vjpimclbzdcnqcwlfghg`, regione `eu-central-1`) — **preview Vercel** e test mock auth.
+- Prod: `https://ifxgeqsdrowcbbtmjowx.supabase.co`
+- Staging: `https://vjpimclbzdcnqcwlfghg.supabase.co`
 
-- Prod URL: `https://ifxgeqsdrowcbbtmjowx.supabase.co`
-- Staging URL: `https://vjpimclbzdcnqcwlfghg.supabase.co`
-- Le variabili sono in `.env.local` (generato in setup; non committare).
+Variabili dev in `.env.local` (vedi [`.env.local.example`](../.env.local.example)). Non committare.
 
-Per collegare la CLI locale: `supabase link --project-ref ifxgeqsdrowcbbtmjowx`
+Chiavi API: [Dashboard → Settings → API Keys](https://supabase.com/docs/guides/getting-started/api-keys) (non confondere con Integrations → Data API).
+
+### Dev locale
+
+`.env.local` punta a **staging**. Stesso DB delle preview Vercel.
+
+```bash
+cp .env.local.example .env.local
+# incolla publishable/anon + secret/service_role da staging → API Keys
+npm run seed:dev   # prima volta o reset utenti mock
+npm run dev
+```
+
+### Migrazioni schema
+
+Applica sul progetto giusto con la CLI:
+
+```bash
+# Produzione
+supabase link --project-ref ifxgeqsdrowcbbtmjowx
+supabase db push
+
+# Staging
+supabase link --project-ref vjpimclbzdcnqcwlfghg
+supabase db push
+```
 
 ## 2. Modello dati utenti
 
 | Tabella | Ruolo |
 | ------- | ----- |
-| `auth.users` | Autenticazione (Supabase Auth, Google OAuth) |
+| `auth.users` | Autenticazione (Supabase Auth) |
 | `public.members` | Utenti autorizzati **prima** del primo login (email censita) |
 | `public.profiles` | Dati app 1:1 con `auth.users` (creata al signup via trigger) |
 
-Applica le migrazioni sul progetto remoto:
+Su **staging**, utenti mock seed: `admin@hestia.dev`, `partner@hestia.dev` (famiglia dev).
 
-```bash
-supabase link --project-ref ifxgeqsdrowcbbtmjowx
-supabase db push
-```
-
-Oppure in locale:
-
-```bash
-supabase start
-npm run db:reset
-```
-
-Il comando `db:reset` applica migrazioni, seed SQL e crea gli utenti mock (`admin@hestia.dev`, `partner@hestia.dev`) con famiglia di test.
-
-Aggiungi un utente autorizzato:
+Su **produzione**, aggiungi utenti reali:
 
 ```sql
--- Utente normale
-insert into public.members (email, role)
-values ('collaboratore@dominio.it', 'user')
-on conflict (email) do nothing;
-
--- Primo amministratore
 insert into public.members (email, role)
 values ('tuo.nome@dominio.it', 'admin')
 on conflict (email) do nothing;
 ```
 
-Dopo il primo login Google, `members.auth_user_id` viene collegato automaticamente e viene creata la riga in `profiles`.
+Dopo il primo login Google, `members.auth_user_id` viene collegato e viene creata la riga in `profiles`.
 
 ## 2b. Ruoli e gestione utenti
 
@@ -59,100 +66,70 @@ Dopo il primo login Google, `members.auth_user_id` viene collegato automaticamen
 | `admin` | Accesso a Impostazioni → Utenti: aggiunta, disabilitazione, cambio ruolo |
 | `user` | Accesso all'app, nessuna gestione utenti |
 
-Variabile server-side richiesta per le Server Actions admin:
-
-```bash
-SUPABASE_SERVICE_ROLE_KEY=...   # Dashboard → Project Settings → API → service_role
-```
-
-Aggiungila in `.env.local` (non committare). Vedi [`.env.local.example`](../.env.local.example).
-
-Gli admin possono gestire gli utenti da **Impostazioni → Utenti** (`/settings/users`) dopo il login.
+`SUPABASE_SERVICE_ROLE_KEY` è richiesta server-side per le Server Actions admin.
 
 ## 3. Auth Hook `before-user-created`
 
-In [Authentication → Hooks](https://supabase.com/dashboard/project/ifxgeqsdrowcbbtmjowx/auth/hooks), abilita **Before user created** e punta alla funzione Postgres:
+Su **produzione**: [Authentication → Hooks](https://supabase.com/dashboard/project/ifxgeqsdrowcbbtmjowx/auth/hooks) → **Before user created** → `public.hook_restrict_signup_by_member_email`.
 
-`public.hook_restrict_signup_by_member_email`
+Su **staging** (opzionale): stessa funzione su [hooks staging](https://supabase.com/dashboard/project/vjpimclbzdcnqcwlfghg/auth/hooks).
 
-> **Importante:** se l’hook punta ancora a `hook_restrict_signup_by_allowed_email` (rimossa), aggiorna alla funzione sopra.
-
-In sviluppo locale è configurato in [`supabase/config.toml`](../supabase/config.toml).
-
-## 4. Google OAuth
+## 4. Google OAuth (solo produzione)
 
 ### Google Cloud Console
 
 1. **APIs & Services → Credentials → Create OAuth client ID** (Web application).
-2. **Authorized redirect URIs** (obbligatorio):
+2. **Authorized redirect URIs**:
 
    ```
    https://ifxgeqsdrowcbbtmjowx.supabase.co/auth/v1/callback
    ```
 
-### Supabase Dashboard
+### Supabase Dashboard (progetto hestia)
 
-1. **Authentication → Providers → Google**: abilita e incolla Client ID e Client Secret.
+1. **Authentication → Providers → Google**: abilita e incolla Client ID e Secret.
 2. **Authentication → URL Configuration**:
-   - **Site URL**: `http://localhost:3000` (dev)
-   - **Redirect URLs** (aggiungi):
-     - `http://localhost:3000/auth/callback`
-     - `https://YOUR_PRODUCTION_DOMAIN/auth/callback` (quando deployi)
+   - **Site URL**: dominio di produzione
+   - **Redirect URLs**: `https://YOUR_PRODUCTION_DOMAIN/auth/callback`
 
-## 5. Verifica manuale
+Su **staging**: Google OAuth **disabilitato** (auth mock).
+
+## 5. Verifica manuale (produzione)
 
 | Scenario | Risultato atteso |
 | -------- | ---------------- |
-| Email in `members` + login Google | Redirect a `/cashflow`, sessione attiva, riga in `profiles` |
-| Email **non** in `members` + primo accesso | Errore 403, utente non creato |
+| Email in `members` + login Google | Redirect a `/`, sessione attiva |
+| Email **non** in `members` | Errore 403, utente non creato |
 | `/cashflow` senza sessione | Redirect a `/login` |
-| Logout | Redirect a `/login`, cookie sessione rimossi |
-| Admin visita `/settings/users` | Lista utenti, form aggiunta, azioni ruolo/disabilita |
-| User visita `/settings/users` | Redirect a `/settings/categories` |
-| Utente disabilitato con sessione attiva | Logout automatico, redirect `/account-disabled` |
+| Admin visita `/settings/users` | Lista utenti, form aggiunta |
+
+Checklist mock auth (locale/preview): [MANUAL_TEST.md](MANUAL_TEST.md).
 
 ## 6. Deploy (Vercel)
 
-Imposta variabili **per target** (production / preview / development). Vedi sezione 7 per la matrice completa.
+Variabili **per target** — vedi sezione 7.
 
-Produzione: `HESTIA_AUTH_MODE=oauth`, chiavi del progetto Supabase prod, Google OAuth attivo.
+- **Production**: `HESTIA_AUTH_MODE=oauth`, chiavi **hestia** (prod).
+- **Preview**: `HESTIA_AUTH_MODE=mock`, chiavi **hestia-staging**, `MOCK_AUTH_PASSWORD`.
 
-Preview: `HESTIA_AUTH_MODE=mock`, chiavi del progetto **staging**, `MOCK_AUTH_PASSWORD` come secret.
+## 7. Matrice ambienti
 
-## 7. Ambienti (locale / preview / produzione)
+| Ambiente | DB | Auth | File / target |
+| -------- | --- | ---- | ------------- |
+| Dev locale | hestia-staging | Mock | `.env.local` |
+| Preview Vercel | hestia-staging | Mock | Vercel → Preview |
+| Produzione | hestia | Google OAuth | Vercel → Production |
 
-| Ambiente | DB Supabase | Auth |
-| -------- | ----------- | ---- |
-| Locale | `supabase start` (`127.0.0.1:54321`) | Mock — lista utenti da `members` |
-| Preview Vercel | Progetto **hestia-staging** (dedicato) | Mock |
-| Produzione | Progetto **hestia** (`ifxgeqsdrowcbbtmjowx`) | Google OAuth |
+### Variabili Vercel
 
-### Variabili per target Vercel
-
-| Variabile | Production | Preview | Development |
-| --------- | ---------- | ------- | ----------- |
-| `HESTIA_AUTH_MODE` | `oauth` | `mock` | `mock` |
-| `MOCK_AUTH_PASSWORD` | — | secret | `dev123456` |
-| `NEXT_PUBLIC_SUPABASE_URL` | prod | staging | `http://127.0.0.1:54321` |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | prod | staging | da `supabase status` |
-| `SUPABASE_SERVICE_ROLE_KEY` | prod | staging | da `supabase status` |
+| Variabile | Production | Preview |
+| --------- | ---------- | ------- |
+| `HESTIA_AUTH_MODE` | `oauth` | `mock` |
+| `MOCK_AUTH_PASSWORD` | — | `dev123456` (o secret) |
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://ifxgeqsdrowcbbtmjowx.supabase.co` | `https://vjpimclbzdcnqcwlfghg.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | chiavi prod | chiavi staging |
+| `SUPABASE_SERVICE_ROLE_KEY` | chiavi prod | chiavi staging |
 
 `HESTIA_AUTH_MODE` e `MOCK_AUTH_PASSWORD` sono solo server-side (mai `NEXT_PUBLIC_`).
 
-### Setup staging (una tantum)
-
-1. Crea progetto Supabase `hestia-staging` (regione `eu-central-1`).
-2. `supabase link --project-ref <staging-ref> && supabase db push`
-3. Configura hook `before-user-created` → `public.hook_restrict_signup_by_member_email` (opzionale).
-4. Disabilita Google OAuth nel dashboard staging.
-5. Imposta variabili preview su Vercel con le chiavi staging (ref `vjpimclbzdcnqcwlfghg`).
-6. Esegui seed auth: copia la **service_role** da Dashboard → Settings → API, poi:
-
-```bash
-NEXT_PUBLIC_SUPABASE_URL=https://vjpimclbzdcnqcwlfghg.supabase.co \
-SUPABASE_SERVICE_ROLE_KEY=<staging-service-role> \
-MOCK_AUTH_PASSWORD=<scegli-un-secret> \
-node scripts/seed-mock-users.mjs
-```
-
-Opzionale: abilita **Deployment Protection** sulle preview Vercel.
+Opzionale: **Deployment Protection** sulle preview Vercel.
