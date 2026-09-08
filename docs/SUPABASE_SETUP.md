@@ -2,9 +2,12 @@
 
 ## 1. Progetto Supabase
 
-Progetto cloud **hestia** (ref: `ifxgeqsdrowcbbtmjowx`, regione `eu-central-1`).
+Progetto cloud **hestia** (ref: `ifxgeqsdrowcbbtmjowx`, regione `eu-central-1`) — **produzione**.
 
-- URL: `https://ifxgeqsdrowcbbtmjowx.supabase.co`
+Progetto cloud **hestia-staging** (ref: `vjpimclbzdcnqcwlfghg`, regione `eu-central-1`) — **preview Vercel** e test mock auth.
+
+- Prod URL: `https://ifxgeqsdrowcbbtmjowx.supabase.co`
+- Staging URL: `https://vjpimclbzdcnqcwlfghg.supabase.co`
 - Le variabili sono in `.env.local` (generato in setup; non committare).
 
 Per collegare la CLI locale: `supabase link --project-ref ifxgeqsdrowcbbtmjowx`
@@ -142,7 +145,14 @@ Preview: `HESTIA_AUTH_MODE=mock`, chiavi del progetto **staging**, `MOCK_AUTH_PA
 2. `supabase link --project-ref <staging-ref> && supabase db push`
 3. Configura hook `before-user-created` → `public.hook_restrict_signup_by_member_email` (opzionale).
 4. Disabilita Google OAuth nel dashboard staging.
-5. Imposta variabili preview su Vercel con le chiavi staging.
-6. Esegui seed: `MOCK_AUTH_PASSWORD=... node --env-file=.env.local scripts/seed-mock-users.mjs` (con env puntato a staging).
+5. Imposta variabili preview su Vercel con le chiavi staging (ref `vjpimclbzdcnqcwlfghg`).
+6. Esegui seed auth: copia la **service_role** da Dashboard → Settings → API, poi:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=https://vjpimclbzdcnqcwlfghg.supabase.co \
+SUPABASE_SERVICE_ROLE_KEY=<staging-service-role> \
+MOCK_AUTH_PASSWORD=<scegli-un-secret> \
+node scripts/seed-mock-users.mjs
+```
 
 Opzionale: abilita **Deployment Protection** sulle preview Vercel.
