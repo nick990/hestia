@@ -1,11 +1,15 @@
 "use client";
 
+import { FilterDatePicker } from "@/components/cashflow/filter-date-picker";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { buildCashflowSearchParams, shiftMonthRange } from "@/lib/cashflow/date-range";
+import {
+  buildCashflowSearchParams,
+  parseIsoDate,
+  shiftMonthRange,
+} from "@/lib/cashflow/date-range";
 import { cn } from "@/lib/utils";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import { useEffect, useState } from "react";
 
 type DateRangeFilterProps = {
   from: string;
@@ -22,38 +26,44 @@ export function DateRangeFilter({
   pending,
   onNavigate,
 }: DateRangeFilterProps) {
+  const [filterPending, setFilterPending] = useState(false);
+
+  useEffect(() => {
+    setFilterPending(false);
+  }, [from, to]);
+
   function navigate(nextFrom: string, nextTo: string) {
     const params = new URLSearchParams(
       buildCashflowSearchParams({ from: nextFrom, to: nextTo, year }),
     );
+    setFilterPending(true);
     onNavigate(`/cashflow/avanzato?${params.toString()}`);
   }
 
-  function commitRange(nextFrom: string, nextTo: string) {
-    if (!nextFrom || !nextTo) {
+  function tryCommit(nextFrom: string, nextTo: string) {
+    if (!parseIsoDate(nextFrom) || !parseIsoDate(nextTo)) {
       return;
     }
-    navigate(nextFrom, nextTo);
-  }
 
-  function handleFromChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const nextFrom = event.target.value;
-    if (nextFrom && nextFrom !== from) {
-      commitRange(nextFrom, to);
+    let fromIso = nextFrom;
+    let toIso = nextTo;
+    if (fromIso > toIso) {
+      [fromIso, toIso] = [toIso, fromIso];
     }
-  }
 
-  function handleToChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const nextTo = event.target.value;
-    if (nextTo && nextTo !== to) {
-      commitRange(from, nextTo);
+    if (fromIso === from && toIso === to) {
+      return;
     }
+
+    navigate(fromIso, toIso);
   }
 
   function shiftMonth(delta: number) {
     const next = shiftMonthRange(from, delta);
     navigate(next.from, next.to);
   }
+
+  const showPending = pending || filterPending;
 
   return (
     <div className="flex min-w-0 flex-wrap items-center gap-2">
@@ -62,44 +72,34 @@ export function DateRangeFilter({
         variant="ghost"
         size="icon-sm"
         aria-label="Periodo mese precedente"
-        disabled={pending}
+        disabled={showPending}
         onClick={() => shiftMonth(-1)}
       >
         <ChevronLeftIcon />
       </Button>
 
-      <div className="flex items-center gap-1.5">
-        <Label htmlFor="range-from">Da</Label>
-        <Input
-          key={`range-from-${from}`}
-          id="range-from"
-          type="date"
-          defaultValue={from}
-          disabled={pending}
-          onChange={handleFromChange}
-          className="w-36"
-        />
-      </div>
+      <FilterDatePicker
+        id="range-from"
+        label="Da"
+        value={from}
+        disabled={showPending}
+        onCommit={(nextFrom) => tryCommit(nextFrom, to)}
+      />
 
-      <div className="flex items-center gap-1.5">
-        <Label htmlFor="range-to">A</Label>
-        <Input
-          key={`range-to-${to}`}
-          id="range-to"
-          type="date"
-          defaultValue={to}
-          disabled={pending}
-          onChange={handleToChange}
-          className="w-36"
-        />
-      </div>
+      <FilterDatePicker
+        id="range-to"
+        label="A"
+        value={to}
+        disabled={showPending}
+        onCommit={(nextTo) => tryCommit(from, nextTo)}
+      />
 
       <Button
         type="button"
         variant="ghost"
         size="icon-sm"
         aria-label="Periodo mese successivo"
-        disabled={pending}
+        disabled={showPending}
         onClick={() => shiftMonth(1)}
       >
         <ChevronRightIcon />
@@ -110,10 +110,10 @@ export function DateRangeFilter({
         aria-live="polite"
         className={cn(
           "text-xs text-muted-foreground",
-          !pending && "sr-only",
+          !showPending && "sr-only",
         )}
       >
-        {pending ? "Aggiornamento…" : ""}
+        {showPending ? "Aggiornamento…" : ""}
       </p>
     </div>
   );

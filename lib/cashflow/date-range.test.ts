@@ -7,7 +7,15 @@ import {
   parseDateRangeParams,
   parseIsoDate,
   parseYearParam,
+  isoDateToLocal,
+  localDateToIso,
 } from "@/lib/cashflow/date-range";
+
+describe("isoDateToLocal / localDateToIso", () => {
+  it("round-trip", () => {
+    expect(localDateToIso(isoDateToLocal("2024-03-15"))).toBe("2024-03-15");
+  });
+});
 
 describe("parseIsoDate", () => {
   it("accetta una data calendario", () => {

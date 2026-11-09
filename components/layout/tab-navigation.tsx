@@ -39,11 +39,23 @@ export function TabNavigationProvider({ children }: { children: ReactNode }) {
         return;
       }
 
+      const nextPathname =
+        typeof window !== "undefined"
+          ? new URL(href, window.location.origin).pathname
+          : href.split("?")[0] ?? href;
+
+      // Stesso path (es. solo query `from`/`to`): niente transition globale,
+      // così il contenuto non viene sostituito dallo skeleton.
+      if (nextPathname === pathname) {
+        router.push(href);
+        return;
+      }
+
       startTransition(() => {
         router.push(href);
       });
     },
-    [isPending, router],
+    [isPending, pathname, router],
   );
 
   const selectTab = useCallback(

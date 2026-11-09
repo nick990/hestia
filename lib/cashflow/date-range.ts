@@ -25,6 +25,19 @@ export function parseIsoDate(raw: string): string | null {
   return raw;
 }
 
+/** Converte `YYYY-MM-DD` in `Date` locale (mezzanotte locale, senza shift UTC). */
+export function isoDateToLocal(iso: string): Date {
+  const [y, m, d] = iso.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+
+export function localDateToIso(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
 export function getCurrentMonthBounds(): DateRange {
   const monthKey = getCurrentMonthKey();
   const { start, end } = monthDateBounds(monthKey);
