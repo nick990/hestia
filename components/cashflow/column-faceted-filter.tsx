@@ -1,8 +1,10 @@
 "use client";
 
+import { useFacetedFilterOpen } from "@/components/cashflow/faceted-filter-open-context";
+import { Popover as PopoverPrimitive } from "@base-ui/react/popover";
 import type { Column } from "@tanstack/react-table";
 import { ListFilterIcon } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -13,8 +15,10 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import {
-  type FacetedColumnFilterValue,
+  facetedFilterFromSelection,
+  initialFacetedSelection,
   isFacetedFilterActive,
+  type FacetedColumnFilterValue,
 } from "@/lib/cashflow/table-filter";
 import { cn } from "@/lib/utils";
 
@@ -23,32 +27,50 @@ type ColumnFacetedFilterProps<TData, TValue> = {
   title: string;
 };
 
-function getFilterValue(
+function getCommittedValue(
   column: Column<unknown, unknown>,
-): FacetedColumnFilterValue {
-  return (
-    (column.getFilterValue() as FacetedColumnFilterValue | undefined) ?? {
-      selectedValues: [],
-    }
-  );
+): FacetedColumnFilterValue | undefined {
+  return column.getFilterValue() as FacetedColumnFilterValue | undefined;
 }
 
 export function ColumnFacetedFilter<TData, TValue>({
   column,
   title,
 }: ColumnFacetedFilterProps<TData, TValue>) {
-  const facets = column.getFacetedUniqueValues();
-  const active = isFacetedFilterActive(
-    column.getFilterValue() as FacetedColumnFilterValue | undefined,
-  );
-  const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState("");
+  const {
+    openColumnId,
+    setOpenForColumn,
+    closeAll,
+    getSearch,
+    setSearchForColumn,
+    clearSearchForColumn,
+    getPendingSelection,
+    setPendingSelection,
+    clearPendingSelection,
+    setBaselineForColumn,
+    clearBaselineForColumn,
+    applyFacetedFilter,
+  } = useFacetedFilterOpen();
 
+  const skipDismissOnCloseRef = useRef(false);
+  const columnId = column.id;
+  const open = openColumnId === columnId;
+  const search = getSearch(columnId);
+
+  const committed = getCommittedValue(column as Column<unknown, unknown>);
+  const active = isFacetedFilterActive(committed);
+
+  const facets = column.getFacetedUniqueValues();
   const options = useMemo(() => {
     return Array.from(facets.keys())
       .map((value) => String(value ?? "—"))
       .sort((a, b) => a.localeCompare(b, "it"));
   }, [facets]);
+
+  const selectedValues =
+    open && getPendingSelection(columnId) != null
+      ? getPendingSelection(columnId)!
+      : initialFacetedSelection(committed, options);
 
   const visibleOptions = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -58,95 +80,134 @@ export function ColumnFacetedFilter<TData, TValue>({
     return options.filter((option) => option.toLowerCase().includes(query));
   }, [options, search]);
 
-  function commit(next: FacetedColumnFilterValue) {
-    if (!isFacetedFilterActive(next)) {
-      column.setFilterValue(undefined);
+  function endSession() {
+    clearSearchForColumn(columnId);
+    clearPendingSelection(columnId);
+    clearBaselineForColumn(columnId);
+  }
+
+  function openWithExcelDefaults() {
+    const initial = initialFacetedSelection(committed, options);
+    setPendingSelection(columnId, initial);
+    setBaselineForColumn(columnId, [...initial]);
+    clearSearchForColumn(columnId);
+    setOpenForColumn(columnId, true);
+  }
+
+  function handleOpenChange(
+    nextOpen: boolean,
+    eventDetails?: PopoverPrimitive.Root.ChangeEventDetails,
+  ) {
+    if (!nextOpen && eventDetails?.reason === "focus-out") {
+      eventDetails.cancel();
       return;
     }
-    column.setFilterValue(next);
-  }
 
-  function handleOpenChange(nextOpen: boolean) {
-    setOpen(nextOpen);
     if (nextOpen) {
-      setSearch("");
+      openWithExcelDefaults();
+      return;
     }
+
+    if (skipDismissOnCloseRef.current) {
+      skipDismissOnCloseRef.current = false;
+      endSession();
+      return;
+    }
+
+    endSession();
+    closeAll();
   }
 
-  function handleSearchChange(value: string) {
-    setSearch(value);
+  function setSelection(nextValues: string[]) {
+    setPendingSelection(columnId, nextValues);
   }
 
   function toggleValue(option: string, checked: boolean) {
-    const current = getFilterValue(column as Column<unknown, unknown>);
-    const selectedValues = checked
-      ? [...current.selectedValues, option]
-      : current.selectedValues.filter((value) => value !== option);
-    commit({ ...current, selectedValues });
+    const next = checked
+      ? [...selectedValues, option]
+      : selectedValues.filter((value) => value !== option);
+    setSelection(next);
   }
 
   function toggleAllVisible(checked: boolean) {
-    const current = getFilterValue(column as Column<unknown, unknown>);
     if (!checked) {
-      const nextSelected = current.selectedValues.filter(
-        (value) => !visibleOptions.includes(value),
+      setSelection(
+        selectedValues.filter((value) => !visibleOptions.includes(value)),
       );
-      commit({ ...current, selectedValues: nextSelected });
       return;
     }
-
-    const merged = new Set([...current.selectedValues, ...visibleOptions]);
-    commit({ ...current, selectedValues: Array.from(merged) });
+    const merged = new Set([...selectedValues, ...visibleOptions]);
+    setSelection(Array.from(merged));
   }
 
-  function clearFilter() {
-    setSearch("");
-    column.setFilterValue(undefined);
-    setOpen(false);
+  function handleOk() {
+    const value = facetedFilterFromSelection(selectedValues, options);
+    applyFacetedFilter(columnId, value);
+    skipDismissOnCloseRef.current = true;
+    closeAll();
+    endSession();
   }
 
-  const current = getFilterValue(column as Column<unknown, unknown>);
+  function handleAnnulla() {
+    closeAll();
+    endSession();
+  }
+
   const allVisibleSelected =
     visibleOptions.length > 0 &&
-    visibleOptions.every((option) => current.selectedValues.includes(option));
+    visibleOptions.every((option) => selectedValues.includes(option));
 
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger
         render={
           <Button
+            type="button"
             variant="ghost"
             size="icon-xs"
             aria-label={`Filtra ${title}`}
+            aria-expanded={open}
             className={cn(active && "bg-muted text-foreground")}
           />
         }
       >
         <ListFilterIcon />
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-64 space-y-3 p-3">
+      <PopoverContent
+        align="start"
+        className="w-64 space-y-3 p-3"
+        initialFocus={false}
+        finalFocus={false}
+      >
         <div className="space-y-2">
-          <Label htmlFor={`filter-search-${column.id}`} className="text-xs">
+          <Label htmlFor={`filter-search-${columnId}`} className="text-xs">
             Cerca in {title}
           </Label>
           <Input
-            id={`filter-search-${column.id}`}
+            id={`filter-search-${columnId}`}
             placeholder="Cerca…"
             value={search}
-            onChange={(event) => handleSearchChange(event.target.value)}
+            onChange={(event) =>
+              setSearchForColumn(columnId, event.target.value)
+            }
           />
         </div>
 
         <div className="max-h-48 space-y-2 overflow-y-auto">
           {visibleOptions.length > 0 ? (
-            <div className="flex items-center gap-2">
+            <div
+              className="flex items-center gap-2"
+              onMouseDown={(event) => event.preventDefault()}
+            >
               <Checkbox
-                id={`filter-all-${column.id}`}
+                id={`filter-all-${columnId}`}
                 checked={allVisibleSelected}
-                onCheckedChange={(checked) => toggleAllVisible(checked === true)}
+                onCheckedChange={(checked) =>
+                  toggleAllVisible(checked === true)
+                }
               />
               <Label
-                htmlFor={`filter-all-${column.id}`}
+                htmlFor={`filter-all-${columnId}`}
                 className="text-sm font-normal"
               >
                 Seleziona tutto
@@ -155,12 +216,16 @@ export function ColumnFacetedFilter<TData, TValue>({
           ) : null}
 
           {visibleOptions.map((option) => {
-            const optionId = `filter-${column.id}-${option}`;
+            const optionId = `filter-${columnId}-${option}`;
             return (
-              <div key={option} className="flex items-center gap-2">
+              <div
+                key={option}
+                className="flex items-center gap-2"
+                onMouseDown={(event) => event.preventDefault()}
+              >
                 <Checkbox
                   id={optionId}
-                  checked={current.selectedValues.includes(option)}
+                  checked={selectedValues.includes(option)}
                   onCheckedChange={(checked) =>
                     toggleValue(option, checked === true)
                   }
@@ -173,15 +238,20 @@ export function ColumnFacetedFilter<TData, TValue>({
           })}
         </div>
 
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="w-full"
-          onClick={clearFilter}
-        >
-          Cancella filtro
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="flex-1"
+            onClick={handleAnnulla}
+          >
+            Annulla
+          </Button>
+          <Button type="button" size="sm" className="flex-1" onClick={handleOk}>
+            OK
+          </Button>
+        </div>
       </PopoverContent>
     </Popover>
   );

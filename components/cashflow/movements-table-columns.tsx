@@ -1,6 +1,6 @@
 "use client";
 
-import type { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef, HeaderContext } from "@tanstack/react-table";
 import {
   ArrowDownIcon,
   ArrowUpDownIcon,
@@ -37,6 +37,32 @@ type MovementColumnActions = {
   onEdit: (movement: Movement) => void;
   onDelete: (movement: Movement) => void;
 };
+
+function CategoryNameColumnHeader({ column }: HeaderContext<Movement, unknown>) {
+  return (
+    <div className="flex items-center gap-1">
+      <SortableHeader
+        label="Categoria"
+        sorted={column.getIsSorted()}
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      />
+      <ColumnFacetedFilter column={column} title="categoria" />
+    </div>
+  );
+}
+
+function DescriptionColumnHeader({ column }: HeaderContext<Movement, unknown>) {
+  return (
+    <div className="flex items-center gap-1">
+      <SortableHeader
+        label="Descrizione"
+        sorted={column.getIsSorted()}
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      />
+      <ColumnFacetedFilter column={column} title="descrizione" />
+    </div>
+  );
+}
 
 function SortableHeader({
   label,
@@ -93,16 +119,7 @@ export function createMovementColumns({
     {
       accessorKey: "category_name",
       accessorFn: (row) => normalizeCategoryDisplay(row.category_name),
-      header: ({ column }) => (
-        <div className="flex items-center gap-1">
-          <SortableHeader
-            label="Categoria"
-            sorted={column.getIsSorted()}
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          />
-          <ColumnFacetedFilter column={column} title="categoria" />
-        </div>
-      ),
+      header: CategoryNameColumnHeader,
       cell: ({ row }) => (
         <span className="text-muted-foreground">
           {normalizeCategoryDisplay(row.original.category_name)}
@@ -123,16 +140,7 @@ export function createMovementColumns({
     {
       accessorKey: "description",
       accessorFn: (row) => normalizeDescriptionDisplay(row.description),
-      header: ({ column }) => (
-        <div className="flex items-center gap-1">
-          <SortableHeader
-            label="Descrizione"
-            sorted={column.getIsSorted()}
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          />
-          <ColumnFacetedFilter column={column} title="descrizione" />
-        </div>
-      ),
+      header: DescriptionColumnHeader,
       cell: ({ row }) => (
         <span className="max-w-xs truncate font-medium">
           {normalizeDescriptionDisplay(row.original.description)}

@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import type { Movement } from "@/lib/cashflow/types";
 import {
+  facetedFilterFromSelection,
   hasActiveColumnFilters,
+  initialFacetedSelection,
   isFacetedFilterActive,
   matchesFacetedFilter,
   normalizeCategoryDisplay,
@@ -42,6 +44,45 @@ describe("normalizeDescriptionDisplay", () => {
   });
 });
 
+describe("facetedFilterFromSelection", () => {
+  const all = ["A", "B", "C"];
+
+  it("restituisce undefined se tutto è selezionato", () => {
+    expect(facetedFilterFromSelection(["A", "B", "C"], all)).toBeUndefined();
+    expect(facetedFilterFromSelection(["C", "A", "B"], all)).toBeUndefined();
+  });
+
+  it("restituisce il filtro per un sottoinsieme", () => {
+    expect(facetedFilterFromSelection(["A"], all)).toEqual({
+      selectedValues: ["A"],
+      allValues: ["A", "B", "C"],
+    });
+  });
+
+  it("restituisce filtro attivo con selezione vuota (nessuna riga)", () => {
+    expect(facetedFilterFromSelection([], all)).toEqual({
+      selectedValues: [],
+      allValues: ["A", "B", "C"],
+    });
+  });
+});
+
+describe("initialFacetedSelection", () => {
+  const all = ["A", "B"];
+
+  it("apre con tutto selezionato se non c’è filtro", () => {
+    expect(initialFacetedSelection(undefined, all)).toEqual(["A", "B"]);
+  });
+
+  it("apre con i valori committati se il filtro è attivo", () => {
+    const committed: FacetedColumnFilterValue = {
+      selectedValues: ["A"],
+      allValues: all,
+    };
+    expect(initialFacetedSelection(committed, all)).toEqual(["A"]);
+  });
+});
+
 describe("matchesFacetedFilter", () => {
   const normalize = normalizeCategoryDisplay;
 
@@ -50,11 +91,19 @@ describe("matchesFacetedFilter", () => {
     expect(
       matchesFacetedFilter("Spesa", { selectedValues: [] }, normalize),
     ).toBe(true);
+    expect(
+      matchesFacetedFilter(
+        "Spesa",
+        { selectedValues: ["A", "B"], allValues: ["A", "B"] },
+        normalize,
+      ),
+    ).toBe(true);
   });
 
   it("filters by selected values only", () => {
     const filter: FacetedColumnFilterValue = {
       selectedValues: ["Spesa"],
+      allValues: ["Spesa", "Stipendio"],
     };
     expect(matchesFacetedFilter("Spesa", filter, normalize)).toBe(true);
     expect(matchesFacetedFilter("Stipendio", filter, normalize)).toBe(false);
@@ -66,6 +115,7 @@ describe("matchesFacetedFilter", () => {
   it("ignores search text at row level", () => {
     const filter: FacetedColumnFilterValue = {
       selectedValues: ["auto.manutenzione"],
+      allValues: ["auto.manutenzione", "casa.affitto"],
     };
     expect(
       matchesFacetedFilter("auto.manutenzione", filter, normalize),
@@ -73,7 +123,10 @@ describe("matchesFacetedFilter", () => {
     expect(
       matchesFacetedFilter(
         "auto.manutenzione",
-        { selectedValues: ["auto.manutenzione", "casa.affitto"] },
+        {
+          selectedValues: ["auto.manutenzione", "casa.affitto"],
+          allValues: ["auto.manutenzione", "casa.affitto"],
+        },
         normalize,
       ),
     ).toBe(true);
@@ -85,6 +138,7 @@ describe("matchesFacetedFilter", () => {
   it("supports multiple selected values with OR semantics", () => {
     const filter: FacetedColumnFilterValue = {
       selectedValues: ["Bolletta gas", "Affitto"],
+      allValues: ["Bolletta gas", "Affitto", "Spesa"],
     };
     expect(
       matchesFacetedFilter("Bolletta gas", filter, normalizeDescriptionDisplay),
@@ -96,10 +150,33 @@ describe("matchesFacetedFilter", () => {
       matchesFacetedFilter("Spesa", filter, normalizeDescriptionDisplay),
     ).toBe(false);
   });
+
+  it("esclude tutte le righe se attivo ma nessun valore selezionato", () => {
+    const filter: FacetedColumnFilterValue = {
+      selectedValues: [],
+      allValues: ["A", "B"],
+    };
+    expect(matchesFacetedFilter("A", filter, normalize)).toBe(false);
+  });
 });
 
 describe("isFacetedFilterActive", () => {
-  it("detects active selections only", () => {
+  it("non è attivo se tutto è selezionato (Excel)", () => {
+    expect(
+      isFacetedFilterActive({
+        selectedValues: ["A", "B"],
+        allValues: ["A", "B"],
+      }),
+    ).toBe(false);
+  });
+
+  it("è attivo con sottoinsieme o legacy con selezione", () => {
+    expect(
+      isFacetedFilterActive({
+        selectedValues: ["A"],
+        allValues: ["A", "B"],
+      }),
+    ).toBe(true);
     expect(isFacetedFilterActive({ selectedValues: ["A"] })).toBe(true);
     expect(isFacetedFilterActive({ selectedValues: [] })).toBe(false);
     expect(isFacetedFilterActive(undefined)).toBe(false);
@@ -110,7 +187,13 @@ describe("hasActiveColumnFilters", () => {
   it("returns true when any column filter is active", () => {
     expect(
       hasActiveColumnFilters([
-        { id: "category_name", value: { selectedValues: ["Spesa"] } },
+        {
+          id: "category_name",
+          value: {
+            selectedValues: ["Spesa"],
+            allValues: ["Spesa", "Stipendio"],
+          },
+        },
       ]),
     ).toBe(true);
     expect(hasActiveColumnFilters([])).toBe(false);

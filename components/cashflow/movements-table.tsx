@@ -11,7 +11,12 @@ import {
   type ColumnFiltersState,
   type SortingState,
 } from "@tanstack/react-table";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { FacetedFilterCommitRegistrar } from "@/components/cashflow/faceted-filter-commit-registrar";
+import {
+  FacetedFilterOpenProvider,
+  useFacetedFilterOpenController,
+} from "@/components/cashflow/faceted-filter-open-context";
 import { createMovementColumns } from "@/components/cashflow/movements-table-columns";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,7 +30,9 @@ import {
 import type { FilterSummaryState } from "@/components/cashflow/period-summary-cards";
 import {
   hasActiveColumnFilters,
+  isFacetedFilterActive,
   summarizeMovements,
+  type FacetedColumnFilterValue,
 } from "@/lib/cashflow/table-filter";
 import type { Movement } from "@/lib/cashflow/types";
 import { cn } from "@/lib/utils";
@@ -59,11 +66,27 @@ export function MovementsTable({
 }: MovementsTableProps) {
   const [sorting, setSorting] = useState<SortingState>(DEFAULT_SORTING);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const { value: facetedOpenValue, closeAll: closeFacetedFilters } =
+    useFacetedFilterOpenController();
+
+  const commitFacetedFilter = useCallback(
+    (columnId: string, value: FacetedColumnFilterValue | undefined) => {
+      setColumnFilters((current) => {
+        const rest = current.filter((filter) => filter.id !== columnId);
+        if (!value || !isFacetedFilterActive(value)) {
+          return rest;
+        }
+        return [...rest, { id: columnId, value }];
+      });
+    },
+    [],
+  );
 
   useEffect(() => {
     setSorting(DEFAULT_SORTING);
     setColumnFilters([]);
-  }, [from, to]);
+    closeFacetedFilters();
+  }, [from, to, closeFacetedFilters]);
 
   const columns = useMemo(
     () =>
@@ -103,7 +126,14 @@ export function MovementsTable({
       active: filtersActive,
       summary,
     });
-  }, [filtersActive, columnFilters, sorting, movements, table, onFilterSummaryChange]);
+  }, [
+    filtersActive,
+    columnFilters,
+    sorting,
+    movements,
+    table,
+    onFilterSummaryChange,
+  ]);
 
   useEffect(() => {
     onFilteredMovementsChange(
@@ -122,7 +152,9 @@ export function MovementsTable({
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border">
+    <FacetedFilterOpenProvider value={facetedOpenValue}>
+      <FacetedFilterCommitRegistrar onCommit={commitFacetedFilter} />
+      <div className="overflow-x-auto rounded-lg border [scrollbar-gutter:stable]">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -204,5 +236,6 @@ export function MovementsTable({
           </TableBody>
         </Table>
       </div>
+    </FacetedFilterOpenProvider>
   );
 }

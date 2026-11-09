@@ -3,7 +3,45 @@ import type { Movement, MonthSummary } from "@/lib/cashflow/types";
 
 export type FacetedColumnFilterValue = {
   selectedValues: string[];
+  /** Universo valori al momento dell’applicazione (semantica Excel). */
+  allValues: string[];
 };
+
+function sortedUnique(values: string[]): string[] {
+  return [...new Set(values)].sort((a, b) => a.localeCompare(b, "it"));
+}
+
+function sameValueSet(a: string[], b: string[]): boolean {
+  const left = sortedUnique(a);
+  const right = sortedUnique(b);
+  return (
+    left.length === right.length && left.every((value, index) => value === right[index])
+  );
+}
+
+export function facetedFilterFromSelection(
+  selectedValues: string[],
+  allValues: string[],
+): FacetedColumnFilterValue | undefined {
+  const all = sortedUnique(allValues);
+  const selected = sortedUnique(selectedValues);
+
+  if (sameValueSet(selected, all)) {
+    return undefined;
+  }
+
+  return { selectedValues: selected, allValues: all };
+}
+
+export function initialFacetedSelection(
+  committed: FacetedColumnFilterValue | undefined,
+  allValues: string[],
+): string[] {
+  if (isFacetedFilterActive(committed)) {
+    return [...committed!.selectedValues];
+  }
+  return sortedUnique(allValues);
+}
 
 export function normalizeCategoryDisplay(
   value: string | null | undefined,
@@ -23,7 +61,12 @@ export function isFacetedFilterActive(
   if (!value) {
     return false;
   }
-  return value.selectedValues.length > 0;
+
+  if (!value.allValues?.length) {
+    return value.selectedValues.length > 0;
+  }
+
+  return !sameValueSet(value.selectedValues, value.allValues);
 }
 
 export function matchesFacetedFilter(
@@ -37,6 +80,10 @@ export function matchesFacetedFilter(
 
   const display = normalize(rawValue);
   const { selectedValues } = filterValue!;
+
+  if (selectedValues.length === 0) {
+    return false;
+  }
 
   return selectedValues.includes(display);
 }
