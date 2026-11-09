@@ -58,20 +58,13 @@ export type FamilySaldiMember = {
   name: string;
 };
 
-export type FamilySaldiNetsData = {
+export type FamilySaldiSummary = {
   familyId: string;
-  expenses: {
-    payerUserId: string;
-    movementAmount: number;
-    shares: MaterializedShare[];
-  }[];
-  reimbursements: {
-    fromUserId: string;
-    toUserId: string;
-    amount: number;
-  }[];
   currentMembers: FamilySaldiMember[];
   nameById: Record<string, string>;
+  netsByUserId: Record<string, number>;
+  transfers: Transfer[];
+  personNets: PersonNet[];
 };
 
 export type SaldiActivityItem =

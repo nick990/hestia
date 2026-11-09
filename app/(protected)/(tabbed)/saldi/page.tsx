@@ -2,7 +2,7 @@ import { SaldiPage } from "@/components/saldi/saldi-page";
 import { listCategoryOptions } from "@/lib/categories/queries";
 import { getTodayIsoDate } from "@/lib/cashflow/date-range";
 import { getCurrentUserFamily } from "@/lib/families/queries";
-import { listFamilyNets, listSaldiActivity } from "@/lib/saldi/queries";
+import { listFamilySaldiSummary, listSaldiActivity } from "@/lib/saldi/queries";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
@@ -22,20 +22,20 @@ export default async function SaldiRoutePage() {
     redirect("/");
   }
 
-  const [data, activity, categories] = await Promise.all([
-    listFamilyNets(),
+  const [summary, activity, categories] = await Promise.all([
+    listFamilySaldiSummary(user.id),
     listSaldiActivity(0),
     listCategoryOptions(),
   ]);
 
-  if (!data) {
+  if (!summary) {
     redirect("/");
   }
 
   return (
     <SaldiPage
       currentUserId={user.id}
-      data={data}
+      summary={summary}
       initialActivity={activity.items}
       initialHasMore={activity.hasMore}
       categories={categories}

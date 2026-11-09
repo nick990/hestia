@@ -19,20 +19,16 @@ import type { MovementCategoryOption } from "@/lib/categories/types";
 import { getTodayIsoDate } from "@/lib/cashflow/date-range";
 import { formatEuro } from "@/lib/cashflow/format";
 import type { Movement } from "@/lib/cashflow/types";
-import {
-  computeNets,
-  simplifyTransfers,
-  transfersForUser,
-} from "@/lib/saldi/balances";
-import { defaultReimbursement, sortPersonNets } from "@/lib/saldi/presentation";
-import type { FamilySaldiNetsData, SaldiActivityItem } from "@/lib/saldi/types";
+import { transfersForUser } from "@/lib/saldi/balances";
+import { defaultReimbursement } from "@/lib/saldi/presentation";
+import type { FamilySaldiSummary, SaldiActivityItem } from "@/lib/saldi/types";
 import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 type SaldiPageProps = {
   currentUserId: string;
-  data: FamilySaldiNetsData;
+  summary: FamilySaldiSummary;
   initialActivity: SaldiActivityItem[];
   initialHasMore: boolean;
   categories: MovementCategoryOption[];
@@ -49,7 +45,7 @@ function formatNet(net: number): string {
 
 export function SaldiPage({
   currentUserId,
-  data,
+  summary,
   initialActivity,
   initialHasMore,
   categories,
@@ -86,59 +82,35 @@ export function SaldiPage({
   );
 
   const nameById = useMemo(
-    () => new Map(Object.entries(data.nameById)),
-    [data.nameById],
+    () => new Map(Object.entries(summary.nameById)),
+    [summary.nameById],
   );
 
   const familyMembers = useMemo(
     () =>
-      data.currentMembers.map((member) => ({
+      summary.currentMembers.map((member) => ({
         user_id: member.userId,
         display_name: member.name,
       })),
-    [data.currentMembers],
+    [summary.currentMembers],
   );
 
   const { mine, people, defaults } = useMemo(() => {
-    const nets = computeNets(data.expenses, data.reimbursements);
-    const allTransfers = simplifyTransfers(nets);
-    const mineTransfers = transfersForUser(allTransfers, currentUserId);
-    const currentIds = new Set(
-      data.currentMembers.map((member) => member.userId),
-    );
-    const peopleNets = sortPersonNets(
-      [
-        ...data.currentMembers.map((member) => ({
-          userId: member.userId,
-          name: member.name,
-          net: nets.get(member.userId) ?? 0,
-          isCurrentMember: true,
-        })),
-        ...[...nets.keys()]
-          .filter((userId) => !currentIds.has(userId))
-          .map((userId) => ({
-            userId,
-            name: data.nameById[userId] ?? "—",
-            net: nets.get(userId) ?? 0,
-            isCurrentMember: false,
-          })),
-      ],
-      currentUserId,
-    );
-    const memberIdsByName = [...data.currentMembers]
+    const mineTransfers = transfersForUser(summary.transfers, currentUserId);
+    const memberIdsByName = [...summary.currentMembers]
       .sort((a, b) => a.name.localeCompare(b.name, "it"))
       .map((member) => member.userId);
 
     return {
       mine: mineTransfers,
-      people: peopleNets,
+      people: summary.personNets,
       defaults: defaultReimbursement(
         mineTransfers,
         currentUserId,
         memberIdsByName,
       ),
     };
-  }, [currentUserId, data]);
+  }, [currentUserId, summary]);
 
   function refreshLists() {
     setExtraItems([]);
@@ -269,7 +241,7 @@ export function SaldiPage({
         )}
       </section>
 
-      {data.currentMembers.length >= 3 ? (
+      {summary.currentMembers.length >= 3 ? (
         <section className="space-y-2">
           <ul className="space-y-1">
             {people.map((person) => (
@@ -285,7 +257,7 @@ export function SaldiPage({
         </section>
       ) : null}
 
-      {data.currentMembers.length >= 2 ? (
+      {summary.currentMembers.length >= 2 ? (
         <div>
           <Button
             type="button"
@@ -301,9 +273,13 @@ export function SaldiPage({
       ) : null}
 
       <section className="space-y-2">
+        <p className="text-xs leading-5 text-muted-foreground">
+          In lista compaiono solo i movimenti tra almeno due persone in cui sei
+          coinvolto.
+        </p>
         <SaldiActivityList
           items={items}
-          nameById={data.nameById}
+          nameById={summary.nameById}
           hasFamily
           hasMore={hasMore}
           loadingMore={loadingMore}
@@ -317,16 +293,12 @@ export function SaldiPage({
             setReimburseOpen(true);
           }}
         />
-        <p className="text-xs leading-5 text-muted-foreground">
-          In lista compaiono solo i movimenti tra almeno due persone in cui sei
-          coinvolto.
-        </p>
       </section>
 
       <ReimbursementDialog
         open={reimburseOpen}
         mode={reimburseMode}
-        members={data.currentMembers}
+        members={summary.currentMembers}
         today={getTodayIsoDate()}
         createDefaults={defaults}
         editing={
@@ -362,12 +334,12 @@ export function SaldiPage({
         reimbursement={deleting}
         fromName={
           editingReimbursement
-            ? (data.nameById[editingReimbursement.fromUserId] ?? "—")
+            ? (summary.nameById[editingReimbursement.fromUserId] ?? "—")
             : "—"
         }
         toName={
           editingReimbursement
-            ? (data.nameById[editingReimbursement.toUserId] ?? "—")
+            ? (summary.nameById[editingReimbursement.toUserId] ?? "—")
             : "—"
         }
         pending={pending}

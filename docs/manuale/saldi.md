@@ -17,7 +17,7 @@ Se non hai niente da dare né da ricevere: «Sei in pari». Qualcun altro in fam
 
 In famiglia da **due** persone il messaggio in alto basta: non compare il resoconto con il netto di ciascuno. Da **tre** membri in su, sotto vedi anche il netto di ogni persona (positivo = gli devono, negativo = deve). Tu sei il primo; poi gli altri per nome. Chi è uscito dalla famiglia compare solo se il suo netto non è zero.
 
-Sotto **Registra rimborso** c'è un'unica lista: uscite ripartite e rimborsi, mescolati, i più recenti in cima. Le prime 20 righe; scorrendo in fondo se ne caricano altre 20. I netti in alto non dipendono da quante righe hai caricato.
+Sotto **Registra rimborso** una nota breve spiega cosa compare in lista; sotto, un'unica lista di uscite ripartite e rimborsi, mescolati, i più recenti in cima. Le prime 20 righe; scorrendo in fondo se ne caricano altre 20. I netti in alto non dipendono da quante righe hai caricato (vengono calcolati sul server al caricamento della pagina).
 
 In lista compaiono solo i movimenti tra almeno due persone in cui sei coinvolto. Le altre — ad esempio un caffè offerto registrato solo a tuo nome, o una ripartizione tra altri due — restano in Cashflow e contano comunque nei netti se rilevanti.
 

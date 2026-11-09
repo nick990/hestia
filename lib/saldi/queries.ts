@@ -9,8 +9,9 @@ import {
   mergeSaldiActivity,
 } from "@/lib/saldi/activity";
 import { inferCustomSplit } from "@/lib/saldi/persist";
+import { buildFamilySaldiSummary } from "@/lib/saldi/summary";
 import type {
-  FamilySaldiNetsData,
+  FamilySaldiSummary,
   MaterializedShare,
   MovementSplitView,
   SaldiActivityItem,
@@ -206,7 +207,9 @@ export async function getMovementSplit(
   };
 }
 
-export async function listFamilyNets(): Promise<FamilySaldiNetsData | null> {
+export async function listFamilySaldiSummary(
+  currentUserId: string,
+): Promise<FamilySaldiSummary | null> {
   const family = await getCurrentUserFamily();
 
   if (!family) {
@@ -289,7 +292,7 @@ export async function listFamilyNets(): Promise<FamilySaldiNetsData | null> {
     }
   }
 
-  return {
+  return buildFamilySaldiSummary({
     familyId: family.family_id,
     expenses,
     reimbursements,
@@ -298,7 +301,8 @@ export async function listFamilyNets(): Promise<FamilySaldiNetsData | null> {
       name: member.display_name,
     })),
     nameById,
-  };
+    currentUserId,
+  });
 }
 
 export async function listSaldiActivity(

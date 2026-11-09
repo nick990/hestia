@@ -1,7 +1,7 @@
 # Design: summary Saldi calcolato lato server
 
 **Data:** 2026-11-09  
-**Stato:** in review (brainstorming)  
+**Stato:** implementato  
 **Progetto:** Hestia (Next.js, Supabase)  
 **Estende:** `2026-09-06-saldi-ripartizione-design.md` (R20–R22, modello dati invariato)  
 **Non sostituisce:** lista attività paginata (`2026-09-06-saldi-activity-feed-design.md`)
